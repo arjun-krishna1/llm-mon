@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 
 type LlmType =
@@ -14,7 +14,7 @@ type LlmType =
 
 type Availability = 'closed API' | 'open weights' | 'open source'
 type Rarity = 'starter' | 'common' | 'uncommon' | 'rare' | 'legendary'
-type Screen = 'title' | 'intro' | 'starter' | 'map' | 'battle' | 'codex'
+type Screen = 'title' | 'intro' | 'starter' | 'map' | 'battle' | 'llmdex'
 type BattleKind = 'wild' | 'trainer'
 type BattleResult = 'won' | 'lost'
 type BattleEffectPhase = 'exchange' | 'guard'
@@ -318,9 +318,131 @@ const SPRITE_ASSETS: Record<string, string> = {
 }
 
 const MAP_ASSETS = {
-  player: assetPath('assets/kenney/chars/professor.png'),
+  professor: assetPath('assets/llmmon/professor-karpathy.svg'),
+  player: assetPath('assets/kenney/chars/robot_blue.png'),
   trainer: assetPath('assets/kenney/chars/trainer.png'),
   tile: (id: string) => assetPath(`assets/kenney/tiny-town/tiles/tile_${id}.png`),
+}
+
+type TitleNote = {
+  frequency: number
+  beat: number
+  length: number
+  volume?: number
+  wave?: OscillatorType
+}
+
+type MusicMode = 'title' | 'route' | 'battle'
+type SfxKind = 'select' | 'confirm' | 'step' | 'bump' | 'encounter' | 'hit'
+
+const TITLE_AUDIO_BEAT = 0.18
+const TITLE_AUDIO_LOOP_BEATS = 24
+const TITLE_AUDIO_LOOP_MS = TITLE_AUDIO_BEAT * TITLE_AUDIO_LOOP_BEATS * 1000
+const TITLE_MELODY: TitleNote[] = [
+  { frequency: 392, beat: 0, length: 0.72, volume: 0.055 },
+  { frequency: 523.25, beat: 2, length: 0.32, volume: 0.05 },
+  { frequency: 587.33, beat: 3, length: 0.28, volume: 0.05 },
+  { frequency: 659.25, beat: 4, length: 0.72, volume: 0.058 },
+  { frequency: 587.33, beat: 6, length: 0.32, volume: 0.046 },
+  { frequency: 523.25, beat: 7, length: 0.28, volume: 0.046 },
+  { frequency: 440, beat: 8, length: 0.72, volume: 0.052 },
+  { frequency: 523.25, beat: 10, length: 0.32, volume: 0.048 },
+  { frequency: 659.25, beat: 11, length: 0.28, volume: 0.05 },
+  { frequency: 783.99, beat: 12, length: 1.08, volume: 0.06 },
+  { frequency: 659.25, beat: 16, length: 0.34, volume: 0.052 },
+  { frequency: 698.46, beat: 17, length: 0.28, volume: 0.048 },
+  { frequency: 783.99, beat: 18, length: 0.72, volume: 0.055 },
+  { frequency: 1046.5, beat: 21, length: 0.54, volume: 0.046 },
+]
+const TITLE_BASS: TitleNote[] = [
+  { frequency: 98, beat: 0, length: 1.08, volume: 0.04, wave: 'triangle' },
+  { frequency: 130.81, beat: 6, length: 0.72, volume: 0.035, wave: 'triangle' },
+  { frequency: 110, beat: 8, length: 1.08, volume: 0.04, wave: 'triangle' },
+  { frequency: 146.83, beat: 14, length: 0.72, volume: 0.035, wave: 'triangle' },
+  { frequency: 98, beat: 16, length: 1.2, volume: 0.038, wave: 'triangle' },
+]
+const ROUTE_MELODY: TitleNote[] = [
+  { frequency: 329.63, beat: 0, length: 0.42, volume: 0.038, wave: 'triangle' },
+  { frequency: 392, beat: 2, length: 0.34, volume: 0.036, wave: 'triangle' },
+  { frequency: 440, beat: 4, length: 0.52, volume: 0.04, wave: 'triangle' },
+  { frequency: 392, beat: 7, length: 0.3, volume: 0.034, wave: 'triangle' },
+  { frequency: 493.88, beat: 8, length: 0.46, volume: 0.04, wave: 'triangle' },
+  { frequency: 523.25, beat: 12, length: 0.62, volume: 0.042, wave: 'triangle' },
+  { frequency: 440, beat: 16, length: 0.42, volume: 0.038, wave: 'triangle' },
+  { frequency: 392, beat: 18, length: 0.36, volume: 0.036, wave: 'triangle' },
+  { frequency: 329.63, beat: 20, length: 0.72, volume: 0.038, wave: 'triangle' },
+]
+const ROUTE_BASS: TitleNote[] = [
+  { frequency: 82.41, beat: 0, length: 0.72, volume: 0.028, wave: 'sine' },
+  { frequency: 98, beat: 4, length: 0.72, volume: 0.028, wave: 'sine' },
+  { frequency: 110, beat: 8, length: 0.72, volume: 0.03, wave: 'sine' },
+  { frequency: 98, beat: 12, length: 0.72, volume: 0.028, wave: 'sine' },
+  { frequency: 82.41, beat: 16, length: 1.08, volume: 0.03, wave: 'sine' },
+]
+const BATTLE_MELODY: TitleNote[] = [
+  { frequency: 261.63, beat: 0, length: 0.2, volume: 0.048 },
+  { frequency: 392, beat: 1, length: 0.18, volume: 0.05 },
+  { frequency: 523.25, beat: 2, length: 0.2, volume: 0.052 },
+  { frequency: 587.33, beat: 3, length: 0.18, volume: 0.05 },
+  { frequency: 659.25, beat: 4, length: 0.28, volume: 0.054 },
+  { frequency: 523.25, beat: 6, length: 0.18, volume: 0.048 },
+  { frequency: 783.99, beat: 8, length: 0.28, volume: 0.055 },
+  { frequency: 698.46, beat: 10, length: 0.22, volume: 0.052 },
+  { frequency: 587.33, beat: 12, length: 0.24, volume: 0.05 },
+  { frequency: 783.99, beat: 15, length: 0.26, volume: 0.055 },
+  { frequency: 880, beat: 18, length: 0.36, volume: 0.056 },
+]
+const BATTLE_BASS: TitleNote[] = [
+  { frequency: 65.41, beat: 0, length: 0.3, volume: 0.04, wave: 'sawtooth' },
+  { frequency: 65.41, beat: 2, length: 0.3, volume: 0.035, wave: 'sawtooth' },
+  { frequency: 73.42, beat: 4, length: 0.32, volume: 0.04, wave: 'sawtooth' },
+  { frequency: 82.41, beat: 8, length: 0.32, volume: 0.04, wave: 'sawtooth' },
+  { frequency: 98, beat: 12, length: 0.3, volume: 0.036, wave: 'sawtooth' },
+  { frequency: 73.42, beat: 16, length: 0.48, volume: 0.038, wave: 'sawtooth' },
+]
+
+const MUSIC_PATTERNS: Record<MusicMode, { melody: TitleNote[]; bass: TitleNote[] }> = {
+  title: { melody: TITLE_MELODY, bass: TITLE_BASS },
+  route: { melody: ROUTE_MELODY, bass: ROUTE_BASS },
+  battle: { melody: BATTLE_MELODY, bass: BATTLE_BASS },
+}
+
+function createAudioContext(): AudioContext | null {
+  const audioContextConstructor = window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+  return audioContextConstructor ? new audioContextConstructor() : null
+}
+
+function scheduleTone(context: AudioContext, destination: AudioNode, note: TitleNote, loopStart: number) {
+  const oscillator = context.createOscillator()
+  const gain = context.createGain()
+  const startAt = loopStart + note.beat * TITLE_AUDIO_BEAT
+  const endAt = startAt + note.length
+  oscillator.type = note.wave ?? 'square'
+  oscillator.frequency.setValueAtTime(note.frequency, startAt)
+  gain.gain.setValueAtTime(0.0001, startAt)
+  gain.gain.exponentialRampToValueAtTime(note.volume ?? 0.045, startAt + 0.018)
+  gain.gain.exponentialRampToValueAtTime(0.0001, endAt)
+  oscillator.connect(gain)
+  gain.connect(destination)
+  oscillator.start(startAt)
+  oscillator.stop(endAt + 0.04)
+}
+
+function musicModeForScreen(screen: Screen): MusicMode {
+  if (screen === 'battle') {
+    return 'battle'
+  }
+  if (screen === 'title') {
+    return 'title'
+  }
+  return 'route'
+}
+
+function scheduleMusic(context: AudioContext, destination: AudioNode, mode: MusicMode) {
+  const loopStart = context.currentTime + 0.04
+  const pattern = MUSIC_PATTERNS[mode]
+  pattern.bass.forEach((note) => scheduleTone(context, destination, note, loopStart))
+  pattern.melody.forEach((note) => scheduleTone(context, destination, note, loopStart))
 }
 
 function tileImageFor(code: TerrainCode, x: number, y: number): string {
@@ -548,7 +670,12 @@ function App() {
   const [trainerDefeated, setTrainerDefeated] = useState(false)
   const [battle, setBattle] = useState<BattleState | null>(null)
   const [battleEffect, setBattleEffect] = useState<BattleEffect | null>(null)
-  const [routeMessage, setRouteMessage] = useState('Professor Vector is waiting in the lab with three starter LLM-mon.')
+  const [routeMessage, setRouteMessage] = useState('Professor Karpathy is waiting in the lab with three starter LLM-mon.')
+  const [audioOn, setAudioOn] = useState(false)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const audioGainRef = useRef<GainNode | null>(null)
+  const musicLoopRef = useRef<number | null>(null)
+  const currentMusicModeRef = useRef<MusicMode | null>(null)
 
   const starters = useMemo(() => STARTER_IDS.map(getModel), [])
   const activeMoves = useMemo(() => {
@@ -558,12 +685,102 @@ function App() {
     return STARTER_MOVES.map((move) => (move.id === 'typed-burst' ? { ...move, type: starter.type, name: `${starter.type} Burst` } : move))
   }, [starter])
 
+  const stopMusicNodes = useCallback(() => {
+    if (musicLoopRef.current !== null) {
+      window.clearInterval(musicLoopRef.current)
+      musicLoopRef.current = null
+    }
+    currentMusicModeRef.current = null
+    const context = audioContextRef.current
+    const master = audioGainRef.current
+    if (context && master) {
+      const now = context.currentTime
+      master.gain.cancelScheduledValues(now)
+      master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
+      master.gain.exponentialRampToValueAtTime(0.0001, now + 0.12)
+    }
+  }, [])
+
+  const startMusic = useCallback((mode: MusicMode) => {
+    const context = audioContextRef.current
+    const master = audioGainRef.current
+    if (!context || !master || context.state === 'closed') {
+      return
+    }
+    if (currentMusicModeRef.current === mode && musicLoopRef.current !== null) {
+      return
+    }
+    if (musicLoopRef.current !== null) {
+      window.clearInterval(musicLoopRef.current)
+      musicLoopRef.current = null
+    }
+    currentMusicModeRef.current = mode
+    const now = context.currentTime
+    master.gain.cancelScheduledValues(now)
+    master.gain.setValueAtTime(Math.max(master.gain.value, 0.0001), now)
+    master.gain.exponentialRampToValueAtTime(mode === 'battle' ? 0.18 : 0.15, now + 0.18)
+    scheduleMusic(context, master, mode)
+    musicLoopRef.current = window.setInterval(() => scheduleMusic(context, master, mode), TITLE_AUDIO_LOOP_MS)
+  }, [])
+
+  const enableAudio = useCallback(() => {
+    const context = audioContextRef.current ?? createAudioContext()
+    if (!context) {
+      return
+    }
+    audioContextRef.current = context
+    if (!audioGainRef.current) {
+      const master = context.createGain()
+      master.gain.value = 0.0001
+      master.connect(context.destination)
+      audioGainRef.current = master
+    }
+    void context.resume().then(() => startMusic(musicModeForScreen(screen)))
+  }, [screen, startMusic])
+
+  const stopAudio = useCallback(() => {
+    stopMusicNodes()
+    setAudioOn(false)
+  }, [stopMusicNodes])
+
+  const toggleAudio = () => {
+    if (audioOn) {
+      stopAudio()
+    } else {
+      enableAudio()
+      setAudioOn(true)
+    }
+  }
+
+  const playSfx = useCallback((kind: SfxKind) => {
+    if (!audioOn) {
+      return
+    }
+    const context = audioContextRef.current
+    const master = audioGainRef.current
+    if (!context || !master || context.state === 'closed') {
+      return
+    }
+    const now = context.currentTime
+    const notes: Record<SfxKind, TitleNote[]> = {
+      select: [{ frequency: 587.33, beat: 0, length: 0.08, volume: 0.035 }],
+      confirm: [{ frequency: 523.25, beat: 0, length: 0.08, volume: 0.038 }, { frequency: 783.99, beat: 0.35, length: 0.1, volume: 0.034 }],
+      step: [{ frequency: 164.81, beat: 0, length: 0.055, volume: 0.018, wave: 'triangle' }],
+      bump: [{ frequency: 98, beat: 0, length: 0.12, volume: 0.032, wave: 'sawtooth' }],
+      encounter: [{ frequency: 196, beat: 0, length: 0.12, volume: 0.052 }, { frequency: 392, beat: 0.5, length: 0.16, volume: 0.048 }],
+      hit: [{ frequency: 146.83, beat: 0, length: 0.1, volume: 0.045, wave: 'sawtooth' }, { frequency: 98, beat: 0.4, length: 0.12, volume: 0.038, wave: 'sawtooth' }],
+    }
+    notes[kind].forEach((note) => scheduleTone(context, master, note, now))
+  }, [audioOn])
+
   const beginIntro = () => {
+    playSfx('confirm')
     setScreen('intro')
     setRouteMessage('The benchmark tide is rising. Pick a partner before entering Route 01: Eval Grass.')
   }
 
   const chooseStarter = (model: LlmMon) => {
+    playSfx('confirm')
     setStarter(model)
     setPosition({ x: 3, y: 3 })
     setRouteMessage(`${model.name} joined your party. Walk into the grass to benchmark your first wild LLM-mon.`)
@@ -574,6 +791,7 @@ function App() {
     if (!starter) {
       return
     }
+    playSfx('encounter')
     setBattleEffect(null)
     setBattle({
       opponent,
@@ -586,7 +804,7 @@ function App() {
       log: [kind === 'trainer' ? `${trainerName} challenged you with ${opponent.name}!` : `A wild ${opponent.name} appeared in the grass!`],
     })
     setScreen('battle')
-  }, [starter])
+  }, [playSfx, starter])
 
   const movePlayer = useCallback((dx: number, dy: number) => {
     if (screen !== 'map' || !starter) {
@@ -595,9 +813,11 @@ function App() {
     const next = { x: position.x + dx, y: position.y + dy }
     const code = tileAt(next)
     if (isBlocked(code, trainerDefeated)) {
+      playSfx('bump')
       setRouteMessage(code === 'D' ? 'The first gym gate is locked for this vertical slice. Champion Andrej waits beyond future routes.' : `${TILE_LABELS[code]} blocks the path.`)
       return
     }
+    playSfx('step')
     setPosition(next)
     if (code === 'S') {
       setRouteMessage('Sign: Open-weight LLM-mon are common in grass. Closed-source legends are rare encounters.')
@@ -618,10 +838,11 @@ function App() {
       }
       return
     }
-    setRouteMessage(code === 'L' ? 'Professor Vector: pick a starter and pursue the LLM-mon League.' : 'Route 01: Eval Grass stretches toward the locked Data Gym gate.')
-  }, [position, screen, starter, startBattle, stepsInGrass, trainerDefeated])
+    setRouteMessage(code === 'L' ? 'Professor Karpathy: pick a starter and pursue the LLM-mon League.' : 'Route 01: Eval Grass stretches toward the locked Data Gym gate.')
+  }, [playSfx, position, screen, starter, startBattle, stepsInGrass, trainerDefeated])
 
   const inspectTile = useCallback(() => {
+    playSfx('select')
     const code = tileAt(position)
     if (code === 'L') {
       setRouteMessage('Model Lab memo: Strength = Artificial Analysis Intelligence Index; speed and TTFT shape battle tempo.')
@@ -632,7 +853,7 @@ function App() {
       return
     }
     setRouteMessage(`${TILE_LABELS[code]}: ${code === 'G' ? 'wild encounters favor open-weight LLM-mon.' : 'nothing unusual here.'}`)
-  }, [position])
+  }, [playSfx, position])
 
   const handleMove = (move: Move) => {
     if (!battle || !starter || battle.result) {
@@ -640,6 +861,7 @@ function App() {
     }
 
     if (move.id === 'context-guard') {
+      playSfx('confirm')
       setBattleEffect({ phase: 'guard', nonce: battle.turn })
       setBattle({
         ...battle,
@@ -650,6 +872,7 @@ function App() {
       return
     }
 
+    playSfx('hit')
     const playerDamage = damageFor(starter, battle.opponent, move, 1)
     const nextEnemyHp = Math.max(0, battle.enemyHp - playerDamage)
     if (nextEnemyHp === 0) {
@@ -690,14 +913,15 @@ function App() {
     if (!battle) {
       return
     }
+    playSfx('confirm')
     if (battle.result === 'won') {
-      setRouteMessage(battle.kind === 'trainer' ? 'Mira: Your benchmark discipline is real. The Data Gym gate still needs a future badge.' : `${battle.opponent.name} added a codex entry and vanished into the tall grass.`)
+      setRouteMessage(battle.kind === 'trainer' ? 'Mira: Your benchmark discipline is real. The Data Gym gate still needs a future badge.' : `${battle.opponent.name} added an LLMdex entry and vanished into the tall grass.`)
       setBattleEffect(null)
       setBattle(null)
       setScreen('map')
       return
     }
-    setRouteMessage('Professor Vector healed your starter and reminded you: latency matters as much as strength.')
+    setRouteMessage('Professor Karpathy healed your starter and reminded you: latency matters as much as strength.')
     setBattleEffect(null)
     setBattle(null)
     setPosition({ x: 3, y: 3 })
@@ -711,6 +935,16 @@ function App() {
     const timeout = window.setTimeout(() => setBattleEffect(null), 760)
     return () => window.clearTimeout(timeout)
   }, [battleEffect])
+
+  useEffect(() => {
+    if (audioOn) {
+      startMusic(musicModeForScreen(screen))
+    } else {
+      stopMusicNodes()
+    }
+  }, [audioOn, screen, startMusic, stopMusicNodes])
+
+  useEffect(() => stopMusicNodes, [stopMusicNodes])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -745,13 +979,32 @@ function App() {
   const renderTitle = () => (
     <main className="screen title-screen">
       <div className="skyline" />
+      <div className="title-bubbles" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="title-legends" aria-hidden="true">
+        <span className="legend-shape legend-left" />
+        <span className="legend-shape legend-right" />
+      </div>
       <section className="title-card pixel-panel">
-        <p className="eyebrow">A browser RPG vertical slice</p>
-        <h1>LLM-mon</h1>
+        <p className="eyebrow">Hoennet benchmark version</p>
+        <h1 className="title-logo" aria-label="LLMmon"><span>LLM</span><span>mon</span></h1>
+        <p className="title-version">SAPPHIRE BENCHMARK</p>
         <p className="subtitle">Benchmark monsters, starter labs, tall grass encounters, and one route trainer battle.</p>
+        <p className="title-copyright">@2026 arjun krishna</p>
+        <p className="press-start">Press Start / Click Start New Journey</p>
         <div className="title-actions">
           <button className="pixel-button" onClick={beginIntro}>Start new journey</button>
-          <button className="pixel-button secondary" onClick={() => setScreen('codex')}>Open codex</button>
+          <button className="pixel-button secondary" onClick={() => {
+            playSfx('select')
+            setScreen('llmdex')
+          }}>Open LLMdex</button>
+          <button className={`pixel-button sound-toggle ${audioOn ? 'is-on' : ''}`} onClick={toggleAudio}>{audioOn ? 'Mute audio' : 'Play audio'}</button>
         </div>
       </section>
     </main>
@@ -762,14 +1015,14 @@ function App() {
       <section className="pixel-panel professor-lab-panel">
         <div className="professor-stage">
           <div className="professor-sprite-frame">
-            <img src={MAP_ASSETS.player} alt="Professor Vector" />
+            <img src={MAP_ASSETS.professor} alt="Professor Karpathy" />
           </div>
           <div className="lab-orb lab-orb-openai" />
           <div className="lab-orb lab-orb-anthropic" />
           <div className="lab-orb lab-orb-zai" />
         </div>
         <div className="dialogue-box">
-          <p className="eyebrow">Professor Vector</p>
+          <p className="eyebrow">Professor Karpathy</p>
           <h2>Welcome to the Hoennet Region.</h2>
           <p>
             LLM-mon live inside benchmark grass, provider clouds, and long-context caves. Trainers battle by balancing latency,
@@ -792,7 +1045,7 @@ function App() {
             <p className="eyebrow">Model Lab</p>
             <h2>Choose your starter LLM-mon</h2>
           </div>
-          <button className="pixel-button secondary" onClick={() => setScreen('codex')}>Stats codex</button>
+          <button className="pixel-button secondary" onClick={() => setScreen('llmdex')}>Open LLMdex</button>
         </div>
         <div className="starter-grid">
           {starters.map((model) => (
@@ -811,8 +1064,9 @@ function App() {
             <div>
               <p className="eyebrow">Route 01</p>
               <h2>Eval Grass</h2>
+              <span className="location-pill">Hoennet south coast</span>
             </div>
-            <button className="pixel-button secondary" onClick={() => setScreen('codex')}>Codex</button>
+            <button className="pixel-button secondary" onClick={() => setScreen('llmdex')}>LLMdex</button>
           </div>
           <div className="tile-map" role="application" aria-label="LLM-mon route map">
             {ROUTE_MAP.map((row, y) =>
@@ -823,6 +1077,8 @@ function App() {
                   <div key={`${x}-${y}`} className={`tile tile-${codeForRender === '.' ? 'path' : codeForRender}`} title={TILE_LABELS[codeForRender]}>
                     <img className="tile-art" src={tileImageFor(codeForRender, x, y)} alt="" />
                     {codeForRender === 'G' ? <span className="grass-shimmer" /> : null}
+                    {codeForRender === '.' && (x + y) % 4 === 0 ? <span className="route-pebble" /> : null}
+                    {codeForRender === 'R' ? <span className="ridge-highlight" /> : null}
                     {codeForRender === 'S' ? <span className="sign-marker">!</span> : null}
                     {codeForRender === 'T' ? (<> <span className="trainer-alert">!</span><img className="character-sprite npc" src={MAP_ASSETS.trainer} alt="Benchmark Scout Mira" /></>) : null}
                     {codeForRender === 'D' ? <span className="gate">GYM</span> : null}
@@ -832,6 +1088,11 @@ function App() {
               }),
             )}
           </div>
+          <div className="map-status-row">
+            <span>Tile {position.x + 1}, {position.y + 1}</span>
+            <span>{TILE_LABELS[tileAt(position)]}</span>
+            <span>{trainerDefeated ? 'Scout cleared' : 'Scout ahead'}</span>
+          </div>
         </div>
         <aside className="side-stack">
           <div className="pixel-panel party-panel">
@@ -840,6 +1101,9 @@ function App() {
           </div>
           <div className="pixel-panel controls-panel">
             <p>{routeMessage}</p>
+            <div className="quick-actions">
+              <button className={`pixel-button secondary sound-toggle ${audioOn ? 'is-on' : ''}`} onClick={toggleAudio}>{audioOn ? 'Audio on' : 'Audio off'}</button>
+            </div>
             <div className="dpad">
               <span />
               <button onClick={() => movePlayer(0, -1)}>▲</button>
@@ -912,12 +1176,12 @@ function App() {
     )
   }
 
-  const renderCodex = () => (
-    <main className="screen codex-screen">
-      <section className="pixel-panel codex-panel">
+  const renderLLMdex = () => (
+    <main className="screen llmdex-screen">
+      <section className="pixel-panel llmdex-panel">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Professor Vector's Codex</p>
+            <p className="eyebrow">Professor Karpathy's LLMdex</p>
             <h2>LLM-mon types, stats, and citations</h2>
           </div>
           <button className="pixel-button" onClick={() => setScreen(starter ? 'map' : 'title')}>Back</button>
@@ -933,9 +1197,9 @@ function App() {
             The game avoids unsourced employment claims and treats the champion as a legendary researcher archetype.
           </p>
         </div>
-        <div className="codex-grid">
+        <div className="llmdex-grid">
           {MODELS.map((model) => (
-            <article key={model.id} className="codex-entry">
+            <article key={model.id} className="llmdex-entry">
               <ModelCard model={model} />
               <div className="citation-box">
                 <p className="eyebrow">Sources</p>
@@ -959,7 +1223,8 @@ function App() {
       {screen === 'starter' ? renderStarter() : null}
       {screen === 'map' ? renderMap() : null}
       {screen === 'battle' ? renderBattle() : null}
-      {screen === 'codex' ? renderCodex() : null}
+      {screen === 'llmdex' ? renderLLMdex() : null}
+      <span key={screen} className={`screen-transition screen-transition-${screen}`} />
     </div>
   )
 }
