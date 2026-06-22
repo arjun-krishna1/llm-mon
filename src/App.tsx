@@ -773,11 +773,11 @@ function App() {
     notes[kind].forEach((note) => scheduleTone(context, master, note, now))
   }, [audioOn])
 
-  const beginIntro = () => {
+  const beginIntro = useCallback(() => {
     playSfx('confirm')
     setScreen('intro')
     setRouteMessage('The benchmark tide is rising. Pick a partner before entering Route 01: Eval Grass.')
-  }
+  }, [playSfx])
 
   const chooseStarter = (model: LlmMon) => {
     playSfx('confirm')
@@ -948,6 +948,11 @@ function App() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (screen === 'title' && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault()
+        beginIntro()
+        return
+      }
       if (screen !== 'map') {
         return
       }
@@ -974,7 +979,7 @@ function App() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [inspectTile, movePlayer, screen])
+  }, [beginIntro, inspectTile, movePlayer, screen])
 
   const renderTitle = () => (
     <main className="screen title-screen">
@@ -995,9 +1000,9 @@ function App() {
         <p className="eyebrow">Hoennet benchmark version</p>
         <h1 className="title-logo" aria-label="LLMmon"><span>LLM</span><span>mon</span></h1>
         <p className="title-version">SAPPHIRE BENCHMARK</p>
-        <p className="subtitle">Benchmark monsters, starter labs, tall grass encounters, and one route trainer battle.</p>
+        <p className="subtitle">Train benchmark companions across lab, route, and battle scenes in a Sapphire-inspired LLM region.</p>
         <p className="title-copyright">@2026 arjun krishna</p>
-        <p className="press-start">Press Start / Click Start New Journey</p>
+        <p className="press-start">Press Enter or Start New Journey</p>
         <div className="title-actions">
           <button className="pixel-button" onClick={beginIntro}>Start new journey</button>
           <button className="pixel-button secondary" onClick={() => {
@@ -1031,7 +1036,10 @@ function App() {
           <p>
             Choose a starter LLM-mon, cross Route 01, survive one wild encounter, and challenge Benchmark Scout Mira before the locked Data Gym gate.
           </p>
-          <button className="pixel-button dialogue-advance" onClick={() => setScreen('starter')}>Choose starter ▾</button>
+          <button className="pixel-button dialogue-advance" onClick={() => {
+            playSfx('confirm')
+            setScreen('starter')
+          }}>Choose starter ▾</button>
         </div>
       </section>
     </main>
@@ -1045,7 +1053,10 @@ function App() {
             <p className="eyebrow">Model Lab</p>
             <h2>Choose your starter LLM-mon</h2>
           </div>
-          <button className="pixel-button secondary" onClick={() => setScreen('llmdex')}>Open LLMdex</button>
+          <button className="pixel-button secondary" onClick={() => {
+            playSfx('select')
+            setScreen('llmdex')
+          }}>Open LLMdex</button>
         </div>
         <div className="starter-grid">
           {starters.map((model) => (
@@ -1066,7 +1077,10 @@ function App() {
               <h2>Eval Grass</h2>
               <span className="location-pill">Hoennet south coast</span>
             </div>
-            <button className="pixel-button secondary" onClick={() => setScreen('llmdex')}>LLMdex</button>
+            <button className="pixel-button secondary" onClick={() => {
+              playSfx('select')
+              setScreen('llmdex')
+            }}>LLMdex</button>
           </div>
           <div className="tile-map" role="application" aria-label="LLM-mon route map">
             {ROUTE_MAP.map((row, y) =>
@@ -1089,9 +1103,9 @@ function App() {
             )}
           </div>
           <div className="map-status-row">
-            <span>Tile {position.x + 1}, {position.y + 1}</span>
+            <span>Route 01</span>
             <span>{TILE_LABELS[tileAt(position)]}</span>
-            <span>{trainerDefeated ? 'Scout cleared' : 'Scout ahead'}</span>
+            <span>{trainerDefeated ? 'Mira cleared' : 'Mira ahead'}</span>
           </div>
         </div>
         <aside className="side-stack">
@@ -1102,7 +1116,7 @@ function App() {
           <div className="pixel-panel controls-panel">
             <p>{routeMessage}</p>
             <div className="quick-actions">
-              <button className={`pixel-button secondary sound-toggle ${audioOn ? 'is-on' : ''}`} onClick={toggleAudio}>{audioOn ? 'Audio on' : 'Audio off'}</button>
+              <button className={`pixel-button secondary sound-toggle ${audioOn ? 'is-on' : ''}`} onClick={toggleAudio}>{audioOn ? 'Audio on' : 'Play audio'}</button>
             </div>
             <div className="dpad">
               <span />
@@ -1184,7 +1198,10 @@ function App() {
             <p className="eyebrow">Professor Karpathy's LLMdex</p>
             <h2>LLM-mon types, stats, and citations</h2>
           </div>
-          <button className="pixel-button" onClick={() => setScreen(starter ? 'map' : 'title')}>Back</button>
+          <button className="pixel-button" onClick={() => {
+            playSfx('select')
+            setScreen(starter ? 'map' : 'title')
+          }}>Back</button>
         </div>
         <div className="type-grid">
           {Object.keys(TYPE_COLORS).map((type) => <TypeBadge key={type} type={type as LlmType} />)}
