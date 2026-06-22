@@ -992,10 +992,8 @@ function App() {
         <span className="legend-shape legend-right" />
       </div>
       <section className="title-card pixel-panel">
-        <p className="eyebrow">Hoennet benchmark version</p>
+        <p className="eyebrow">Hayes Valley benchmark version</p>
         <h1 className="title-logo" aria-label="LLMmon"><span>LLM</span><span>mon</span></h1>
-        <p className="title-version">SAPPHIRE BENCHMARK</p>
-        <p className="subtitle">Benchmark monsters, starter labs, tall grass encounters, and one route trainer battle.</p>
         <p className="title-copyright">@2026 arjun krishna</p>
         <p className="press-start">Press Start / Click Start New Journey</p>
         <div className="title-actions">
@@ -1023,7 +1021,7 @@ function App() {
         </div>
         <div className="dialogue-box">
           <p className="eyebrow">Professor Karpathy</p>
-          <h2>Welcome to the Hoennet Region.</h2>
+          <h2>Welcome to the Hayes Valley Region.</h2>
           <p>
             LLM-mon live inside benchmark grass, provider clouds, and long-context caves. Trainers battle by balancing latency,
             cost, speed, and intelligence instead of elemental firepower.
@@ -1064,7 +1062,7 @@ function App() {
             <div>
               <p className="eyebrow">Route 01</p>
               <h2>Eval Grass</h2>
-              <span className="location-pill">Hoennet south coast</span>
+              <span className="location-pill">Hayes Valley south coast</span>
             </div>
             <button className="pixel-button secondary" onClick={() => setScreen('llmdex')}>LLMdex</button>
           </div>
