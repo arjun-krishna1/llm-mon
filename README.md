@@ -2,7 +2,7 @@
 
 [![CI/CD](https://github.com/arjun-krishna1/llm-mon/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/arjun-krishna1/llm-mon/actions/workflows/ci-cd.yml)
 
-Play online: https://arjun-krishna1.github.io/llm-mon/
+Play online: https://theoneandarjun.com/
 
 A standalone React + TypeScript vertical slice inspired by Sapphire-era handheld RPG presentation, using original CSS pixel art and LLM-themed mechanics.
 
@@ -58,4 +58,4 @@ All battle/UI model labels now use the real model names instead of fictional nic
 
 ## Deployment
 
-Pushes to `main` run lint/build in GitHub Actions and deploy the production build to GitHub Pages. The Vite base path is set automatically when `GITHUB_PAGES=true`.
+Pushes to `main` run lint/build in GitHub Actions and deploy the production build to GitHub Pages. The Vite base path is relative so the same artifact works on the custom domain and the GitHub Pages project URL.
