@@ -8,12 +8,12 @@ A standalone React + TypeScript vertical slice inspired by Sapphire-era handheld
 
 ## Playable slice
 
-- Intro sequence with Professor Vector
+- Intro sequence with Professor Karpathy
 - Starter choice: OpenAI, Anthropic, or Z AI/GLM
 - Route 01 map with lab, sign, tall benchmark grass, rare closed-source encounters, and a locked gym teaser
 - Turn-based battle system driven by strength, latency, output speed, and cost
 - Benchmark Scout Mira trainer battle
-- In-game codex with citations for model stats
+- In-game LLMdex with citations for model stats
 
 ## Stats and citations
 
