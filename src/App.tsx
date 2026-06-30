@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
-type Screen = 'title' | 'story' | 'starter' | 'field' | 'battle' | 'dex'
+type Screen = 'title' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'badge'
 type StarterId = 'claude' | 'gpt' | 'glm'
 type BattleCommand = 'prompt' | 'bag' | 'swap'
 
@@ -240,7 +240,17 @@ function StarterScreen({
   )
 }
 
-function FieldScreen({ starter, onBattle, onDex }: { starter: Starter; onBattle: () => void; onDex: () => void }) {
+function FieldScreen({
+  starter,
+  onBattle,
+  onDex,
+  onBadge,
+}: {
+  starter: Starter
+  onBattle: () => void
+  onDex: () => void
+  onBadge: () => void
+}) {
   return (
     <section className="screen field-screen">
       <div className="field-topbar">
@@ -250,6 +260,7 @@ function FieldScreen({ starter, onBattle, onDex }: { starter: Starter; onBattle:
         </div>
         <div className="field-actions">
           <button onClick={onDex}>PromptDex</button>
+          <button onClick={onBadge}>Badge Case</button>
           <button onClick={onBattle}>Battle</button>
         </div>
       </div>
@@ -274,6 +285,52 @@ function FieldScreen({ starter, onBattle, onDex }: { starter: Starter; onBattle:
       <div className="dialogue-box">
         <strong>Professor Karpathy</strong>
         <span>Quick, choose a move from the starter card. The HalluciHound is hallucinating stack traces again.</span>
+      </div>
+    </section>
+  )
+}
+
+function BadgeScreen({ onBack }: { onBack: () => void }) {
+  const badgeSlots = ['Foundation', 'Alignment', 'Waterloo', 'Redwood', 'Merge', 'Mythos']
+
+  return (
+    <section className="screen badge-screen">
+      <header className="screen-header">
+        <p className="kicker">Badge Case</p>
+        <h2>Foundation Badge</h2>
+        <button className="icon-button" onClick={onBack} aria-label="Return to field">B</button>
+      </header>
+      <div className="badge-layout">
+        <div className="badge-hero" aria-label="Foundation Badge earned">
+          <div className="foundation-badge">
+            <span className="badge-core" />
+            <span className="badge-chip left" />
+            <span className="badge-chip right" />
+          </div>
+          <div className="badge-shine" />
+        </div>
+        <div className="badge-card">
+          <p className="kicker">Palo Alto / Dr. Petra</p>
+          <h3>Foundations Endure</h3>
+          <p>The first badge proves your team can reason from evidence, withstand drift, and keep a stable route through bad context.</p>
+          <table>
+            <tbody>
+              <tr><th>Unlock</th><td>Prune outside battle</td></tr>
+              <tr><th>Theme</th><td>Foundation + Evidence</td></tr>
+              <tr><th>Reward</th><td>TM39 Token Tomb</td></tr>
+              <tr><th>Status</th><td>Preview registered</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div className="badge-grid" aria-label="Chapter badge slots">
+        {badgeSlots.map((slot, index) => (
+          <div className={index === 0 ? 'badge-slot earned' : 'badge-slot locked'} key={slot}>
+            <span>{index === 0 ? '◆' : '?'}</span>
+            <strong>{slot}</strong>
+            <small>{index === 0 ? 'Earned' : 'Locked'}</small>
+          </div>
+        ))}
       </div>
     </section>
   )
@@ -405,9 +462,10 @@ export default function App() {
           onConfirm={() => setScreen('field')}
         />
       )}
-      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} />}
+      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBadge={() => setScreen('badge')} />}
       {screen === 'battle' && <BattleScreen starter={selectedStarter} onField={() => setScreen('field')} />}
       {screen === 'dex' && <DexScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
+      {screen === 'badge' && <BadgeScreen onBack={() => setScreen('field')} />}
     </main>
   )
 }

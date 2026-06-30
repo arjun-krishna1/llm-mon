@@ -40,6 +40,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally.
   - Evidence: added a pulsing Press Start button with an A-button cue and sweep highlight, plus reduced-motion fallback. Browser title pass verifies desktop and mobile layout with no overflow and confirms Press Start still advances to the storyboard screen.
 
+- **[P2] Add Foundation Badge Case UI.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: added a Badge Case field action and Foundation Badge screen with earned/locked slots, unlock details, reduced-motion shine fallback, and browser-tested field-to-badge-to-field navigation on desktop and mobile. Desktop fits the game frame with no horizontal or vertical overflow; mobile scrolls vertically with no horizontal overflow.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

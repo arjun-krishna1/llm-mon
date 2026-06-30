@@ -225,6 +225,7 @@ button:active {
 .story-screen,
 .starter-screen,
 .field-screen,
+.badge-screen,
 .dex-screen {
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 28px 28px,
@@ -840,6 +841,233 @@ dd {
   font-weight: 900;
 }
 
+.badge-screen {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 28px 28px,
+    radial-gradient(circle at 76% 18%, rgba(255, 227, 116, 0.35), transparent 24rem),
+    linear-gradient(#d7702e, #dcae60 45%, #8f9b6f 45%, #3a6e4c);
+}
+
+.badge-screen .screen-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "kicker back"
+    "title back";
+  align-items: center;
+}
+
+.badge-screen .screen-header .kicker {
+  grid-area: kicker;
+}
+
+.badge-screen .screen-header h2 {
+  grid-area: title;
+  max-width: 100%;
+}
+
+.badge-screen .screen-header .icon-button {
+  grid-area: back;
+  justify-self: end;
+}
+
+.badge-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(320px, 1.1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.badge-hero,
+.badge-card,
+.badge-slot {
+  border: 5px solid #211109;
+  border-radius: 8px;
+  background: #fff4cf;
+  box-shadow: 0 9px 0 #6d2b18;
+}
+
+.badge-hero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 410px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(48, 21, 11, 0.08) 1px, transparent 1px) 0 0 / 30px 30px,
+    radial-gradient(circle at 50% 45%, #fff4cf 0 19%, transparent 20%),
+    linear-gradient(135deg, #746b5e, #c9ad75 48%, #6d7f6b);
+}
+
+.badge-hero::before {
+  content: "";
+  position: absolute;
+  inset: 28px;
+  border: 4px solid rgba(33, 17, 9, 0.5);
+  border-radius: 8px;
+}
+
+.foundation-badge {
+  position: relative;
+  z-index: 1;
+  width: min(270px, 68%);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 22px 0 rgba(33, 17, 9, 0.2));
+}
+
+.badge-core,
+.badge-chip {
+  position: absolute;
+  display: block;
+  border: 6px solid #211109;
+}
+
+.badge-core {
+  inset: 14%;
+  background:
+    radial-gradient(circle at 50% 42%, #fff6c8 0 16%, transparent 17%),
+    linear-gradient(135deg, #f5d27b 0 26%, #8c9185 26% 47%, #f07d2d 47% 64%, #4f5f58 64%);
+  clip-path: polygon(50% 0, 88% 22%, 88% 72%, 50% 100%, 12% 72%, 12% 22%);
+  box-shadow: inset -12px -12px 0 rgba(33, 17, 9, 0.22), inset 12px 10px 0 rgba(255, 255, 255, 0.22);
+}
+
+.badge-core::before,
+.badge-core::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #211109;
+}
+
+.badge-core::before {
+  top: 20%;
+  width: 18%;
+  height: 58%;
+}
+
+.badge-core::after {
+  top: 20%;
+  width: 48%;
+  height: 14%;
+}
+
+.badge-chip {
+  top: 36%;
+  width: 28%;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #fff4cf, #f07d2d);
+  transform: rotate(45deg);
+}
+
+.badge-chip.left {
+  left: 0;
+}
+
+.badge-chip.right {
+  right: 0;
+}
+
+.badge-shine {
+  position: absolute;
+  inset: 14%;
+  background: radial-gradient(circle, rgba(255, 252, 213, 0.58), transparent 58%);
+  mix-blend-mode: screen;
+  animation: badgeShine 2.8s ease-in-out infinite;
+}
+
+.badge-card {
+  padding: 24px;
+}
+
+.badge-card h3 {
+  margin-bottom: 14px;
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(1rem, 2.4vw, 1.45rem);
+  line-height: 1.4;
+}
+
+.badge-card p {
+  line-height: 1.65;
+}
+
+.badge-card table {
+  width: 100%;
+  margin-top: 18px;
+  border-collapse: collapse;
+}
+
+.badge-card th,
+.badge-card td {
+  border-top: 2px solid rgba(67, 31, 16, 0.22);
+  padding: 12px 0;
+  text-align: left;
+}
+
+.badge-card td {
+  text-align: right;
+  font-weight: 900;
+}
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.badge-slot {
+  display: grid;
+  gap: 6px;
+  min-height: 122px;
+  padding: 12px;
+  text-align: center;
+}
+
+.badge-slot span {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  border: 4px solid #211109;
+  border-radius: 50%;
+  color: #fff4cf;
+  background: #6e7580;
+  font-family: "Press Start 2P", monospace;
+}
+
+.badge-slot strong {
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.56rem;
+  line-height: 1.35;
+}
+
+.badge-slot small {
+  font-weight: 900;
+}
+
+.badge-slot.earned span {
+  color: #211109;
+  background: linear-gradient(#ffe374, #f07d2d);
+}
+
+.badge-slot.locked {
+  filter: saturate(0.45);
+}
+
+@keyframes badgeShine {
+  0%,
+  100% {
+    opacity: 0.36;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.82;
+    transform: scale(1.06);
+  }
+}
+
 @media (max-width: 980px) {
   .title-strip,
   .chapter-rail,
@@ -848,6 +1076,8 @@ dd {
   .starter-hero,
   .field-layout,
   .battle-menu,
+  .badge-layout,
+  .badge-grid,
   .dex-layout {
     grid-template-columns: 1fr;
   }
@@ -861,6 +1091,7 @@ dd {
   .story-screen,
   .starter-screen,
   .field-screen,
+  .badge-screen,
   .dex-screen {
     overflow: auto;
   }
@@ -891,7 +1122,8 @@ dd {
 
 @media (prefers-reduced-motion: reduce) {
   .primary-action,
-  .primary-action::after {
+  .primary-action::after,
+  .badge-shine {
     animation: none;
   }
 }
