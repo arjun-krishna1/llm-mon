@@ -16,6 +16,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally.
   - Evidence: browser title pass shows the generated LLMMON Mythos logo remains in the art while the overlay now reads “The Foundation Badge” without clipping.
 
+- **[P1] Fix production RPGJS map asset path.**
+  - Status: Resolved locally.
+  - Evidence: deployed smoke test initially showed a black RPGJS canvas because production TMX files are emitted to `assets/data`; after fixing the client map base path, local production preview renders the route canvas correctly.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
