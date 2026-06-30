@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 
-type Screen = 'title' | 'intro' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge'
+type Screen = 'title' | 'intro' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge' | 'services'
 type StarterId = 'claude' | 'gpt' | 'glm'
 type BattleCommand = 'prompt' | 'bag' | 'swap'
 type BagCategory = 'orbs' | 'medicine' | 'field' | 'gear'
@@ -87,7 +87,47 @@ interface ModelProfile {
   moves: ModelMove[]
 }
 
+interface ShopItem {
+  id: string
+  name: string
+  price: string
+  tag: string
+  detail: string
+  stock: string
+}
+
+interface ServiceStop {
+  id: string
+  label: string
+  status: string
+  detail: string
+}
+
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`
+
+function getRpgParkingNode() {
+  let parkingNode = document.getElementById('rpg-parking')
+
+  if (!parkingNode) {
+    parkingNode = document.createElement('div')
+    parkingNode.id = 'rpg-parking'
+    parkingNode.setAttribute('aria-hidden', 'true')
+    document.body.appendChild(parkingNode)
+  }
+
+  return parkingNode
+}
+
+function getRpgMountNode() {
+  let mountNode = document.getElementById('rpg')
+
+  if (!mountNode) {
+    mountNode = document.createElement('div')
+    mountNode.id = 'rpg'
+  }
+
+  return mountNode
+}
 
 const starters: Starter[] = [
   {
@@ -493,6 +533,76 @@ const modelProfiles: Record<StarterId, ModelProfile> = {
   },
 }
 
+const shopItems: ShopItem[] = [
+  {
+    id: 'cache-potion',
+    name: 'Cache Potion',
+    price: '300T',
+    tag: '+20 HP',
+    detail: 'Warm restore packet for Benchmark Pier and the first trainer loop.',
+    stock: 'Shelf A',
+  },
+  {
+    id: 'debug-patch',
+    name: 'Debug Patch',
+    price: '100T',
+    tag: 'Status',
+    detail: 'Clears poison, glitch, and corrupted cache states before they snowball.',
+    stock: 'Shelf B',
+  },
+  {
+    id: 'latency-heal',
+    name: 'Latency Heal',
+    price: '200T',
+    tag: 'Speed',
+    detail: 'Restores turn order after slowdown effects from Token-type pressure.',
+    stock: 'Shelf C',
+  },
+  {
+    id: 'wake-token',
+    name: 'Wake Token',
+    price: '250T',
+    tag: 'Sleep',
+    detail: 'Reboots a drowsy partner after long context loops and sleepy prompts.',
+    stock: 'Counter',
+  },
+  {
+    id: 'prompt-orb',
+    name: 'Prompt Orb',
+    price: 'Locked',
+    tag: 'Catch',
+    detail: 'Available after the PromptDex lesson at Benchmark Pier.',
+    stock: 'Glass case',
+  },
+]
+
+const serviceStops: ServiceStop[] = [
+  {
+    id: 'center',
+    label: 'Model Center',
+    status: 'Online',
+    detail: 'Heal active party, sync PromptDex cache, and save a clean route state.',
+  },
+  {
+    id: 'mart',
+    label: 'Token Mart',
+    status: 'Open',
+    detail: 'Stock Cache Potions, Debug Patches, Latency Heals, and Wake Tokens.',
+  },
+  {
+    id: 'booth',
+    label: 'Demo Booth',
+    status: 'Gift ready',
+    detail: 'A promoter offers one Cache Potion before the rival pier check.',
+  },
+  {
+    id: 'transit',
+    label: 'Transit Kiosk',
+    status: 'Locked',
+    detail: 'Caltrain, SFO Cloud Harbor, and Waterloo Hook routes require badges.',
+  },
+]
+
 const chapterSteps = [
   'Moving van arrival',
   'Karpathy lab search',
@@ -524,7 +634,19 @@ const mapGlyphs: Record<string, string> = {
 }
 
 function RpgRuntime() {
-  const [status, setStatus] = useState('booting RPGJS')
+  const [status, setStatus] = useState(() => (
+    document.querySelector('#rpg canvas') ? 'RPGJS field online' : 'booting RPGJS'
+  ))
+  const mountSlotRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const mountNode = getRpgMountNode()
+    mountSlotRef.current?.appendChild(mountNode)
+
+    return () => {
+      getRpgParkingNode().appendChild(mountNode)
+    }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -550,7 +672,7 @@ function RpgRuntime() {
 
   return (
     <div className="rpg-frame" aria-label="RPGJS field runtime">
-      <div id="rpg" />
+      <div className="rpg-mount-slot" ref={mountSlotRef} />
       <div className="field-route-overlay" aria-hidden="true">
         <span className="route-pin lab">Karpathy Lab</span>
         <span className="route-pin road">Octavia 101</span>
@@ -714,6 +836,7 @@ function FieldScreen({
   onQuest,
   onModel,
   onBadge,
+  onServices,
 }: {
   starter: Starter
   onBattle: () => void
@@ -722,6 +845,7 @@ function FieldScreen({
   onQuest: () => void
   onModel: () => void
   onBadge: () => void
+  onServices: () => void
 }) {
   return (
     <section className="screen field-screen">
@@ -734,6 +858,7 @@ function FieldScreen({
           <button onClick={onDex}>PromptDex</button>
           <button onClick={onBag}>Bag</button>
           <button onClick={onQuest}>QuestNav</button>
+          <button onClick={onServices}>SoMa Services</button>
           <button onClick={onModel}>Model Card</button>
           <button onClick={onBadge}>Badge Case</button>
           <button onClick={onBattle}>Battle</button>
@@ -760,6 +885,116 @@ function FieldScreen({
       <div className="dialogue-box">
         <strong>Professor Karpathy</strong>
         <span>Quick, choose a move from the starter card. The HalluciHound is hallucinating stack traces again.</span>
+      </div>
+    </section>
+  )
+}
+
+function ServicesScreen({ starter, onBack }: { starter: Starter; onBack: () => void }) {
+  const [selectedStopId, setSelectedStopId] = useState('center')
+  const selectedStop = serviceStops.find((stop) => stop.id === selectedStopId) ?? serviceStops[0]
+  const profile = modelProfiles[starter.id]
+
+  return (
+    <section className="screen services-screen">
+      <header className="screen-header">
+        <div>
+          <p className="kicker">SoMa Node</p>
+          <h2>Model Center + Token Mart</h2>
+        </div>
+        <button className="icon-button" onClick={onBack} aria-label="Return to field">B</button>
+      </header>
+      <div className="services-shell">
+        <aside className="service-map">
+          <div className="service-street" aria-hidden="true">
+            <span className="service-building center">MC</span>
+            <span className="service-building mart">TM</span>
+            <span className="service-building booth">!</span>
+            <span className="service-building transit">101</span>
+            <span className="service-player">▲</span>
+          </div>
+          <div>
+            <p className="kicker">Current stop</p>
+            <h3>{selectedStop.label}</h3>
+            <p>{selectedStop.detail}</p>
+          </div>
+        </aside>
+        <nav className="service-nav" aria-label="SoMa service stops">
+          {serviceStops.map((stop) => (
+            <button className={stop.id === selectedStop.id ? `service-tab active ${stop.id}` : `service-tab ${stop.id}`} key={stop.id} onClick={() => setSelectedStopId(stop.id)}>
+              <strong>{stop.label}</strong>
+              <span>{stop.status}</span>
+            </button>
+          ))}
+        </nav>
+        <section className={`service-panel ${selectedStop.id}`}>
+          <div className="service-panel-top">
+            <p className="kicker">{selectedStop.status}</p>
+            <h3>{selectedStop.label}</h3>
+          </div>
+          {selectedStop.id === 'center' && (
+            <div className="service-roster">
+              <article className={`healing-card ${starter.palette}`}>
+                <img src={starter.image} alt="" />
+                <div>
+                  <p className="kicker">Active partner</p>
+                  <h4>{starter.name}</h4>
+                  <span className="service-meter" style={{ '--value': '100%' } as React.CSSProperties}>HP restored</span>
+                  <span className="service-meter signal" style={{ '--value': `${profile.xpProgress + 44}%` } as React.CSSProperties}>Signal synced</span>
+                </div>
+              </article>
+              <div className="sync-stack">
+                <span>PromptDex cache backed up</span>
+                <span>Hallucination flags cleared</span>
+                <span>Benchmark Pier route saved</span>
+              </div>
+            </div>
+          )}
+          {selectedStop.id === 'mart' && (
+            <div className="shop-list" aria-label="Token Mart shelf">
+              {shopItems.map((item) => (
+                <article className={item.price === 'Locked' ? 'shop-row locked' : 'shop-row'} key={item.id}>
+                  <div>
+                    <strong>{item.name}</strong>
+                    <span>{item.detail}</span>
+                  </div>
+                  <small>{item.tag}</small>
+                  <b>{item.price}</b>
+                </article>
+              ))}
+            </div>
+          )}
+          {selectedStop.id === 'booth' && (
+            <div className="demo-booth">
+              <div className="gift-capsule"><span /></div>
+              <blockquote>First time through SoMa Node? Take a Cache Potion. The pier gets louder than it looks.</blockquote>
+              <dl>
+                <div><dt>Gift</dt><dd>Cache Potion x1</dd></div>
+                <div><dt>Trigger</dt><dd>Talk to promoter</dd></div>
+                <div><dt>Status</dt><dd>Ready</dd></div>
+              </dl>
+            </div>
+          )}
+          {selectedStop.id === 'transit' && (
+            <div className="transit-grid">
+              {['Caltrain South', 'SFO Cloud Harbor', 'Waterloo Hook'].map((route) => (
+                <article key={route}>
+                  <strong>{route}</strong>
+                  <span>Badge gate locked</span>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+        <aside className="service-prep">
+          <p className="kicker">Route prep</p>
+          <h3>Benchmark Pier Check</h3>
+          <ol>
+            <li>Heal {starter.name} at the Model Center.</li>
+            <li>Carry two Cache Potions and one Debug Patch.</li>
+            <li>Meet Iris after the PromptDex unlock.</li>
+          </ol>
+        </aside>
       </div>
     </section>
   )
@@ -1172,11 +1407,12 @@ export default function App() {
           onConfirm={() => setScreen('field')}
         />
       )}
-      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onQuest={() => setScreen('quest')} onModel={() => setScreen('model')} onBadge={() => setScreen('badge')} />}
+      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onQuest={() => setScreen('quest')} onServices={() => setScreen('services')} onModel={() => setScreen('model')} onBadge={() => setScreen('badge')} />}
       {screen === 'battle' && <BattleScreen starter={selectedStarter} onField={() => setScreen('field')} />}
       {screen === 'dex' && <DexScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'bag' && <BagScreen onBack={() => setScreen('field')} />}
       {screen === 'quest' && <QuestScreen onBack={() => setScreen('field')} />}
+      {screen === 'services' && <ServicesScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'model' && <ModelCardScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'badge' && <BadgeScreen onBack={() => setScreen('field')} />}
     </main>

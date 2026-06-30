@@ -64,6 +64,14 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: inserted the Chapter 1 professor spotlight beat between title and storyboard, with PromptDex glow, three mystery starter signals, A-button dialogue progression, and storyboard handoff. Browser-tested desktop and mobile title-to-intro-to-storyboard-to-starter flow; fixed rectangular starter silhouettes and mobile figure-card squeeze found during visual QA. No page-level horizontal overflow or console errors.
 
+- **[P1] Stabilize RPGJS canvas lifecycle across menu navigation.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: browser QA found a CanvasEngine `querySelector` startup error and black field frame after opening the field during the SoMa Services pass. Added a persistent `#rpg` mount node, parked it while menus are open, waited for the mount before RPGJS startup, and reset startup state on failure. Follow-up desktop/mobile browser pass verifies the RPGJS field reaches online, renders the route after initial paint, survives field → SoMa Services → field navigation, has no console errors, and has no horizontal overflow.
+
+- **[P2] Add SoMa Services Model Center and Token Mart UI.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: added a SoMa Services field action and full service screen with a town service map, Model Center healing/sync panel, Token Mart shelf, Demo Booth Cache Potion gift, locked Transit Kiosk, and Benchmark Pier prep checklist. Browser-tested title-to-field-to-services flow, all four service tabs, return-to-field behavior, desktop fit, mobile two-column service tabs, mobile shop/dialogue wrapping, and no page-level horizontal overflow.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
