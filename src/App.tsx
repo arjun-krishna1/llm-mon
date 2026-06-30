@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
-type Screen = 'title' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'badge'
+type Screen = 'title' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'badge'
 type StarterId = 'claude' | 'gpt' | 'glm'
 type BattleCommand = 'prompt' | 'bag' | 'swap'
 type BagCategory = 'orbs' | 'medicine' | 'field' | 'gear'
@@ -46,6 +46,17 @@ interface BagItem {
   detail: string
   route: string
   tone: string
+}
+
+interface QuestStep {
+  id: string
+  area: string
+  title: string
+  status: 'Complete' | 'Current' | 'Locked'
+  objective: string
+  reward: string
+  dialogue: string
+  palette: string
 }
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`
@@ -303,6 +314,79 @@ const bagItems: BagItem[] = [
   },
 ]
 
+const questSteps: QuestStep[] = [
+  {
+    id: 'arrival',
+    area: 'Hayes Valley',
+    title: 'Moving Van Arrival',
+    status: 'Complete',
+    objective: 'Settle in, check the PC, watch the TV report, and visit Karpathy Lab.',
+    reward: 'Cache Potion x1',
+    dialogue: 'We’re here, honey! Quiet enough to think, busy enough to dream.',
+    palette: 'home',
+  },
+  {
+    id: 'rescue',
+    area: 'Octavia 101',
+    title: 'Professor Rescue',
+    status: 'Complete',
+    objective: 'Choose a starter from the satchel and stop the HalluciHound chase.',
+    reward: 'Starter partner',
+    dialogue: 'Help! Grab a LLMMON from my satchel!',
+    palette: 'route',
+  },
+  {
+    id: 'benchmark',
+    area: 'SoMa Node → Benchmark Pier',
+    title: 'First Service Loop',
+    status: 'Current',
+    objective: 'Heal at the Model Center, stock up at Token Mart, then meet Iris at the pier.',
+    reward: 'PromptDex and Prompt Orbs',
+    dialogue: 'Let’s see if it was luck or signal.',
+    palette: 'current',
+  },
+  {
+    id: 'mission',
+    area: 'Mission Context Lane',
+    title: 'Trainer Route',
+    status: 'Locked',
+    objective: 'Use Prompt Orbs, catch a first teammate, and learn trainer-battle pacing.',
+    reward: 'Context Berry x2',
+    dialogue: 'Lower HP, then use a Prompt Orb. Status and alignment improve catch rate.',
+    palette: 'city',
+  },
+  {
+    id: 'redwood',
+    area: 'Redwood Cachewoods',
+    title: 'Team Drift Ambush',
+    status: 'Locked',
+    objective: 'Navigate cache-lit redwoods and protect ModelWorks alignment papers.',
+    reward: 'Great Prompt Orb',
+    dialogue: 'Hand over the alignment papers. We’re building models that never ask permission.',
+    palette: 'forest',
+  },
+  {
+    id: 'palo-alto',
+    area: 'Palo Alto',
+    title: 'Foundation Badge',
+    status: 'Locked',
+    objective: 'Prepare for Dr. Petra, win the Foundation Badge, and unlock Prune.',
+    reward: 'TM39 Token Tomb',
+    dialogue: 'Startups pivot. Trends drift. But foundations endure.',
+    palette: 'badge',
+  },
+  {
+    id: 'waterloo',
+    area: 'Waterloo Hook',
+    title: 'Northern Research Exchange',
+    status: 'Locked',
+    objective: 'Recover the Alignment Core, rescue Beepo, and open Brinley transport.',
+    reward: 'PromptNav unlock',
+    dialogue: 'Take this packet to our research partner in Waterloo, Ontario.',
+    palette: 'future',
+  },
+]
+
 const chapterSteps = [
   'Moving van arrival',
   'Karpathy lab search',
@@ -469,12 +553,14 @@ function FieldScreen({
   onBattle,
   onDex,
   onBag,
+  onQuest,
   onBadge,
 }: {
   starter: Starter
   onBattle: () => void
   onDex: () => void
   onBag: () => void
+  onQuest: () => void
   onBadge: () => void
 }) {
   return (
@@ -487,6 +573,7 @@ function FieldScreen({
         <div className="field-actions">
           <button onClick={onDex}>PromptDex</button>
           <button onClick={onBag}>Bag</button>
+          <button onClick={onQuest}>QuestNav</button>
           <button onClick={onBadge}>Badge Case</button>
           <button onClick={onBattle}>Battle</button>
         </div>
@@ -512,6 +599,66 @@ function FieldScreen({
       <div className="dialogue-box">
         <strong>Professor Karpathy</strong>
         <span>Quick, choose a move from the starter card. The HalluciHound is hallucinating stack traces again.</span>
+      </div>
+    </section>
+  )
+}
+
+function QuestScreen({ onBack }: { onBack: () => void }) {
+  const [selectedId, setSelectedId] = useState('benchmark')
+  const selectedQuest = questSteps.find((step) => step.id === selectedId) ?? questSteps[2]
+  const completeCount = questSteps.filter((step) => step.status === 'Complete').length
+  const currentIndex = questSteps.findIndex((step) => step.status === 'Current')
+
+  return (
+    <section className="screen quest-screen">
+      <header className="screen-header">
+        <div>
+          <p className="kicker">QuestNav</p>
+          <h2>Chapter Route</h2>
+        </div>
+        <button className="icon-button" onClick={onBack} aria-label="Return to field">B</button>
+      </header>
+      <div className="quest-shell">
+        <aside className="quest-route-card">
+          <p className="kicker">Mainline</p>
+          <h3>Hayes Valley → Waterloo</h3>
+          <div className="quest-progress">
+            <span style={{ '--value': `${Math.round(((currentIndex + 1) / questSteps.length) * 100)}%` } as React.CSSProperties}>Step {currentIndex + 1}/{questSteps.length}</span>
+          </div>
+          <dl>
+            <div><dt>Done</dt><dd>{completeCount}</dd></div>
+            <div><dt>Now</dt><dd>{selectedQuest.area}</dd></div>
+            <div><dt>Reward</dt><dd>{selectedQuest.reward}</dd></div>
+          </dl>
+        </aside>
+        <div className="quest-list" aria-label="Chapter route objectives">
+          {questSteps.map((step, index) => (
+            <button className={step.id === selectedQuest.id ? `quest-row active ${step.palette}` : `quest-row ${step.palette}`} key={step.id} onClick={() => setSelectedId(step.id)}>
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <strong>{step.title}</strong>
+              <small>{step.status}</small>
+            </button>
+          ))}
+        </div>
+        <article className={`quest-detail ${selectedQuest.palette}`}>
+          <p className="kicker">{selectedQuest.area}</p>
+          <h3>{selectedQuest.title}</h3>
+          <p>{selectedQuest.objective}</p>
+          <blockquote>{selectedQuest.dialogue}</blockquote>
+          <table>
+            <tbody>
+              <tr><th>Status</th><td>{selectedQuest.status}</td></tr>
+              <tr><th>Reward</th><td>{selectedQuest.reward}</td></tr>
+              <tr><th>Route</th><td>{selectedQuest.area}</td></tr>
+            </tbody>
+          </table>
+        </article>
+        <div className="quest-strip" aria-label="Route milestones">
+          {questSteps.map((step) => (
+            <span className={step.status.toLowerCase()} key={step.id}>{step.area}</span>
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -782,10 +929,11 @@ export default function App() {
           onConfirm={() => setScreen('field')}
         />
       )}
-      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onBadge={() => setScreen('badge')} />}
+      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onQuest={() => setScreen('quest')} onBadge={() => setScreen('badge')} />}
       {screen === 'battle' && <BattleScreen starter={selectedStarter} onField={() => setScreen('field')} />}
       {screen === 'dex' && <DexScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'bag' && <BagScreen onBack={() => setScreen('field')} />}
+      {screen === 'quest' && <QuestScreen onBack={() => setScreen('field')} />}
       {screen === 'badge' && <BadgeScreen onBack={() => setScreen('field')} />}
     </main>
   )

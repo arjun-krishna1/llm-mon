@@ -52,6 +52,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: added a field Bag action and full-screen Trainer Bag with Orbs, Medicine, Field, and Gear pockets, Chapter 1 item data, item-detail card, route prep note, and mobile tab rail. Browser-tested field-to-Bag-to-field navigation, category switching, item selection, desktop frame fit, mobile header wrapping, and no page-level horizontal overflow.
 
+- **[P2] Add QuestNav chapter route UI.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: added a field QuestNav action and chapter route screen with mainline progress, selectable objectives, current/locked states, route dialogue, rewards, and milestone strip. Browser-tested field-to-QuestNav-to-field navigation, locked objective selection, desktop frame fit, mobile route rail, mobile text wrapping, long quest-title wrapping, production-preview route selection, and no page-level horizontal overflow.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
