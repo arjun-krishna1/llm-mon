@@ -6252,6 +6252,67 @@ body {
   font-size: .64rem;
 }
 
+.menu-route-journal-stack {
+  display: grid;
+  gap: 6px;
+  border: 2px solid rgba(20, 52, 77, .54);
+  border-radius: 8px;
+  padding: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 232, .76), rgba(239, 249, 255, .72)),
+    repeating-linear-gradient(90deg, rgba(20, 52, 77, .04) 0 7px, transparent 7px 14px);
+}
+
+.menu-route-journal-stack > strong {
+  overflow: hidden;
+  color: #52677a;
+  font-family: 'Press Start 2P', monospace;
+  font-size: .48rem;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.menu-route-journal-stack > p {
+  margin: 0;
+  color: #496071;
+  font-size: .68rem;
+  font-weight: 800;
+  line-height: 1.32;
+}
+
+.menu-route-journal-entry {
+  --entry-accent: #58a6d6;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  border-left: 5px solid var(--entry-accent);
+  border-radius: 6px;
+  padding: 5px 6px;
+  background: color-mix(in srgb, var(--entry-accent) 12%, rgba(255, 253, 232, .78));
+}
+
+.menu-route-journal-entry b,
+.menu-route-journal-entry em {
+  overflow: hidden;
+  font-family: 'Press Start 2P', monospace;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-route-journal-entry b {
+  font-size: .48rem;
+}
+
+.menu-route-journal-entry em {
+  color: #6a7f8e;
+  font-size: .38rem;
+  font-style: normal;
+  text-transform: uppercase;
+}
+
 .menu-tags {
   margin-top: 4px;
 }
@@ -6549,6 +6610,137 @@ body {
   font-style: normal;
   font-weight: 900;
   text-transform: uppercase;
+}
+
+.route-journal-stack {
+  --journal-accent: #58a6d6;
+  display: grid;
+  gap: 7px;
+  border: 3px solid #14344d;
+  border-left: 8px solid var(--journal-accent);
+  border-radius: 10px;
+  padding: 9px;
+  color: #14344d;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 232, .98), rgba(239, 249, 255, .96)),
+    repeating-linear-gradient(90deg, rgba(20, 52, 77, .045) 0 7px, transparent 7px 14px);
+  box-shadow: inset 0 -3px 0 rgba(22, 52, 79, .08), 0 3px 0 rgba(20, 51, 77, .1);
+}
+
+.journal-lab {
+  --journal-accent: #59c37a;
+}
+
+.journal-route {
+  --journal-accent: #58a6d6;
+}
+
+.journal-danger {
+  --journal-accent: #f06a54;
+}
+
+.journal-gatehouse {
+  --journal-accent: #8fd0ff;
+}
+
+.route-journal-stack-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  font-family: 'Press Start 2P', monospace;
+}
+
+.route-journal-stack-head span {
+  color: #6a7f8e;
+  font-size: .5rem;
+  text-transform: uppercase;
+}
+
+.route-journal-stack-head strong {
+  border: 2px solid rgba(20, 52, 77, .54);
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: color-mix(in srgb, var(--journal-accent) 22%, #fffdf0);
+  font-size: .46rem;
+  white-space: nowrap;
+}
+
+.route-journal-entry {
+  --entry-accent: var(--journal-accent);
+  position: relative;
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  border: 2px solid rgba(20, 52, 77, .62);
+  border-radius: 8px;
+  padding: 7px 8px 7px 11px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--entry-accent) 18%, transparent), transparent 60%),
+    rgba(255, 253, 232, .76);
+}
+
+.route-journal-entry::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: var(--entry-accent);
+}
+
+.entry-lab {
+  --entry-accent: #59c37a;
+}
+
+.entry-route {
+  --entry-accent: #58a6d6;
+}
+
+.entry-danger {
+  --entry-accent: #f06a54;
+}
+
+.entry-gatehouse {
+  --entry-accent: #8fd0ff;
+}
+
+.route-journal-entry span,
+.route-journal-entry strong {
+  overflow: hidden;
+  font-family: 'Press Start 2P', monospace;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-journal-entry span {
+  color: #6a7f8e;
+  font-size: .42rem;
+  text-transform: uppercase;
+}
+
+.route-journal-entry strong {
+  font-size: .58rem;
+}
+
+.route-journal-entry p,
+.route-journal-empty {
+  margin: 0;
+  color: #496071;
+  font-size: .68rem;
+  font-weight: 800;
+  line-height: 1.32;
+}
+
+.route-journal-empty {
+  border: 2px dashed rgba(20, 52, 77, .34);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(255, 253, 232, .52);
 }
 
 .chapter-progress {
@@ -9383,6 +9575,84 @@ body {
   animation-delay: -.32s;
 }
 
+.footstep-land {
+  z-index: 9;
+  left: 18%;
+  right: 18%;
+  bottom: 11%;
+  height: 28%;
+  opacity: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 72%, rgba(255, 253, 232, .42) 0 26%, rgba(20, 51, 77, .18) 27% 46%, transparent 68%);
+  box-shadow: 0 2px 0 rgba(20, 51, 77, .12);
+  animation: routeLandingPulse .72s steps(5, end) both;
+}
+
+.footstep-land::before,
+.footstep-land::after {
+  top: 34%;
+  height: 20%;
+  border-radius: 999px;
+  background: rgba(255, 253, 232, .74);
+  box-shadow: 0 2px 0 rgba(20, 51, 77, .14);
+}
+
+.footstep-land.footstep-facing-north {
+  bottom: 18%;
+}
+
+.footstep-land.footstep-facing-south {
+  bottom: 8%;
+}
+
+.footstep-land.footstep-facing-east,
+.footstep-land.footstep-facing-west {
+  bottom: 13%;
+}
+
+.footstep-land.footstep-G {
+  left: 12%;
+  right: 12%;
+  bottom: 6%;
+  height: 42%;
+  background:
+    linear-gradient(100deg, transparent 0 18%, rgba(255, 253, 232, .44) 19% 26%, transparent 27% 40%, rgba(36, 116, 48, .34) 41% 52%, transparent 53%),
+    radial-gradient(ellipse at 50% 78%, rgba(39, 117, 50, .34) 0 42%, transparent 72%);
+  filter: drop-shadow(0 2px 0 rgba(21, 96, 45, .18));
+  animation-name: routeGrassLanding;
+}
+
+.footstep-land.footstep-B {
+  bottom: 24%;
+  height: 10px;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 247, 209, .82), transparent),
+    radial-gradient(ellipse at 50% 70%, rgba(84, 56, 32, .28), transparent 70%);
+  box-shadow: 0 4px 0 rgba(85, 54, 30, .18);
+}
+
+.footstep-land.footstep-W {
+  left: 10%;
+  right: 10%;
+  bottom: 18%;
+  height: 52%;
+  border: 2px solid rgba(225, 249, 255, .72);
+  background: radial-gradient(ellipse, rgba(225, 249, 255, .18), transparent 62%);
+  box-shadow: inset 0 0 0 2px rgba(83, 178, 222, .14), 0 0 12px rgba(143, 218, 244, .26);
+  animation-name: routeWaterLanding;
+}
+
+.footstep-land.footstep-F,
+.footstep-land.footstep-M {
+  bottom: 20%;
+  height: 12px;
+  background:
+    linear-gradient(90deg, transparent, rgba(179, 247, 255, .82), transparent),
+    radial-gradient(ellipse at 50% 70%, rgba(20, 51, 77, .18), transparent 70%);
+  box-shadow: 0 0 14px rgba(143, 208, 255, .34);
+}
+
 .footstep-facing-north {
   bottom: 24%;
 }
@@ -9527,6 +9797,33 @@ body {
     linear-gradient(90deg, var(--seam-west, transparent) 0 var(--seam-west-size, 0), transparent var(--seam-west-fade, 0)),
     linear-gradient(270deg, var(--seam-east, transparent) 0 var(--seam-east-size, 0), transparent var(--seam-east-fade, 0));
   mix-blend-mode: multiply;
+}
+
+.terrain-corners {
+  --terrain-corner-size: 42%;
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 0 0, var(--corner-nw, transparent) 0 var(--terrain-corner-size), transparent calc(var(--terrain-corner-size) + 1%)),
+    radial-gradient(circle at 100% 0, var(--corner-ne, transparent) 0 var(--terrain-corner-size), transparent calc(var(--terrain-corner-size) + 1%)),
+    radial-gradient(circle at 0 100%, var(--corner-sw, transparent) 0 var(--terrain-corner-size), transparent calc(var(--terrain-corner-size) + 1%)),
+    radial-gradient(circle at 100% 100%, var(--corner-se, transparent) 0 var(--terrain-corner-size), transparent calc(var(--terrain-corner-size) + 1%));
+  opacity: .86;
+  mix-blend-mode: multiply;
+}
+
+.terrain-corners::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 0 0, var(--corner-highlight-nw, transparent) 0 18%, transparent 19%),
+    radial-gradient(circle at 100% 0, var(--corner-highlight-ne, transparent) 0 18%, transparent 19%),
+    radial-gradient(circle at 0 100%, var(--corner-highlight-sw, transparent) 0 18%, transparent 19%),
+    radial-gradient(circle at 100% 100%, var(--corner-highlight-se, transparent) 0 18%, transparent 19%);
+  opacity: .72;
 }
 
 .tile-surface-glaze {
@@ -9987,6 +10284,109 @@ body {
   --seam-east: var(--floor-seam);
   --seam-east-size: 9%;
   --seam-east-fade: 22%;
+}
+
+.grass-corner-nw,
+.grass-corner-ne,
+.grass-corner-sw,
+.grass-corner-se {
+  --terrain-corner-size: 38%;
+  --terrain-corner-color: rgba(43, 118, 47, .42);
+  --terrain-corner-highlight: rgba(246, 234, 132, .28);
+}
+
+.path-corner-nw,
+.path-corner-ne,
+.path-corner-sw,
+.path-corner-se {
+  --terrain-corner-size: 44%;
+  --terrain-corner-color: rgba(130, 96, 54, .24);
+  --terrain-corner-highlight: rgba(255, 247, 185, .34);
+}
+
+.shore-corner-nw,
+.shore-corner-ne,
+.shore-corner-sw,
+.shore-corner-se {
+  --terrain-corner-size: 48%;
+  --terrain-corner-color: rgba(255, 253, 232, .55);
+  --terrain-corner-highlight: rgba(174, 232, 255, .48);
+}
+
+.shore-corner-nw .terrain-corners,
+.shore-corner-ne .terrain-corners,
+.shore-corner-sw .terrain-corners,
+.shore-corner-se .terrain-corners {
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 1px 0 rgba(22, 95, 130, .18));
+  animation: shoreFoamPulse 2.4s steps(4, end) infinite;
+}
+
+.boardwalk-corner-nw,
+.boardwalk-corner-ne,
+.boardwalk-corner-sw,
+.boardwalk-corner-se {
+  --terrain-corner-size: 40%;
+  --terrain-corner-color: rgba(84, 56, 32, .34);
+  --terrain-corner-highlight: rgba(255, 225, 156, .22);
+}
+
+.lab-corner-nw,
+.lab-corner-ne,
+.lab-corner-sw,
+.lab-corner-se {
+  --terrain-corner-size: 42%;
+  --terrain-corner-color: rgba(88, 58, 72, .26);
+  --terrain-corner-highlight: rgba(255, 247, 195, .3);
+}
+
+.floor-corner-nw,
+.floor-corner-ne,
+.floor-corner-sw,
+.floor-corner-se {
+  --terrain-corner-size: 42%;
+  --terrain-corner-color: rgba(20, 51, 77, .18);
+  --terrain-corner-highlight: rgba(117, 255, 226, .22);
+}
+
+.grass-corner-nw,
+.path-corner-nw,
+.shore-corner-nw,
+.boardwalk-corner-nw,
+.lab-corner-nw,
+.floor-corner-nw {
+  --corner-nw: var(--terrain-corner-color);
+  --corner-highlight-nw: var(--terrain-corner-highlight);
+}
+
+.grass-corner-ne,
+.path-corner-ne,
+.shore-corner-ne,
+.boardwalk-corner-ne,
+.lab-corner-ne,
+.floor-corner-ne {
+  --corner-ne: var(--terrain-corner-color);
+  --corner-highlight-ne: var(--terrain-corner-highlight);
+}
+
+.grass-corner-sw,
+.path-corner-sw,
+.shore-corner-sw,
+.boardwalk-corner-sw,
+.lab-corner-sw,
+.floor-corner-sw {
+  --corner-sw: var(--terrain-corner-color);
+  --corner-highlight-sw: var(--terrain-corner-highlight);
+}
+
+.grass-corner-se,
+.path-corner-se,
+.shore-corner-se,
+.boardwalk-corner-se,
+.lab-corner-se,
+.floor-corner-se {
+  --corner-se: var(--terrain-corner-color);
+  --corner-highlight-se: var(--terrain-corner-highlight);
 }
 
 .route-decor {
@@ -11569,6 +11969,52 @@ body {
   animation: footDust .32s steps(2, end) .08s both;
 }
 
+.tile-npc-aware .npc-sprite img {
+  filter:
+    drop-shadow(0 4px 0 rgba(20, 51, 77, .28))
+    brightness(1.06)
+    saturate(1.08);
+}
+
+.npc-attention-ring {
+  --npc-attention-accent: #59c37a;
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  bottom: 7%;
+  width: 70%;
+  height: 36%;
+  border: 3px solid color-mix(in srgb, var(--npc-attention-accent) 72%, #14344d);
+  border-top-color: transparent;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 72%, color-mix(in srgb, var(--npc-attention-accent) 22%, transparent) 0 36%, transparent 72%);
+  box-shadow: 0 3px 0 rgba(20, 51, 77, .16), 0 0 12px color-mix(in srgb, var(--npc-attention-accent) 42%, transparent);
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: npcAttentionPulse 1.2s steps(4, end) infinite;
+}
+
+.npc-attention-danger {
+  --npc-attention-accent: #f06a54;
+}
+
+.npc-attention-gatehouse {
+  --npc-attention-accent: #8fd0ff;
+}
+
+.tile-npc-aware .npc-role-plate {
+  box-shadow:
+    0 4px 0 rgba(20, 51, 77, .2),
+    0 0 12px color-mix(in srgb, var(--npc-role-accent) 38%, transparent);
+}
+
+.tile-npc-aware .npc-idle-cue {
+  background:
+    linear-gradient(180deg, #fffdf0, #fff7c4),
+    repeating-linear-gradient(90deg, rgba(20, 52, 77, .06) 0 6px, transparent 6px 12px);
+}
+
 .npc-idle-cue {
   position: absolute;
   z-index: 11;
@@ -12292,6 +12738,17 @@ body {
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
+@keyframes npcAttentionPulse {
+  0%, 100% {
+    opacity: .46;
+    transform: translateX(-50%) scale(.94);
+  }
+  50% {
+    opacity: .92;
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
 @keyframes overworldSpeechPop {
   from { opacity: 0; transform: translateX(-50%) translateY(7px) scale(.86); }
   to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
@@ -12743,6 +13200,26 @@ body {
   12% { opacity: .72; transform: translateY(0) rotate(var(--footstep-rotate)) scale(1); }
   70% { opacity: .36; }
   100% { opacity: 0; transform: translateY(1px) rotate(var(--footstep-rotate)) scale(1.18); }
+}
+
+@keyframes routeLandingPulse {
+  0% { opacity: 0; transform: translateY(-4px) rotate(var(--footstep-rotate)) scale(.52); }
+  24% { opacity: .92; transform: translateY(0) rotate(var(--footstep-rotate)) scale(1); }
+  68% { opacity: .42; transform: translateY(1px) rotate(var(--footstep-rotate)) scale(1.12); }
+  100% { opacity: 0; transform: translateY(2px) rotate(var(--footstep-rotate)) scale(1.24); }
+}
+
+@keyframes routeGrassLanding {
+  0% { opacity: 0; transform: translateY(-3px) rotate(calc(var(--footstep-rotate) - 3deg)) scale(.68); }
+  22% { opacity: .9; transform: translateY(0) rotate(var(--footstep-rotate)) scale(1); }
+  64% { opacity: .48; transform: translateY(1px) rotate(calc(var(--footstep-rotate) + 2deg)) scale(1.08); }
+  100% { opacity: 0; transform: translateY(2px) rotate(calc(var(--footstep-rotate) + 4deg)) scale(1.2); }
+}
+
+@keyframes routeWaterLanding {
+  0% { opacity: 0; transform: rotate(var(--footstep-rotate)) scale(.44); }
+  24% { opacity: .86; transform: rotate(var(--footstep-rotate)) scale(.92); }
+  100% { opacity: 0; transform: rotate(var(--footstep-rotate)) scale(1.8); }
 }
 
 @keyframes routeGrassMemory {

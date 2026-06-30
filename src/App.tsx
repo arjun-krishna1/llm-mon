@@ -137,6 +137,7 @@ interface RouteFootstep {
   position: Position
   terrain: TerrainCode
   facing: Facing
+  phase: 'depart' | 'land'
 }
 
 interface RouteClearance {
@@ -419,6 +420,14 @@ interface RouteSignpost {
   tone: LandmarkTone
 }
 
+interface RouteJournalEntry {
+  eyebrow: string
+  title: string
+  detail: string
+  tone: LandmarkTone
+  nonce: number
+}
+
 interface BattleOrigin {
   mapId: MapId
   terrainCode: TerrainCode
@@ -439,6 +448,7 @@ interface SaveState {
   partnerXp: number
   trainerDefeated: boolean
   routeMessage: string
+  routeJournalEntries: RouteJournalEntry[]
   savedAt: string
 }
 
@@ -1070,6 +1080,41 @@ function tileNeighborClasses(map: WorldMap, position: Position, code: TerrainCod
   }
   if (code === 'F') {
     addEdges('floor-edge', (neighbor) => neighbor !== 'F' && neighbor !== 'S' && neighbor !== 'D')
+  }
+
+  return classes.join(' ')
+}
+
+function tileCornerBlendClasses(map: WorldMap, position: Position, code: TerrainCode): string {
+  const north = tileAt(map, { x: position.x, y: position.y - 1 })
+  const south = tileAt(map, { x: position.x, y: position.y + 1 })
+  const west = tileAt(map, { x: position.x - 1, y: position.y })
+  const east = tileAt(map, { x: position.x + 1, y: position.y })
+  const classes: string[] = []
+  const addCorners = (prefix: string, test: (neighbor: TerrainCode) => boolean) => {
+    if (test(north) && test(west)) classes.push(`${prefix}-corner-nw`)
+    if (test(north) && test(east)) classes.push(`${prefix}-corner-ne`)
+    if (test(south) && test(west)) classes.push(`${prefix}-corner-sw`)
+    if (test(south) && test(east)) classes.push(`${prefix}-corner-se`)
+  }
+
+  if (code === 'G') {
+    addCorners('grass', (neighbor) => neighbor !== 'G' && neighbor !== 'C')
+  }
+  if (code === '.') {
+    addCorners('path', (neighbor) => neighbor === 'G' || neighbor === 'C' || neighbor === 'W')
+  }
+  if (code === 'W') {
+    addCorners('shore', (neighbor) => neighbor !== 'W')
+  }
+  if (code === 'B') {
+    addCorners('boardwalk', (neighbor) => neighbor !== 'B' && neighbor !== 'W')
+  }
+  if (code === 'L') {
+    addCorners('lab', (neighbor) => neighbor !== 'L')
+  }
+  if (code === 'F') {
+    addCorners('floor', (neighbor) => neighbor !== 'F' && neighbor !== 'S' && neighbor !== 'D')
   }
 
   return classes.join(' ')
@@ -3211,6 +3256,7 @@ function App() {
   const [mapTransition, setMapTransition] = useState<MapTransition | null>(null)
   const [landmarkToast, setLandmarkToast] = useState<LandmarkToast | null>(null)
   const [routeBeat, setRouteBeat] = useState<RouteBeat | null>(null)
+  const [routeJournalEntries, setRouteJournalEntries] = useState<RouteJournalEntry[]>([])
   const [championLog, setChampionLog] = useState<ChampionLog | null>(null)
   const [saveCeremony, setSaveCeremony] = useState<SaveCeremony | null>(null)
   const [battleReturn, setBattleReturn] = useState<BattleReturn | null>(null)
@@ -3455,6 +3501,13 @@ function App() {
     setRouteFlags((flags) => appendRouteFlag(flags, flag))
   }, [])
 
+  const recordRouteJournal = useCallback((entry: Omit<RouteJournalEntry, 'nonce'>) => {
+    setRouteJournalEntries((entries) => [
+      { ...entry, nonce: uniqueUiNonce() },
+      ...entries.filter((existing) => existing.title !== entry.title || existing.detail !== entry.detail),
+    ].slice(0, 4))
+  }, [])
+
   const flashOverworldEffect = useCallback((kind: OverworldEffectKind, effectPosition: Position) => {
     setOverworldEffect({ kind, position: effectPosition, nonce: uniqueUiNonce() })
   }, [])
@@ -3474,13 +3527,17 @@ function App() {
     }, kind === 'walk' ? 520 : 260)
   }, [])
 
-  const recordRouteFootstep = useCallback((mapId: MapId, stepPosition: Position, terrain: TerrainCode, stepFacing: Facing) => {
+  const recordRouteFootstep = useCallback((mapId: MapId, stepPosition: Position, terrain: TerrainCode, stepFacing: Facing, phase: RouteFootstep['phase'] = 'depart') => {
     routeFootstepIdRef.current += 1
     const id = routeFootstepIdRef.current
     setRouteFootsteps((footsteps) => [
-      { id, mapId, position: stepPosition, terrain, facing: stepFacing },
-      ...footsteps.filter((footstep) => footstep.mapId !== mapId || positionKey(footstep.position) !== positionKey(stepPosition)),
-    ].slice(0, 10))
+      { id, mapId, position: stepPosition, terrain, facing: stepFacing, phase },
+      ...footsteps.filter((footstep) => (
+        footstep.mapId !== mapId
+        || positionKey(footstep.position) !== positionKey(stepPosition)
+        || footstep.phase !== phase
+      )),
+    ].slice(0, 14))
   }, [])
 
   const flashInputCue = useCallback((cue: InputCue) => {
@@ -3573,7 +3630,13 @@ function App() {
       tone: landmark.tone,
       nonce: uniqueUiNonce(),
     })
-  }, [])
+    recordRouteJournal({
+      eyebrow: landmark.eyebrow,
+      title: landmark.title,
+      detail: landmark.detail,
+      tone: landmark.tone,
+    })
+  }, [recordRouteJournal])
 
   const showRouteBeat = useCallback((beat: Omit<RouteBeat, 'nonce'>) => {
     if (seenRouteBeatsRef.current.has(beat.id)) {
@@ -3581,7 +3644,13 @@ function App() {
     }
     seenRouteBeatsRef.current.add(beat.id)
     setRouteBeat({ ...beat, nonce: uniqueUiNonce() })
-  }, [])
+    recordRouteJournal({
+      eyebrow: beat.eyebrow,
+      title: beat.title,
+      detail: beat.detail,
+      tone: beat.tone,
+    })
+  }, [recordRouteJournal])
 
   const showChampionLog = useCallback((title: string, detail: string) => {
     setChampionLog({
@@ -3791,10 +3860,11 @@ function App() {
       partnerXp,
       trainerDefeated,
       routeMessage,
+      routeJournalEntries,
       savedAt: new Date().toISOString(),
       ...overrides,
     }
-  }, [collectedItemIds, currentMapId, discoveredIds, displayedPartnerHp, facing, partnerLevel, partnerXp, position, routeFlags, routeMessage, starter, trainerDefeated, usedItemIds])
+  }, [collectedItemIds, currentMapId, discoveredIds, displayedPartnerHp, facing, partnerLevel, partnerXp, position, routeFlags, routeJournalEntries, routeMessage, starter, trainerDefeated, usedItemIds])
 
   const saveGame = useCallback(() => {
     const saveState = buildSaveState()
@@ -3832,6 +3902,15 @@ function App() {
       const savedPartnerXp = typeof parsed.partnerXp === 'number' ? Math.max(0, Math.min(parsed.partnerXp, savedPartnerXpNeeded || 0)) : 0
       const savedMaxHp = maxHp(savedStarter, savedPartnerLevel)
       const savedPartnerHp = typeof parsed.partnerHp === 'number' ? Math.max(1, Math.min(parsed.partnerHp, savedMaxHp)) : savedMaxHp
+      const savedRouteJournalEntries = (parsed.routeJournalEntries ?? [])
+        .filter((entry): entry is RouteJournalEntry => (
+          Boolean(entry)
+          && typeof entry.eyebrow === 'string'
+          && typeof entry.title === 'string'
+          && typeof entry.detail === 'string'
+          && (entry.tone === 'route' || entry.tone === 'lab' || entry.tone === 'danger' || entry.tone === 'gatehouse')
+        ))
+        .slice(0, 4)
 
       setStarter(savedStarter)
       setDexFocusId((focusId) => focusId && savedDiscovered.includes(focusId) ? focusId : savedDiscovered[savedDiscovered.length - 1] ?? savedStarter.id)
@@ -3847,6 +3926,7 @@ function App() {
       setPartnerXp(savedPartnerXp)
       setTrainerDefeated(Boolean(parsed.trainerDefeated))
       setRouteMessage(parsed.routeMessage ?? `${savedStarter.name} rejoined your party.`)
+      setRouteJournalEntries(savedRouteJournalEntries)
       setBattle(null)
       setBattleEffect(null)
       setRouteLens(null)
@@ -3879,6 +3959,7 @@ function App() {
         partnerXp: savedPartnerXp,
         trainerDefeated: Boolean(parsed.trainerDefeated),
         routeMessage: parsed.routeMessage ?? `${savedStarter.name} rejoined your party.`,
+        routeJournalEntries: savedRouteJournalEntries,
         savedAt: parsed.savedAt ?? new Date().toISOString(),
       }
       setSaveSummary(describeSave(loadedSaveState))
@@ -3931,6 +4012,7 @@ function App() {
     setBattleReturn(null)
     setMissionPacket(null)
     setLevelUpNotice(null)
+    setRouteJournalEntries([])
     setWalkDirection(null)
     setBumpDirection(null)
     setCurrentMapId('route01')
@@ -4115,6 +4197,7 @@ function App() {
           setWalkDirection(null)
         }, PLAYER_STEP_ANIMATION_MS)
         recordRouteFootstep(currentMapId, position, currentTerrain, nextFacing)
+        recordRouteFootstep(currentMapId, hopTarget, hopCode, nextFacing, 'land')
         pulseRouteMotion('walk', nextFacing, hopCode)
         setPosition(hopTarget)
         setStepNonce((nonce) => nonce + 1)
@@ -4210,6 +4293,7 @@ function App() {
       setWalkDirection(null)
     }, PLAYER_STEP_ANIMATION_MS)
     recordRouteFootstep(currentMapId, position, currentTerrain, nextFacing)
+    recordRouteFootstep(currentMapId, next, code, nextFacing, 'land')
     pulseRouteMotion('walk', nextFacing, code)
     setPosition(next)
     setStepNonce((nonce) => nonce + 1)
@@ -4321,6 +4405,12 @@ function App() {
     }
     const item = fieldItemAt(currentMapId, target)
     if (item && !collectedItemIds.includes(item.id)) {
+      recordRouteJournal({
+        eyebrow: 'Route cache',
+        title: item.name,
+        detail: item.detail,
+        tone: 'route',
+      })
       setCollectedItemIds((ids) => ids.includes(item.id) ? ids : [...ids, item.id])
       addRouteFlag(item.flag)
       flashOverworldEffect('pickup', target)
@@ -4334,6 +4424,14 @@ function App() {
     }
     if (code === 'L' || currentCode === 'L') {
       const labTarget = code === 'L' ? target : position
+      recordRouteJournal({
+        eyebrow: 'Model Lab',
+        title: starter ? 'Partner recovered' : 'Starter lab memo',
+        detail: starter
+          ? 'The lab terminal restores partner HP and reminds you that tempo matters as much as strength.'
+          : 'Professor Karpathy left three starter capsules ready beside Route 01.',
+        tone: 'lab',
+      })
       if (starter) {
         const healedHp = maxHp(starter, partnerLevel)
         const hpBefore = displayedPartnerHp
@@ -4360,6 +4458,12 @@ function App() {
       const signTarget = code === 'S' ? target : position
       if (currentMapId === 'gatehouse') {
         if (positionKey(signTarget) !== '4,3') {
+          recordRouteJournal({
+            eyebrow: 'Gatehouse terminal',
+            title: 'Badge simulations',
+            detail: 'Gym badge simulations are compiling while Sol guards the champion archive path.',
+            tone: 'gatehouse',
+          })
           setRouteMessage('Terminal note: Gym badge simulations are compiling. Sol is guarding the champion log deeper inside.')
           startDialogue('Gatehouse Terminal', [
             'Badge simulations are compiling.',
@@ -4368,6 +4472,12 @@ function App() {
           return
         }
         if (!routeFlags.includes('Gate attendant met')) {
+          recordRouteJournal({
+            eyebrow: 'Champion terminal',
+            title: 'Access held',
+            detail: 'The champion archive requires Gate Attendant Sol to authorize your trainer card.',
+            tone: 'gatehouse',
+          })
           flashOverworldEffect('talk', { x: 5, y: 3 })
           setRouteMessage('The champion terminal asks for attendant clearance. Speak with Gate Attendant Sol first.')
           startDialogue('Champion Terminal', [
@@ -4378,7 +4488,19 @@ function App() {
         }
         const nextRouteFlags = appendRouteFlag(routeFlags, 'Champion log read')
         const nextRouteMessage = positionKey(signTarget) === '4,3' ? 'Champion log: Andrej paired an OpenAI ace with an Anthropic wall, then sealed the Gym ladder for the next badge build.' : 'Terminal note: Gym badge simulations are compiling. Return to Route 01 after reading the champion log.'
+        const championJournalEntry: RouteJournalEntry = {
+          eyebrow: 'Champion terminal',
+          title: 'Andrej route note',
+          detail: 'The next badge build teases an OpenAI ace against an Anthropic wall.',
+          tone: 'gatehouse',
+          nonce: uniqueUiNonce(),
+        }
+        const nextRouteJournalEntries = [
+          championJournalEntry,
+          ...routeJournalEntries.filter((entry) => entry.title !== championJournalEntry.title || entry.detail !== championJournalEntry.detail),
+        ].slice(0, 4)
         setRouteFlags(nextRouteFlags)
+        setRouteJournalEntries(nextRouteJournalEntries)
         flashOverworldEffect('pickup', signTarget)
         showRouteClearance('Vertical slice cleared', 'Champion Andrej logged the next badge hook. Save your journey or return to Route 01.')
         if (positionKey(signTarget) === '4,3') {
@@ -4396,6 +4518,7 @@ function App() {
         const saveState = buildSaveState({
           routeFlags: nextRouteFlags,
           routeMessage: nextRouteMessage,
+          routeJournalEntries: nextRouteJournalEntries,
         })
         if (saveState) {
           persistSave(saveState, 'Checkpoint autosaved: champion log read.')
@@ -4403,6 +4526,12 @@ function App() {
         return
       }
       if (positionKey(signTarget) === '2,4') {
+        recordRouteJournal({
+          eyebrow: 'Route sign',
+          title: 'Tempo tip',
+          detail: 'Benchmarks are not badges. Context Guard can turn a bad exchange into a route clear.',
+          tone: 'route',
+        })
         setRouteMessage('Sign: Benchmarks are not badges. A steady model can beat a stronger one with better tempo.')
         startDialogue('Route Sign', [
           'Benchmarks are not badges.',
@@ -4410,6 +4539,12 @@ function App() {
           'Trainer tip: Context Guard can turn a bad exchange into a route clear.',
         ], undefined, signTarget)
       } else {
+        recordRouteJournal({
+          eyebrow: 'Route sign',
+          title: 'Data Gym Ridge',
+          detail: 'The Data Gym opens in a future badge build beyond the north reader.',
+          tone: 'gatehouse',
+        })
         setRouteMessage('Sign: The Data Gym opens in a future build. Champion Andrej was last seen beyond the ridge.')
         startDialogue('Route Sign', [
           'DATA GYM RIDGE',
@@ -4455,7 +4590,7 @@ function App() {
       return
     }
     setRouteMessage(`${TILE_LABELS[code]} ahead: ${code === 'G' ? 'wild encounters favor open-weight LLM-mon.' : tileCue(code, trainerDefeated).detail}`)
-  }, [addRouteFlag, advanceDialogue, ambientTick, buildSaveState, collectedItemIds, currentMap, currentMapId, dialogue, discoveredIds.length, displayedPartnerHp, encounterIntro, facing, fieldMenuOpen, flashOverworldEffect, frontCommand?.detail, frontTargetPrompt, grassEncounterCue, mapTransition, partnerLevel, persistSave, playSfx, position, pulseFieldRead, routeFlags, showChampionLog, showLabRecovery, showRouteClearance, startDialogue, starter, trainerDefeated, trainerNotice])
+  }, [addRouteFlag, advanceDialogue, ambientTick, buildSaveState, collectedItemIds, currentMap, currentMapId, dialogue, discoveredIds.length, displayedPartnerHp, encounterIntro, facing, fieldMenuOpen, flashOverworldEffect, frontCommand?.detail, frontTargetPrompt, grassEncounterCue, mapTransition, partnerLevel, persistSave, playSfx, position, pulseFieldRead, recordRouteJournal, routeFlags, routeJournalEntries, showChampionLog, showLabRecovery, showRouteClearance, startDialogue, starter, trainerDefeated, trainerNotice])
 
   const handleMove = useCallback((move: Move) => {
     if (!battle || !starter || battle.result) {
@@ -4581,6 +4716,20 @@ function App() {
         showLevelUpNotice(starter.name, partnerLevel, xpProgress.level, levelHpBonus, learnedMove?.name)
       }
       if (battle.kind === 'wild') {
+        const wildJournalEntry: RouteJournalEntry = {
+          eyebrow: firstWildBenchmark ? 'First field log' : 'Wild benchmark',
+          title: battle.opponent.name,
+          detail: firstWildBenchmark
+            ? `${battle.opponent.name} data opened Route 01 and proved your starter can survive Eval Grass.`
+            : `${battle.opponent.name} data was added from a live Eval Grass encounter.`,
+          tone: 'route',
+          nonce: uniqueUiNonce(),
+        }
+        const nextRouteJournalEntries = [
+          wildJournalEntry,
+          ...routeJournalEntries.filter((entry) => entry.title !== wildJournalEntry.title || entry.detail !== wildJournalEntry.detail),
+        ].slice(0, 4)
+        setRouteJournalEntries(nextRouteJournalEntries)
         setRouteFlags(nextRouteFlags)
         showBattleReturn(
           'Field report',
@@ -4598,6 +4747,7 @@ function App() {
             partnerLevel: xpProgress.level,
             partnerXp: xpProgress.xp,
             routeMessage: nextRouteMessage,
+            routeJournalEntries: nextRouteJournalEntries,
           })
           if (saveState) {
             persistSave(saveState, 'Checkpoint autosaved: first wild benchmark logged.')
@@ -4605,6 +4755,18 @@ function App() {
         }
       }
       if (battle.kind === 'trainer') {
+        const scoutJournalEntry: RouteJournalEntry = {
+          eyebrow: 'Scout clearance',
+          title: 'Mira defeated',
+          detail: `Mira synced your route log after ${starter.name} cleared ${battle.opponent.name}. The Data Gym reader is open.`,
+          tone: 'danger',
+          nonce: uniqueUiNonce(),
+        }
+        const nextRouteJournalEntries = [
+          scoutJournalEntry,
+          ...routeJournalEntries.filter((entry) => entry.title !== scoutJournalEntry.title || entry.detail !== scoutJournalEntry.detail),
+        ].slice(0, 4)
+        setRouteJournalEntries(nextRouteJournalEntries)
         setRouteFlags(nextRouteFlags)
         showBattleReturn(
           'Scout report',
@@ -4621,6 +4783,7 @@ function App() {
           partnerXp: xpProgress.xp,
           trainerDefeated: true,
           routeMessage: nextRouteMessage,
+          routeJournalEntries: nextRouteJournalEntries,
         })
         if (saveState) {
           persistSave(saveState, 'Checkpoint autosaved: scout clearance earned.')
@@ -4636,6 +4799,12 @@ function App() {
       return
     }
     setRouteMessage('Professor Karpathy healed your starter and reminded you: latency matters as much as strength.')
+    recordRouteJournal({
+      eyebrow: 'Lab reset',
+      title: 'Partner recalibrated',
+      detail: 'Professor Karpathy restored your starter after a lost battle. Guard timing is the next route lesson.',
+      tone: 'lab',
+    })
     setPartnerHp(starter ? maxHp(starter, partnerLevel) : 0)
     showBattleReturn(
       'Lab report',
@@ -4648,7 +4817,7 @@ function App() {
     setPosition({ x: 3, y: 3 })
     setCurrentMapId('route01')
     setScreen('map')
-  }, [battle, buildSaveState, discoveredIds, partnerLevel, partnerXp, persistSave, playSfx, routeFlags, showBattleReturn, showLevelUpNotice, showRouteClearance, startDialogue, starter])
+  }, [battle, buildSaveState, discoveredIds, partnerLevel, partnerXp, persistSave, playSfx, recordRouteJournal, routeFlags, routeJournalEntries, showBattleReturn, showLevelUpNotice, showRouteClearance, startDialogue, starter])
 
   const runFromBattle = useCallback(() => {
     if (!battle || !starter || battle.result || battle.kind !== 'wild') {
@@ -5477,9 +5646,17 @@ function App() {
                   const visibleNpc = routeNpcAt(currentMapId, tilePosition, trainerDefeated, ambientTick)
                   const npcActive = Boolean(visibleNpc && dialogue?.speaker === visibleNpc.name)
                   const npcSpeechLabel = npcActive && dialogue ? overworldSpeechLabel(dialogue.speaker) : null
-                  const npcFacing = visibleNpc ? npcActive ? oppositeFacing(facing) : ambientNpcFacing(visibleNpc, ambientTick) : undefined
-                  const npcWalking = visibleNpc && !npcActive ? npcWalkDirection(visibleNpc, ambientTick) : null
+                  const npcDistance = visibleNpc ? Math.abs(tilePosition.x - position.x) + Math.abs(tilePosition.y - position.y) : null
+                  const npcAware = Boolean(visibleNpc && !npcActive && !dialogue && !fieldMenuOpen && !encounterIntro && !grassEncounterCue && !trainerNotice && npcDistance !== null && npcDistance <= 2)
                   const npcPlate = visibleNpc ? npcRolePlate(visibleNpc) : null
+                  const npcFacing = visibleNpc
+                    ? npcActive
+                      ? oppositeFacing(facing)
+                      : npcAware
+                        ? facingFromDelta(tilePosition, position, visibleNpc.facing)
+                        : ambientNpcFacing(visibleNpc, ambientTick)
+                    : undefined
+                  const npcWalking = visibleNpc && !npcActive && !npcAware ? npcWalkDirection(visibleNpc, ambientTick) : null
                   const playerInGrass = playerHere && codeForRender === 'G'
                   const playerSpeaking = playerHere && Boolean(dialogue && !routeNpcAt(currentMapId, position, trainerDefeated, ambientTick) && dialogue.speaker === 'Trainer')
                   const followerInGrass = followerHere && codeForRender === 'G'
@@ -5531,6 +5708,7 @@ function App() {
                   const elevationClasses = tileElevationClasses(currentMapId, tilePosition, codeForRender)
                   const heightTransitionClasses = tileHeightTransitionClasses(currentMap, tilePosition, codeForRender)
                   const neighborClasses = tileNeighborClasses(currentMap, tilePosition, codeForRender)
+                  const cornerBlendClasses = tileCornerBlendClasses(currentMap, tilePosition, codeForRender)
                   const routeDecoration = routeDecorationFor(currentMapId, codeForRender, x, y)
                   const terrainCrown = terrainCrownFor(currentMapId, currentMap, tilePosition, codeForRender)
                   const ambientDetail = ambientDetailFor(currentMapId, codeForRender, x, y, ambientTick)
@@ -5575,7 +5753,7 @@ function App() {
                   return (
                     <div
                       key={`${x}-${y}`}
-                      className={`tile tile-${codeForRender === '.' ? 'path' : codeForRender} ${depthClasses} ${elevationClasses} ${heightTransitionClasses} ${neighborClasses} ${rowDepthClass} ${cameraDepthClass} ${grassPressureActive ? `tile-grass-pressure grass-pressure-${encounterPressure.tone}` : ''} ${playerInGrass ? 'tile-player-in-grass' : ''} ${followerInGrass ? 'tile-follower-in-grass' : ''} ${rescueProfessorHere ? 'tile-rescue-professor' : ''} ${dialogueFocusTone ? `tile-dialogue-focus dialogue-focus-${dialogueFocusTone}` : ''} ${objectiveGuide ? `tile-objective-guide objective-guide-${objectiveTarget.kind}` : ''} ${miraScoutTile ? 'tile-mira-scout' : ''} ${miraSightLine ? `tile-mira-sightline sight-step-${sightlineStep}` : ''} ${miraLockActive && miraSightLine ? 'tile-sightline-locked' : ''} ${trainerLockTarget ? 'tile-trainer-lock-target' : ''} ${actionPrompt ? `tile-action-target action-${actionPrompt.kind}` : ''} ${routeLensHere ? `tile-route-lens lens-${routeLens?.kind}` : ''} ${codeForRender === 'D' && trainerDefeated ? 'tile-gate-open' : ''} ${championTerminalRead ? 'tile-terminal-read' : ''} ${championTerminalAuthorized ? 'tile-terminal-authorized' : ''} ${championTerminalLocked ? 'tile-terminal-locked' : ''} ${gatehouseGuideFloor ? 'tile-guide-floor' : ''}`}
+                      className={`tile tile-${codeForRender === '.' ? 'path' : codeForRender} ${depthClasses} ${elevationClasses} ${heightTransitionClasses} ${neighborClasses} ${cornerBlendClasses} ${rowDepthClass} ${cameraDepthClass} ${grassPressureActive ? `tile-grass-pressure grass-pressure-${encounterPressure.tone}` : ''} ${playerInGrass ? 'tile-player-in-grass' : ''} ${followerInGrass ? 'tile-follower-in-grass' : ''} ${rescueProfessorHere ? 'tile-rescue-professor' : ''} ${dialogueFocusTone ? `tile-dialogue-focus dialogue-focus-${dialogueFocusTone}` : ''} ${objectiveGuide ? `tile-objective-guide objective-guide-${objectiveTarget.kind}` : ''} ${miraScoutTile ? 'tile-mira-scout' : ''} ${miraSightLine ? `tile-mira-sightline sight-step-${sightlineStep}` : ''} ${miraLockActive && miraSightLine ? 'tile-sightline-locked' : ''} ${trainerLockTarget ? 'tile-trainer-lock-target' : ''} ${npcAware && npcPlate ? `tile-npc-aware npc-aware-${npcPlate.tone}` : ''} ${actionPrompt ? `tile-action-target action-${actionPrompt.kind}` : ''} ${routeLensHere ? `tile-route-lens lens-${routeLens?.kind}` : ''} ${codeForRender === 'D' && trainerDefeated ? 'tile-gate-open' : ''} ${championTerminalRead ? 'tile-terminal-read' : ''} ${championTerminalAuthorized ? 'tile-terminal-authorized' : ''} ${championTerminalLocked ? 'tile-terminal-locked' : ''} ${gatehouseGuideFloor ? 'tile-guide-floor' : ''}`}
                       title={TILE_LABELS[codeForRender]}
                       style={{ zIndex: y * 2 + tileDepthBoost(currentMap, tilePosition, codeForRender) + (codeForRender === 'C' || playerHere || followerHere || rescueProfessorHere || codeForRender === 'T' || visibleNpc ? 2 : 0) }}
                     >
@@ -5585,9 +5763,10 @@ function App() {
                       <img className="tile-art" src={tileImageFor(codeForRender, x, y)} alt="" />
                       {dialogueFocusTone ? <span className={`dialogue-focus-ring focus-${dialogueFocusTone}`} aria-hidden="true" /> : null}
                       {neighborClasses ? <span className="terrain-seams" aria-hidden="true" /> : null}
+                      {cornerBlendClasses ? <span className="terrain-corners" aria-hidden="true" /> : null}
                       <span className="tile-surface-glaze" aria-hidden="true" />
                       {terrainCrown ? <span className={`terrain-crown crown-${terrainCrown}`} aria-hidden="true" /> : null}
-                      {routeFootstep ? <span key={routeFootstep.id} className={`route-footstep footstep-${routeFootstep.terrain === '.' ? 'path' : routeFootstep.terrain} footstep-facing-${routeFootstep.facing} footstep-age-${Math.min(routeFootstepIndex, 4)}`} aria-hidden="true" /> : null}
+                      {routeFootstep ? <span key={routeFootstep.id} className={`route-footstep footstep-${routeFootstep.terrain === '.' ? 'path' : routeFootstep.terrain} footstep-${routeFootstep.phase} footstep-facing-${routeFootstep.facing} footstep-age-${Math.min(routeFootstepIndex, 4)}`} aria-hidden="true" /> : null}
                       {routeDecoration ? <span className={`route-decor decor-${routeDecoration}`} aria-hidden="true" /> : null}
                       {ambientDetail ? <span className={`ambient-detail ambient-${ambientDetail} ambient-phase-${(x + y + ambientTick) % 4}`} aria-hidden="true" /> : null}
                       {landmarkMarker ? (
@@ -5687,6 +5866,7 @@ function App() {
                       ) : null}
                       {visibleNpc && !playerHere ? (
                         <>
+                          {npcAware ? <span className={`npc-attention-ring npc-attention-${npcPlate?.tone ?? 'route'}`} aria-hidden="true" /> : null}
                           {npcPlate && !npcActive ? <span className={`npc-role-plate npc-role-${npcPlate.tone}`} aria-hidden="true">{npcPlate.label}</span> : null}
                           {!npcActive ? <span className="npc-idle-cue" aria-hidden="true">...</span> : null}
                           {npcSpeechLabel ? <span className="overworld-speech-bubble bubble-npc" aria-hidden="true">{npcSpeechLabel}</span> : null}
@@ -5985,6 +6165,23 @@ function App() {
                 {routeSceneRead.chips.map((chip) => <em key={chip}>{chip}</em>)}
               </div>
             </div>
+            <div className={`route-journal-stack journal-${storyBeat.tone}`} aria-label="Recent route journal entries">
+              <div className="route-journal-stack-head">
+                <span>Recent route record</span>
+                <strong>{routeJournalEntries.length ? `${routeJournalEntries.length} filed` : 'Listening'}</strong>
+              </div>
+              {routeJournalEntries.length ? (
+                routeJournalEntries.map((entry) => (
+                  <article key={entry.nonce} className={`route-journal-entry entry-${entry.tone}`}>
+                    <span>{entry.eyebrow}</span>
+                    <strong>{entry.title}</strong>
+                    <p>{entry.detail}</p>
+                  </article>
+                ))
+              ) : (
+                <p className="route-journal-empty">Walk into landmarks, grass, trainer lanes, and gatehouse terminals to file route notes.</p>
+              )}
+            </div>
             <div className={`chapter-progress chapter-${storyBeat.tone}`} aria-label="Chapter progress">
               <div>
                 <span>Chapter progress</span>
@@ -6217,6 +6414,19 @@ function App() {
                     ))}
                   </div>
                 ) : null}
+                <div className="menu-route-journal-stack" aria-label="Pause menu recent route records">
+                  <strong>{routeJournalEntries.length ? 'Recent filings' : 'No filings yet'}</strong>
+                  {routeJournalEntries.length ? (
+                    routeJournalEntries.slice(0, 3).map((entry) => (
+                      <span key={`menu-${entry.nonce}`} className={`menu-route-journal-entry entry-${entry.tone}`}>
+                        <b>{entry.title}</b>
+                        <em>{entry.eyebrow}</em>
+                      </span>
+                    ))
+                  ) : (
+                    <p>Walk into landmarks and trainer lanes to file route notes.</p>
+                  )}
+                </div>
               </article>
               <article className="field-menu-card">
                 <p className="eyebrow">Quest</p>
