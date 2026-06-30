@@ -15,6 +15,7 @@ type LlmType =
 type Availability = 'closed API' | 'open weights' | 'open source'
 type Rarity = 'starter' | 'common' | 'uncommon' | 'rare' | 'legendary'
 type Screen = 'title' | 'intro' | 'starter' | 'map' | 'battle' | 'llmdex'
+type IntroScene = 'speech' | 'truck' | 'home' | 'field'
 type BattleKind = 'wild' | 'trainer'
 type BattleResult = 'won' | 'lost'
 type BattleEffectPhase = 'exchange' | 'guard'
@@ -25,12 +26,14 @@ type RouteFlag = 'Starter chosen' | 'First benchmark logged' | 'Mira defeated' |
 type FieldItemId = 'latencyPatch'
 type MapNpcId = 'routeTuner' | 'gateAttendant' | 'miraPostBattle'
 type OverworldEffectKind = 'grass' | 'bump' | 'pickup' | 'talk' | 'hop' | 'heal'
-type DialogueAfter = 'miraBattle'
+type DialogueAfter = 'miraBattle' | 'starterRegistered'
 type InputCue = Facing | 'action' | 'menu'
 type LandmarkTone = 'route' | 'lab' | 'danger' | 'gatehouse'
 type BattleTerrain = 'grass' | 'boardwalk' | 'gatehouse' | 'trainer' | 'route'
 type RouteDecoration = 'grass-tuft' | 'path-flower' | 'path-stone' | 'shore-reed' | 'lab-light' | 'terminal-cable'
 type AmbientDetail = 'grass-rustle' | 'path-leaf' | 'water-glint' | 'shore-bubble' | 'canopy-drift' | 'terminal-beacon' | 'gate-spark' | 'floor-scan'
+type TerrainCrown = 'grass-bank' | 'path-shoulder' | 'ridge-face' | 'tree-crown' | 'water-lip' | 'lab-roof' | 'sign-post' | 'gate-pylon' | 'cache-glint' | 'ledge-face' | 'boardwalk-depth' | 'terminal-stack'
+type RouteBeatId = 'first-grass' | 'scout-lane' | 'boardwalk' | 'gate-ridge' | 'terminal-row'
 type ObjectiveTargetKind = 'grass' | 'trainer' | 'cache' | 'gate' | 'attendant' | 'terminal' | 'exit'
 type PartnerReadTone = 'ready' | 'warning' | 'discovery' | 'gatehouse'
 type EncounterPressureTone = 'quiet' | 'rustling' | 'surging' | 'sealed'
@@ -79,6 +82,9 @@ interface Position {
 interface BattleEffect {
   phase: BattleEffectPhase
   nonce: number
+  primaryLabel: string
+  responseLabel?: string
+  accentType?: LlmType | 'Normal'
   playerDamage?: number
   enemyDamage?: number
 }
@@ -100,6 +106,7 @@ interface TrainerNotice {
   speaker: string
   title: string
   detail: string
+  target?: Position
   nonce: number
 }
 
@@ -112,6 +119,7 @@ interface BattleState {
   playerHp: number
   enemyHp: number
   guard: number
+  guardUsed?: boolean
   turn: number
   log: string[]
   result?: BattleResult
@@ -137,6 +145,21 @@ interface RouteClearance {
   nonce: number
 }
 
+interface BattleRoutePacket {
+  eyebrow: string
+  title: string
+  detail: string
+  next: string
+  tone: 'victory' | 'clearance' | 'lab'
+}
+
+interface BattleReadout {
+  tempo: string
+  pressure: string
+  advice: string
+  tone: 'safe' | 'watch' | 'danger' | 'finish'
+}
+
 interface LabRecovery {
   title: string
   detail: string
@@ -146,8 +169,12 @@ interface LabRecovery {
 }
 
 interface MapTransition {
+  eyebrow: string
   title: string
   detail: string
+  from: string
+  to: string
+  tone: LandmarkTone
   nonce: number
 }
 
@@ -156,6 +183,22 @@ interface LandmarkToast {
   title: string
   detail: string
   tone: LandmarkTone
+  nonce: number
+}
+
+interface RouteBeat {
+  id: RouteBeatId
+  eyebrow: string
+  title: string
+  detail: string
+  tone: LandmarkTone
+  nonce: number
+}
+
+interface RouteMotion {
+  kind: 'walk' | 'bump'
+  direction: Facing
+  terrain?: TerrainCode
   nonce: number
 }
 
@@ -178,6 +221,15 @@ interface BattleReturn {
   title: string
   detail: string
   tone: 'victory' | 'clearance' | 'retreat' | 'lab'
+  nonce: number
+}
+
+interface MissionPacket {
+  eyebrow: string
+  title: string
+  detail: string
+  steps: string[]
+  partnerId: string
   nonce: number
 }
 
@@ -211,6 +263,24 @@ interface StoryBeat {
 interface FrontTargetPrompt {
   label: string
   kind: 'talk' | 'read' | 'open' | 'enter' | 'inspect'
+  target: Position
+  showTilePrompt: boolean
+}
+
+interface RouteLens {
+  label: string
+  detail: string
+  kind: FrontTargetPrompt['kind']
+  target: Position
+  nonce: number
+}
+
+interface FieldReadPulse {
+  label: string
+  detail: string
+  kind: FrontTargetPrompt['kind']
+  target: Position
+  nonce: number
 }
 
 interface ObjectiveTarget {
@@ -221,10 +291,30 @@ interface ObjectiveTarget {
   kind: ObjectiveTargetKind
 }
 
+interface ObjectiveGuideStep {
+  position: Position
+  direction: Facing
+}
+
 interface PartnerFieldRead {
   label: string
   detail: string
   tone: PartnerReadTone
+}
+
+interface RouteSceneRead {
+  eyebrow: string
+  title: string
+  detail: string
+  tone: LandmarkTone | 'grass' | 'cache'
+  assetSrc: string
+  assetAlt: string
+  chips: string[]
+}
+
+interface CameraLead {
+  x: number
+  y: number
 }
 
 interface EncounterPressure {
@@ -255,7 +345,7 @@ interface MapNpc {
   position: Position
   patrol?: Position[]
   facing: Facing
-  sprite: 'trainer' | 'player'
+  sprite: 'trainer' | 'player' | 'robotCyan' | 'professorLocal'
   flag: RouteFlag
   lines: string[]
 }
@@ -265,6 +355,10 @@ interface DialogueState {
   lines: string[]
   index: number
   after?: DialogueAfter
+  target?: {
+    mapId: MapId
+    position: Position
+  }
 }
 
 interface WorldMap {
@@ -275,6 +369,34 @@ interface WorldMap {
   introLine: string
   tiles: TerrainCode[][]
   hasWildEncounters: boolean
+}
+
+interface TerrainDefinition {
+  code: TerrainCode
+  label: string
+  cueDetail: string
+  blocked: boolean | ((trainerDefeated: boolean) => boolean)
+  tileAsset: (x: number, y: number) => string
+  elevations?: string[]
+  standingProp?: boolean
+  depthBoost?: number
+}
+
+interface TrainerSightline {
+  id: string
+  npcId: MapNpcId
+  origin: Position
+  range: number
+  direction: Facing
+  width?: number
+  requiresTrainerUndefeated?: boolean
+}
+
+interface WorldObjectLayer {
+  items: Record<string, FieldItem>
+  npcs: MapNpc[]
+  landmarks: LandmarkArea[]
+  trainerSightlines: TrainerSightline[]
 }
 
 interface LandmarkArea {
@@ -288,6 +410,13 @@ interface LandmarkArea {
   detail: string
   tone: LandmarkTone
   routeMessage: string
+}
+
+interface RouteSignpost {
+  eyebrow: string
+  title: string
+  detail: string
+  tone: LandmarkTone
 }
 
 interface BattleOrigin {
@@ -323,20 +452,29 @@ function appendDiscovered(ids: string[], id: string): string[] {
 
 const SAVE_KEY = 'llmmon-save-v1'
 const LATENCY_PATCH_HEAL = 42
-const ENCOUNTER_TRANSITION_MS = 820
-const GRASS_ENCOUNTER_CUE_MS = 540
-const TRAINER_NOTICE_MS = 1450
+const ENCOUNTER_TRANSITION_MS = 940
+const GRASS_ENCOUNTER_CUE_MS = 680
+const TRAINER_NOTICE_MS = 1600
 const PLAYER_STEP_ANIMATION_MS = 900
 const PLAYER_BUMP_ANIMATION_MS = 180
 const INPUT_CUE_MS = 700
 const KEY_REPEAT_MOVE_MS = 190
 const AMBIENT_TICK_MS = 1700
-const MAP_TRANSITION_MS = 1050
+const MAP_TRANSITION_MS = 1450
+const MAP_TRANSFER_SWAP_MS = 360
 const BATTLE_EFFECT_MS = 1200
 const GRASS_SURGE_STEP_THRESHOLD = 2
 const GRASS_ENCOUNTER_STEP_THRESHOLD = 3
 const STARTER_LEVEL = 5
 const MAX_PARTNER_LEVEL = 12
+const INTRO_SCENE_ORDER: IntroScene[] = ['speech', 'truck', 'home', 'field']
+
+let uiNonceSeed = 0
+
+function uniqueUiNonce(): number {
+  uiNonceSeed += 1
+  return Date.now() * 1000 + uiNonceSeed
+}
 
 const AA_LEADERBOARD: Citation = {
   label: 'Artificial Analysis LLM Leaderboard',
@@ -578,6 +716,8 @@ const SPRITE_ASSETS: Record<string, string> = {
 const MAP_ASSETS = {
   professor: assetPath('assets/llmmon/professor-karpathy.svg'),
   player: assetPath('assets/kenney/chars/robot_blue.png'),
+  robotCyan: assetPath('assets/kenney/chars/robot_cyan.png'),
+  professorLocal: assetPath('assets/kenney/chars/professor.png'),
   trainer: assetPath('assets/kenney/chars/trainer.png'),
   tile: (id: string) => assetPath(`assets/kenney/tiny-town/tiles/tile_${id}.png`),
 }
@@ -703,47 +843,170 @@ function scheduleMusic(context: AudioContext, destination: AudioNode, mode: Musi
   pattern.melody.forEach((note) => scheduleTone(context, destination, note, loopStart))
 }
 
+const TERRAIN_DEFINITIONS: Record<TerrainCode, TerrainDefinition> = {
+  R: {
+    code: 'R',
+    label: 'Ridge',
+    cueDetail: 'A raised coastal boundary blocks the route.',
+    blocked: true,
+    tileAsset: (x, y) => MAP_ASSETS.tile((x + y) % 2 === 0 ? '0048' : '0062'),
+    elevations: ['depth-raised', 'depth-ridge'],
+  },
+  '.': {
+    code: '.',
+    label: 'Path',
+    cueDetail: 'A quiet stretch of Route 01.',
+    blocked: false,
+    tileAsset: (x, y) => MAP_ASSETS.tile((x + y) % 2 === 0 ? '0013' : '0014'),
+  },
+  G: {
+    code: 'G',
+    label: 'Tall benchmark grass',
+    cueDetail: 'Wild LLM-mon are close enough to benchmark.',
+    blocked: false,
+    tileAsset: (x, y) => MAP_ASSETS.tile((x + y) % 4 === 0 ? '0001' : (x + y) % 5 === 0 ? '0002' : '0000'),
+  },
+  L: {
+    code: 'L',
+    label: 'Model Lab',
+    cueDetail: 'Professor Karpathy calibrated your starter here.',
+    blocked: false,
+    tileAsset: (_x, y) => MAP_ASSETS.tile(y % 2 === 0 ? '0053' : '0074'),
+    standingProp: true,
+  },
+  S: {
+    code: 'S',
+    label: 'Sign',
+    cueDetail: 'A posted note explains local encounter ecology.',
+    blocked: false,
+    tileAsset: () => MAP_ASSETS.tile('0095'),
+    standingProp: true,
+  },
+  T: {
+    code: 'T',
+    label: 'Benchmark Scout',
+    cueDetail: 'Mira is watching the grass path.',
+    blocked: false,
+    tileAsset: () => MAP_ASSETS.tile('0014'),
+  },
+  W: {
+    code: 'W',
+    label: 'Lake',
+    cueDetail: 'Cached-water shallows ripple beside the path.',
+    blocked: true,
+    tileAsset: (x, y) => MAP_ASSETS.tile((x + y) % 2 === 0 ? '0048' : '0062'),
+    elevations: ['depth-sunken', 'depth-water'],
+  },
+  D: {
+    code: 'D',
+    label: 'Closed gym gate',
+    cueDetail: 'A future badge lock blocks the north league road.',
+    blocked: (trainerDefeated) => !trainerDefeated,
+    tileAsset: () => MAP_ASSETS.tile('0097'),
+    standingProp: true,
+    depthBoost: 3,
+  },
+  C: {
+    code: 'C',
+    label: 'Cypress canopy',
+    cueDetail: 'Dense coastal trees make a natural route wall.',
+    blocked: true,
+    tileAsset: (x, y) => MAP_ASSETS.tile((x + y) % 3 === 0 ? '0005' : (x + y) % 3 === 1 ? '0006' : '0004'),
+    elevations: ['depth-raised', 'depth-canopy'],
+  },
+  B: {
+    code: 'B',
+    label: 'Boardwalk',
+    cueDetail: 'Cached-water shallows reflect the route lights.',
+    blocked: false,
+    tileAsset: (x, y) => MAP_ASSETS.tile((x + y) % 2 === 0 ? '0081' : '0073'),
+    elevations: ['depth-raised', 'depth-boardwalk'],
+  },
+  M: {
+    code: 'M',
+    label: 'League terminal',
+    cueDetail: 'Sealed machines list future badge requirements.',
+    blocked: true,
+    tileAsset: (x, y) => MAP_ASSETS.tile((x + y) % 2 === 0 ? '0103' : '0115'),
+    standingProp: true,
+    depthBoost: 3,
+  },
+  F: {
+    code: 'F',
+    label: 'Gym floor',
+    cueDetail: 'Polished checkpoint tile hums underfoot.',
+    blocked: false,
+    tileAsset: (x, y) => MAP_ASSETS.tile((x + y) % 2 === 0 ? '0096' : '0097'),
+    elevations: ['depth-floor'],
+  },
+  I: {
+    code: 'I',
+    label: 'Cache capsule',
+    cueDetail: 'A route cache is tucked into the grass. Face it and press A.',
+    blocked: true,
+    tileAsset: () => MAP_ASSETS.tile('0013'),
+    standingProp: true,
+  },
+  H: {
+    code: 'H',
+    label: 'One-way route ledge',
+    cueDetail: 'A short one-way drop. Walk down from above to hop it.',
+    blocked: true,
+    tileAsset: (x, y) => MAP_ASSETS.tile((x + y) % 2 === 0 ? '0048' : '0062'),
+    elevations: ['depth-raised', 'depth-ridge'],
+  },
+}
+
+const TILE_LABELS: Record<TerrainCode, string> = Object.fromEntries(
+  Object.entries(TERRAIN_DEFINITIONS).map(([code, definition]) => [code, definition.label]),
+) as Record<TerrainCode, string>
+
+function terrainDefinitionFor(code: TerrainCode): TerrainDefinition {
+  return TERRAIN_DEFINITIONS[code]
+}
+
 function tileImageFor(code: TerrainCode, x: number, y: number): string {
-  if (code === 'G') {
-    return MAP_ASSETS.tile((x + y) % 4 === 0 ? '0001' : (x + y) % 5 === 0 ? '0002' : '0000')
-  }
-  if (code === '.') {
-    return MAP_ASSETS.tile((x + y) % 2 === 0 ? '0013' : '0014')
-  }
-  if (code === 'L') {
-    return MAP_ASSETS.tile(y % 2 === 0 ? '0053' : '0074')
-  }
-  if (code === 'R') {
-    return MAP_ASSETS.tile((x + y) % 2 === 0 ? '0048' : '0062')
-  }
-  if (code === 'S') {
-    return MAP_ASSETS.tile('0095')
-  }
-  if (code === 'T') {
-    return MAP_ASSETS.tile('0014')
-  }
-  if (code === 'D') {
-    return MAP_ASSETS.tile('0097')
-  }
-  if (code === 'C') {
-    return MAP_ASSETS.tile((x + y) % 3 === 0 ? '0005' : (x + y) % 3 === 1 ? '0006' : '0004')
+  return terrainDefinitionFor(code).tileAsset(x, y)
+}
+
+function terrainHeightLevel(code: TerrainCode): number {
+  if (code === 'W') {
+    return -1
   }
   if (code === 'B') {
-    return MAP_ASSETS.tile((x + y) % 2 === 0 ? '0081' : '0073')
+    return 1
   }
-  if (code === 'M') {
-    return MAP_ASSETS.tile((x + y) % 2 === 0 ? '0103' : '0115')
+  if (code === 'R' || code === 'H' || code === 'C') {
+    return 2
   }
-  if (code === 'F') {
-    return MAP_ASSETS.tile((x + y) % 2 === 0 ? '0096' : '0097')
+  if (code === 'M' || code === 'D') {
+    return 1
   }
-  if (code === 'I') {
-    return MAP_ASSETS.tile('0013')
-  }
+  return 0
+}
+
+function tileHeightTransitionClasses(map: WorldMap, position: Position, code: TerrainCode): string {
+  const currentHeight = terrainHeightLevel(code)
+  const neighbors: Array<[Facing, TerrainCode]> = [
+    ['north', tileAt(map, { x: position.x, y: position.y - 1 })],
+    ['south', tileAt(map, { x: position.x, y: position.y + 1 })],
+    ['west', tileAt(map, { x: position.x - 1, y: position.y })],
+    ['east', tileAt(map, { x: position.x + 1, y: position.y })],
+  ]
+  const classes = [`height-level-${currentHeight + 1}`]
+  neighbors.forEach(([direction, neighborCode]) => {
+    const neighborHeight = terrainHeightLevel(neighborCode)
+    if (currentHeight > neighborHeight) {
+      classes.push(`height-drop-${direction}`)
+    }
+    if (currentHeight < neighborHeight) {
+      classes.push(`height-rise-${direction}`)
+    }
+  })
   if (code === 'H') {
-    return MAP_ASSETS.tile((x + y) % 2 === 0 ? '0048' : '0062')
+    classes.push('height-hop-ledge')
   }
-  return MAP_ASSETS.tile('0013')
+  return classes.join(' ')
 }
 
 function tileDepthClasses(map: WorldMap, position: Position, code: TerrainCode): string {
@@ -764,23 +1027,15 @@ function tileDepthClasses(map: WorldMap, position: Position, code: TerrainCode):
 function tileElevationClasses(mapId: MapId, position: Position, code: TerrainCode): string {
   const band = Math.min(3, Math.floor(position.y / 4))
   const classes = [`depth-band-${band}`]
-  if (code === 'R' || code === 'H') {
-    classes.push('depth-raised', 'depth-ridge')
+  const definition = terrainDefinitionFor(code)
+  if (definition.elevations) {
+    classes.push(...definition.elevations)
   }
-  if (code === 'C') {
-    classes.push('depth-raised', 'depth-canopy')
-  }
-  if (code === 'L' || code === 'D' || code === 'M' || code === 'S' || code === 'I') {
+  if (definition.standingProp) {
     classes.push('depth-prop')
   }
-  if (code === 'B') {
-    classes.push('depth-raised', 'depth-boardwalk')
-  }
-  if (code === 'W') {
-    classes.push('depth-sunken', 'depth-water')
-  }
-  if (mapId === 'gatehouse' && code === 'F') {
-    classes.push('depth-floor')
+  if (mapId !== 'gatehouse') {
+    return classes.filter((className) => className !== 'depth-floor').join(' ')
   }
   return classes.join(' ')
 }
@@ -825,10 +1080,7 @@ function tileDepthBoost(map: WorldMap, position: Position, code: TerrainCode): n
   if (code === 'C' && below !== 'C' && below !== 'R') {
     return 5
   }
-  if (code === 'D' || code === 'M') {
-    return 3
-  }
-  return 0
+  return terrainDefinitionFor(code).depthBoost ?? 0
 }
 
 function routeDecorationFor(mapId: MapId, code: TerrainCode, x: number, y: number): RouteDecoration | null {
@@ -852,6 +1104,50 @@ function routeDecorationFor(mapId: MapId, code: TerrainCode, x: number, y: numbe
   }
   if (mapId === 'gatehouse' && code === 'F' && seed % 7 === 0) {
     return 'terminal-cable'
+  }
+  return null
+}
+
+function terrainCrownFor(mapId: MapId, map: WorldMap, position: Position, code: TerrainCode): TerrainCrown | null {
+  const below = tileAt(map, { x: position.x, y: position.y + 1 })
+  const north = tileAt(map, { x: position.x, y: position.y - 1 })
+  const south = tileAt(map, { x: position.x, y: position.y + 1 })
+  const west = tileAt(map, { x: position.x - 1, y: position.y })
+  const east = tileAt(map, { x: position.x + 1, y: position.y })
+  const touchesOpenGround = [north, south, west, east].some((neighbor) => neighbor === '.' || neighbor === 'G' || neighbor === 'B')
+
+  if (code === 'G' && touchesOpenGround) {
+    return 'grass-bank'
+  }
+  if (code === '.' && [north, south, west, east].some((neighbor) => neighbor === 'G' || neighbor === 'C' || neighbor === 'W')) {
+    return 'path-shoulder'
+  }
+  if ((code === 'R' && below !== 'R') || (code === 'H' && below !== 'H')) {
+    return code === 'H' ? 'ledge-face' : 'ridge-face'
+  }
+  if (code === 'C' && below !== 'C') {
+    return 'tree-crown'
+  }
+  if (code === 'W' && touchesOpenGround) {
+    return 'water-lip'
+  }
+  if (code === 'L') {
+    return 'lab-roof'
+  }
+  if (code === 'S') {
+    return 'sign-post'
+  }
+  if (code === 'D') {
+    return 'gate-pylon'
+  }
+  if (code === 'I') {
+    return 'cache-glint'
+  }
+  if (code === 'B') {
+    return 'boardwalk-depth'
+  }
+  if (mapId === 'gatehouse' && code === 'M') {
+    return 'terminal-stack'
   }
   return null
 }
@@ -887,6 +1183,130 @@ function ambientDetailFor(mapId: MapId, code: TerrainCode, x: number, y: number,
     }
     if (code === 'D' && seed % 3 === 0) {
       return 'gate-spark'
+    }
+  }
+  return null
+}
+
+function routeSignpostFor(
+  mapId: MapId,
+  position: Position,
+  code: TerrainCode,
+  trainerDefeated: boolean,
+  routeFlags: RouteFlag[],
+): RouteSignpost | null {
+  if (mapId === 'route01') {
+    if (code === 'S' && samePosition(position, { x: 2, y: 4 })) {
+      return {
+        eyebrow: 'Route 01',
+        title: 'Eval Grass',
+        detail: 'Wild benchmarks ahead',
+        tone: 'route',
+      }
+    }
+    if (code === 'S' && samePosition(position, { x: 14, y: 9 })) {
+      return {
+        eyebrow: 'Route 01',
+        title: 'Cachewater',
+        detail: 'Boardwalk cache nearby',
+        tone: 'route',
+      }
+    }
+    if (code === 'D' && samePosition(position, { x: 14, y: 12 })) {
+      return {
+        eyebrow: 'Data Gym',
+        title: trainerDefeated ? 'Gate Open' : 'Badge Gate',
+        detail: trainerDefeated ? 'Enter the checkpoint' : 'Scout clearance required',
+        tone: 'gatehouse',
+      }
+    }
+  }
+
+  if (mapId === 'gatehouse') {
+    if (code === 'S' && samePosition(position, { x: 4, y: 3 })) {
+      return {
+        eyebrow: 'League terminal',
+        title: routeFlags.includes('Champion log read') ? 'Log Read' : routeFlags.includes('Gate attendant met') ? 'Authorized' : 'Locked',
+        detail: routeFlags.includes('Gate attendant met') ? 'Champion file ready' : 'Speak to Sol first',
+        tone: 'gatehouse',
+      }
+    }
+    if (code === 'D' && samePosition(position, { x: 5, y: 6 })) {
+      return {
+        eyebrow: 'Exit',
+        title: 'Route 01',
+        detail: 'Return to Eval Grass',
+        tone: 'route',
+      }
+    }
+  }
+
+  return null
+}
+
+function routeBeatForStep(
+  mapId: MapId,
+  position: Position,
+  code: TerrainCode,
+  routeFlags: RouteFlag[],
+  trainerDefeated: boolean,
+): Omit<RouteBeat, 'nonce'> | null {
+  if (mapId === 'route01') {
+    if (code === 'G' && !routeFlags.includes('First benchmark logged')) {
+      return {
+        id: 'first-grass',
+        eyebrow: 'Route beat',
+        title: 'Eval Grass',
+        detail: 'Tall benchmark grass brushes over your boots. Wild open-weight LLM-mon can spring out after a few steps.',
+        tone: 'route',
+      }
+    }
+    if (
+      !trainerDefeated
+      && routeFlags.includes('First benchmark logged')
+      && position.x !== MIRA_POSITION.x
+      && position.x >= MIRA_POSITION.x - 2
+      && position.x <= MIRA_POSITION.x + 2
+      && position.y >= MIRA_POSITION.y + 1
+      && position.y <= MIRA_POSITION.y + MIRA_SIGHT_RANGE
+    ) {
+      return {
+        id: 'scout-lane',
+        eyebrow: 'Trainer lane',
+        title: 'Mira Sightline',
+        detail: 'The path narrows into a scout lane. Cross the center line and Mira will lock eyes like a Hoenn trainer.',
+        tone: 'danger',
+      }
+    }
+    if (code === 'B') {
+      return {
+        id: 'boardwalk',
+        eyebrow: 'Route beat',
+        title: 'Cachewater Boardwalk',
+        detail: 'Planks lift the route over cached-water shallows. Listen for the cache capsule before heading north.',
+        tone: 'route',
+      }
+    }
+    if (position.x >= 12 && position.y >= 10) {
+      return {
+        id: 'gate-ridge',
+        eyebrow: 'Route beat',
+        title: 'Gate Ridge',
+        detail: trainerDefeated
+          ? 'Mira clearance is in the reader. The Data Gym gatehouse can open from here.'
+          : 'A badge reader hums beyond the ridge, but Mira clearance has to come first.',
+        tone: 'gatehouse',
+      }
+    }
+  }
+
+  if (mapId === 'gatehouse' && position.y <= 3) {
+    return {
+      id: 'terminal-row',
+      eyebrow: 'Gatehouse beat',
+      title: 'Champion Terminal Row',
+      detail: 'The room quiets around sealed league terminals. Sol can authorize the west terminal.',
+      tone: 'gatehouse',
     }
   }
   return null
@@ -1044,7 +1464,7 @@ const MAP_NPCS: MapNpc[] = [
       { x: 11, y: 5 },
     ],
     facing: 'west',
-    sprite: 'trainer',
+    sprite: 'robotCyan',
     flag: 'Tuner tip heard',
     lines: [
       'The boardwalk is where I tune prompts before a scout battle.',
@@ -1057,7 +1477,7 @@ const MAP_NPCS: MapNpc[] = [
     mapId: 'gatehouse',
     position: { x: 5, y: 3 },
     facing: 'south',
-    sprite: 'trainer',
+    sprite: 'professorLocal',
     flag: 'Gate attendant met',
     lines: [
       'The Data Gym is sealed while the league compiles the next benchmark badge.',
@@ -1068,9 +1488,8 @@ const MAP_NPCS: MapNpc[] = [
 ]
 
 function landmarkAt(mapId: MapId, position: Position): LandmarkArea | undefined {
-  return LANDMARK_AREAS.find((area) => (
-    area.mapId === mapId
-    && position.x >= area.bounds.x1
+  return worldLayerFor(mapId).landmarks.find((area) => (
+    position.x >= area.bounds.x1
     && position.x <= area.bounds.x2
     && position.y >= area.bounds.y1
     && position.y <= area.bounds.y2
@@ -1078,12 +1497,15 @@ function landmarkAt(mapId: MapId, position: Position): LandmarkArea | undefined 
 }
 
 function landmarkMarkerAt(mapId: MapId, position: Position): LandmarkArea | undefined {
-  return LANDMARK_AREAS.find((area) => area.mapId === mapId && samePosition(area.marker, position))
+  return worldLayerFor(mapId).landmarks.find((area) => samePosition(area.marker, position))
 }
 
 const MIRA_POSITION: Position = { x: 8, y: 3 }
 const MIRA_POST_BATTLE_POSITION: Position = { x: 9, y: 3 }
 const MIRA_SIGHT_RANGE = 4
+const STARTER_RESCUE_POSITION: Position = { x: 8, y: 4 }
+const STARTER_RESCUE_PROFESSOR_POSITION: Position = { x: 7, y: 4 }
+const STARTER_RESCUE_OPPONENT_ID = 'gemma-4-31b'
 
 const MIRA_POST_BATTLE_NPC: MapNpc = {
   id: 'miraPostBattle',
@@ -1094,26 +1516,61 @@ const MIRA_POST_BATTLE_NPC: MapNpc = {
   sprite: 'trainer',
   flag: 'Mira defeated',
   lines: [
-    'That was a clean route clear. Your partner kept tempo even under scout pressure.',
-    'The gate reader accepted my clearance ping. Head north and read the Data Gym terminal before you leave the slice.',
+    'That was a clean scout clear. Your partner kept tempo even under pressure.',
+    'Before you test the gate, recover the Latency Patch near Cachewater Boardwalk.',
+    'Scout battles get close fast. That cache is the difference between a clean route clear and a lab reset.',
   ],
 }
 
-const TILE_LABELS: Record<TerrainCode, string> = {
-  R: 'Ridge',
-  '.': 'Path',
-  G: 'Tall benchmark grass',
-  L: 'Model Lab',
-  S: 'Sign',
-  T: 'Benchmark Scout',
-  W: 'Lake',
-  D: 'Closed gym gate',
-  C: 'Cypress canopy',
-  B: 'Boardwalk',
-  M: 'League terminal',
-  F: 'Gym floor',
-  I: 'Cache capsule',
-  H: 'One-way route ledge',
+const WORLD_OBJECT_LAYERS: Record<MapId, WorldObjectLayer> = {
+  route01: {
+    items: FIELD_ITEMS.route01,
+    npcs: MAP_NPCS.filter((npc) => npc.mapId === 'route01'),
+    landmarks: LANDMARK_AREAS.filter((area) => area.mapId === 'route01'),
+    trainerSightlines: [
+      {
+        id: 'mira-route-lock',
+        npcId: 'miraPostBattle',
+        origin: MIRA_POSITION,
+        range: MIRA_SIGHT_RANGE,
+        direction: 'south',
+        width: 1,
+        requiresTrainerUndefeated: true,
+      },
+    ],
+  },
+  gatehouse: {
+    items: FIELD_ITEMS.gatehouse,
+    npcs: MAP_NPCS.filter((npc) => npc.mapId === 'gatehouse'),
+    landmarks: LANDMARK_AREAS.filter((area) => area.mapId === 'gatehouse'),
+    trainerSightlines: [],
+  },
+}
+
+function worldLayerFor(mapId: MapId): WorldObjectLayer {
+  return WORLD_OBJECT_LAYERS[mapId]
+}
+
+function positionInSightline(position: Position, sightline: TrainerSightline): boolean {
+  const laneWidth = sightline.width ?? 0
+  if (sightline.direction === 'south') {
+    return Math.abs(position.x - sightline.origin.x) <= laneWidth
+      && position.y > sightline.origin.y
+      && position.y <= sightline.origin.y + sightline.range
+  }
+  if (sightline.direction === 'north') {
+    return Math.abs(position.x - sightline.origin.x) <= laneWidth
+      && position.y < sightline.origin.y
+      && position.y >= sightline.origin.y - sightline.range
+  }
+  if (sightline.direction === 'east') {
+    return Math.abs(position.y - sightline.origin.y) <= laneWidth
+      && position.x > sightline.origin.x
+      && position.x <= sightline.origin.x + sightline.range
+  }
+  return Math.abs(position.y - sightline.origin.y) <= laneWidth
+    && position.x < sightline.origin.x
+    && position.x >= sightline.origin.x - sightline.range
 }
 
 const WILD_TABLE = [
@@ -1216,6 +1673,14 @@ function habitatForecast(): { model: LlmMon; chance: number }[] {
     .slice(0, 5)
 }
 
+function nextDexSignal(discoveredIds: string[]): { model: LlmMon; chance: number } | null {
+  const total = WILD_TABLE.reduce((sum, entry) => sum + entry.weight, 0)
+  const nextEntry = WILD_TABLE.find((entry) => !discoveredIds.includes(entry.id))
+  return nextEntry
+    ? { model: getModel(nextEntry.id), chance: Math.max(1, Math.round((nextEntry.weight / total) * 100)) }
+    : null
+}
+
 function describeSave(saveState: SaveState): string {
   const map = WORLD_MAPS[saveState.currentMapId]
   const starterName = getModel(saveState.starterId).name
@@ -1267,7 +1732,7 @@ function positionKey(position: Position): string {
 }
 
 function fieldItemAt(mapId: MapId, position: Position): FieldItem | undefined {
-  return FIELD_ITEMS[mapId][positionKey(position)]
+  return worldLayerFor(mapId).items[positionKey(position)]
 }
 
 function samePosition(a: Position, b: Position): boolean {
@@ -1307,7 +1772,7 @@ function npcWalkDirection(npc: MapNpc, tick: number): Facing | null {
 }
 
 function mapNpcAt(mapId: MapId, position: Position, tick: number): MapNpc | undefined {
-  const npc = MAP_NPCS.find((candidate) => candidate.mapId === mapId && samePosition(npcPositionAt(candidate, tick), position))
+  const npc = worldLayerFor(mapId).npcs.find((candidate) => samePosition(npcPositionAt(candidate, tick), position))
   return npc ? { ...npc, position: npcPositionAt(npc, tick) } : undefined
 }
 
@@ -1394,13 +1859,22 @@ function dialogueLinesForNpc(
     if (collectedItemIds.includes('latencyPatch')) {
       return [
         'You found the Latency Patch too. Nice routing.',
-        'The gate reader accepted my clearance ping. Head north and make Sol open the archive path.',
+        'The gate reader accepted my clearance ping. Head north, step through the reader, and make Sol open the archive path.',
       ]
     }
     return npc.lines
   }
 
   return npc.lines
+}
+
+function professorRescueLines(starterName: string, opponentName: string): string[] {
+  return [
+    'Whew. That was closer than a benchmark graph makes it look.',
+    `${starterName} chose its trainer quickly. You handled that wild ${opponentName} with real field tempo.`,
+    'Keep that partner with you. I registered it to your trainer card and recalibrated it back to full HP.',
+    'Route 01 is open now. Log what you meet, then cross Mira\'s sightline when your record is ready.',
+  ]
 }
 
 function npcRolePlate(npc: MapNpc): { label: string; tone: 'route' | 'danger' | 'gatehouse' } {
@@ -1414,11 +1888,14 @@ function npcRolePlate(npc: MapNpc): { label: string; tone: 'route' | 'danger' | 
 }
 
 function isMiraSightTile(mapId: MapId, position: Position, trainerDefeated: boolean): boolean {
-  return mapId === 'route01'
-    && !trainerDefeated
-    && position.x === MIRA_POSITION.x
-    && position.y > MIRA_POSITION.y
-    && position.y <= MIRA_POSITION.y + MIRA_SIGHT_RANGE
+  return Boolean(trainerSightlineAt(mapId, position, trainerDefeated))
+}
+
+function trainerSightlineAt(mapId: MapId, position: Position, trainerDefeated: boolean): TrainerSightline | undefined {
+  return worldLayerFor(mapId).trainerSightlines.find((sightline) => (
+    (!sightline.requiresTrainerUndefeated || !trainerDefeated)
+    && positionInSightline(position, sightline)
+  ))
 }
 
 function itemCollected(collectedItemIds: FieldItemId[], mapId: MapId, position: Position): boolean {
@@ -1458,6 +1935,33 @@ function oppositeFacing(facing: Facing): Facing {
     return 'east'
   }
   return 'west'
+}
+
+function clampNumber(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value))
+}
+
+function routeCameraLeadFor(
+  facing: Facing,
+  walking: Facing | null,
+  objectiveDelta: Position | null,
+  sceneTone: RouteSceneRead['tone'],
+): CameraLead {
+  const activeFacing = walking ?? facing
+  const direction = facingDelta(activeFacing)
+  const walkingWeight = walking ? 1.25 : 0.62
+  const objectiveNear = objectiveDelta && Math.abs(objectiveDelta.x) + Math.abs(objectiveDelta.y) <= 5
+  const objectiveNudge = objectiveNear
+    ? {
+        x: Math.sign(objectiveDelta.x) * 0.26,
+        y: Math.sign(objectiveDelta.y) * 0.18,
+      }
+    : { x: 0, y: 0 }
+  const sceneWeight = sceneTone === 'danger' || sceneTone === 'gatehouse' ? 1.14 : sceneTone === 'grass' ? 1.04 : 1
+  return {
+    x: direction.x * walkingWeight * sceneWeight + objectiveNudge.x,
+    y: direction.y * walkingWeight * 0.86 * sceneWeight + objectiveNudge.y,
+  }
 }
 
 function ambientNpcFacing(npc: MapNpc, tick: number): Facing {
@@ -1505,6 +2009,31 @@ function dialogueRoleFor(speaker: string): string {
     return 'Route trainer'
   }
   return 'Trainer'
+}
+
+function overworldSpeechLabel(speaker: string): string {
+  if (speaker.includes('Professor')) {
+    return 'Prof.'
+  }
+  if (speaker.includes('Mira') || speaker.includes('Scout')) {
+    return 'Mira'
+  }
+  if (speaker.includes('Nia')) {
+    return 'Nia'
+  }
+  if (speaker.includes('Sol')) {
+    return 'Sol'
+  }
+  if (speaker.includes('Terminal')) {
+    return 'TERM'
+  }
+  if (speaker.includes('Sign')) {
+    return 'SIGN'
+  }
+  if (speaker.includes('Cache')) {
+    return 'CACHE'
+  }
+  return speaker.split(' ')[0] ?? '...'
 }
 
 function starterLabProfile(model: LlmMon): StarterLabProfile {
@@ -1575,9 +2104,21 @@ function routeObjective(map: WorldMap, trainerDefeated: boolean, discoveredCount
     }
   }
   if (!trainerDefeated) {
+    if (routeFlags.includes('First benchmark logged')) {
+      return {
+        label: 'Route 01 opened',
+        detail: 'Professor is safe. Head east through Eval Grass and cross Mira\'s sightline when ready.',
+      }
+    }
     return {
       label: 'Route objective',
       detail: discoveredCount > 1 ? 'Cross Eval Grass and challenge Benchmark Scout Mira.' : 'Log one wild benchmark, then find Benchmark Scout Mira.',
+    }
+  }
+  if (!routeFlags.includes('Latency Patch found')) {
+    return {
+      label: 'Boardwalk cache',
+      detail: 'Scout clearance is synced. Recover the Latency Patch near the cachewater boardwalk before the gatehouse.',
     }
   }
   return {
@@ -1657,8 +2198,8 @@ function routeStoryBeat(
   if (!trainerDefeated) {
     return {
       chapter: 'Route 01',
-      title: 'Mira is watching the lane',
-      detail: 'A fresh LLMdex entry is enough to draw the scout battle. Cross her sightline when your partner is ready.',
+      title: 'Free to explore Route 01',
+      detail: 'Professor Karpathy registered your starter. Walk east through Eval Grass; Mira will challenge you when you cross her sightline.',
       tone: 'danger',
     }
   }
@@ -1726,7 +2267,7 @@ function routeObjectiveTarget(
   if (!trainerDefeated) {
     return {
       label: 'Mira sightline',
-      detail: 'Challenge Benchmark Scout Mira after logging a wild model.',
+      detail: 'Walk east through Eval Grass. Mira starts the scout battle when you step into her lane.',
       mapId: 'route01',
       position: MIRA_POSITION,
       kind: 'trainer',
@@ -1750,41 +2291,112 @@ function routeObjectiveTarget(
   }
 }
 
+function routeObjectiveGuidePath(
+  map: WorldMap,
+  playerPosition: Position,
+  targetPosition: Position,
+  collectedItemIds: FieldItemId[],
+  trainerDefeated: boolean,
+): ObjectiveGuideStep[] {
+  if (samePosition(playerPosition, targetPosition)) {
+    return []
+  }
+
+  const mapHeight = map.tiles.length
+  const mapWidth = map.tiles[0]?.length ?? 0
+  const inBounds = (candidate: Position) => (
+    candidate.x >= 0 && candidate.x < mapWidth && candidate.y >= 0 && candidate.y < mapHeight
+  )
+  const isPassableGuideTile = (candidate: Position) => {
+    if (!inBounds(candidate)) {
+      return false
+    }
+    if (samePosition(candidate, playerPosition)) {
+      return true
+    }
+    return !isBlocked(effectiveTileAt(map, candidate, collectedItemIds), trainerDefeated)
+  }
+
+  const neighborDeltas: Position[] = [
+    { x: 0, y: -1 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+    { x: -1, y: 0 },
+  ]
+  const targetCandidates = isPassableGuideTile(targetPosition)
+    ? [targetPosition]
+    : neighborDeltas
+      .map((delta) => ({ x: targetPosition.x + delta.x, y: targetPosition.y + delta.y }))
+      .filter(isPassableGuideTile)
+      .sort((a, b) => (
+        Math.abs(a.x - playerPosition.x) + Math.abs(a.y - playerPosition.y)
+        - (Math.abs(b.x - playerPosition.x) + Math.abs(b.y - playerPosition.y))
+      ))
+  const targetKeys = new Set(targetCandidates.map(positionKey))
+  if (targetKeys.size === 0) {
+    return []
+  }
+
+  const queue: Position[] = [playerPosition]
+  const visited = new Set([positionKey(playerPosition)])
+  const previous = new Map<string, string>()
+  const positions = new Map<string, Position>([[positionKey(playerPosition), playerPosition]])
+  let foundKey: string | null = null
+
+  for (let index = 0; index < queue.length; index += 1) {
+    const current = queue[index]
+    const currentKey = positionKey(current)
+    if (targetKeys.has(currentKey)) {
+      foundKey = currentKey
+      break
+    }
+
+    neighborDeltas.forEach((delta) => {
+      const next = { x: current.x + delta.x, y: current.y + delta.y }
+      const nextKey = positionKey(next)
+      if (visited.has(nextKey) || !isPassableGuideTile(next)) {
+        return
+      }
+      visited.add(nextKey)
+      previous.set(nextKey, currentKey)
+      positions.set(nextKey, next)
+      queue.push(next)
+    })
+  }
+
+  if (!foundKey) {
+    return []
+  }
+
+  const path: Position[] = []
+  let cursorKey: string | undefined = foundKey
+  while (cursorKey) {
+    const cursorPosition = positions.get(cursorKey)
+    if (!cursorPosition) {
+      break
+    }
+    path.unshift(cursorPosition)
+    cursorKey = previous.get(cursorKey)
+  }
+
+  return path.slice(1, 5).map((step, index, visibleSteps) => {
+    const nextStep = visibleSteps[index + 1] ?? targetPosition
+    return {
+      position: step,
+      direction: facingFromDelta(step, nextStep, 'south'),
+    }
+  })
+}
+
 function tileCue(code: TerrainCode, trainerDefeated: boolean): FieldCue {
-  if (code === 'L') {
-    return { label: 'Model Lab', detail: 'Professor Karpathy calibrated your starter here.' }
-  }
-  if (code === 'S') {
-    return { label: 'Route sign', detail: 'A posted note explains local encounter ecology.' }
-  }
+  const definition = terrainDefinitionFor(code)
   if (code === 'T') {
     return { label: 'Benchmark Scout', detail: trainerDefeated ? 'Mira is reviewing your battle log.' : 'Mira is watching the grass path.' }
   }
   if (code === 'D') {
     return { label: 'Data Gym gate', detail: trainerDefeated ? 'The checkpoint door is open for scouting.' : 'A future badge lock blocks the north league road.' }
   }
-  if (code === 'B') {
-    return { label: 'Boardwalk', detail: 'Cached-water shallows reflect the route lights.' }
-  }
-  if (code === 'M') {
-    return { label: 'League terminal', detail: 'Sealed machines list future badge requirements.' }
-  }
-  if (code === 'F') {
-    return { label: 'Gym floor', detail: 'Polished checkpoint tile hums underfoot.' }
-  }
-  if (code === 'I') {
-    return { label: 'Cache capsule', detail: 'A route cache is tucked into the grass. Face it and press A.' }
-  }
-  if (code === 'G') {
-    return { label: 'Tall benchmark grass', detail: 'Wild LLM-mon are close enough to benchmark.' }
-  }
-  if (code === 'C') {
-    return { label: 'Cypress canopy', detail: 'Dense coastal trees make a natural route wall.' }
-  }
-  if (code === 'H') {
-    return { label: 'Route ledge', detail: 'A short one-way drop. Walk down from above to hop it.' }
-  }
-  return { label: TILE_LABELS[code], detail: 'A quiet stretch of Route 01.' }
+  return { label: definition.label, detail: definition.cueDetail }
 }
 
 function partnerFieldRead(
@@ -1862,6 +2474,142 @@ function partnerFieldRead(
   }
 }
 
+function routeSceneReadFor(
+  map: WorldMap,
+  terrain: TerrainCode,
+  landmark: LandmarkArea | undefined,
+  objectiveTarget: ObjectiveTarget,
+  objectiveDistance: number | null,
+  partner: LlmMon | null,
+  partnerHpPercent: number,
+  routeFlags: RouteFlag[],
+  encounterPressure: EncounterPressure,
+): RouteSceneRead {
+  const objectiveChip = objectiveDistance === null
+    ? WORLD_MAPS[objectiveTarget.mapId].title
+    : objectiveDistance === 0
+      ? 'Marker reached'
+      : `${objectiveDistance} tiles`
+  const partnerStatus = partner
+    ? partnerHpPercent <= 25 ? 'Critical HP' : partnerHpPercent <= 55 ? 'Tired' : 'Ready'
+    : 'No partner'
+  const partnerSprite = partner ? SPRITE_ASSETS[partner.id] : MAP_ASSETS.player
+  const partnerName = partner?.name ?? 'Trainer'
+  const baseChips = [objectiveChip, partnerStatus, encounterPressure.label]
+
+  if (map.id === 'gatehouse') {
+    if (routeFlags.includes('Champion log read')) {
+      return {
+        eyebrow: 'Gatehouse read',
+        title: 'Archive filed',
+        detail: 'Champion data is saved in the terminal row. The exit route is clear.',
+        tone: 'gatehouse',
+        assetSrc: MAP_ASSETS.robotCyan,
+        assetAlt: 'Gatehouse attendant sprite',
+        chips: ['Terminal row', 'Champion hook', objectiveChip],
+      }
+    }
+    if (routeFlags.includes('Gate attendant met')) {
+      return {
+        eyebrow: 'Gatehouse read',
+        title: 'Authorized terminal',
+        detail: 'Sol opened the west archive. Face the terminal and press A to read Andrej\'s note.',
+        tone: 'gatehouse',
+        assetSrc: MAP_ASSETS.professorLocal,
+        assetAlt: 'Gate attendant sprite',
+        chips: ['Sol cleared', 'West terminal', objectiveChip],
+      }
+    }
+    return {
+      eyebrow: 'Gatehouse read',
+      title: 'Sealed league foyer',
+      detail: 'The floor hums under badge machines. Find Sol before touching the champion archive.',
+      tone: 'gatehouse',
+      assetSrc: MAP_ASSETS.professorLocal,
+      assetAlt: 'Gate attendant sprite',
+      chips: ['No wild signal', 'Find Sol', objectiveChip],
+    }
+  }
+
+  if (landmark?.tone === 'lab' || terrain === 'L') {
+    return {
+      eyebrow: 'Route read',
+      title: 'Model Lab Lawn',
+      detail: partner
+        ? `${partner.name} can recover here before the next scout push.`
+        : 'Professor Karpathy staged the first starter capsules here.',
+      tone: 'lab',
+      assetSrc: MAP_ASSETS.professor,
+      assetAlt: 'Professor Karpathy sprite',
+      chips: ['Starter lawn', partnerStatus, objectiveChip],
+    }
+  }
+
+  if (terrain === 'G' || encounterPressure.tone === 'rustling' || encounterPressure.tone === 'surging') {
+    return {
+      eyebrow: 'Route read',
+      title: encounterPressure.tone === 'surging' ? 'Grass is surging' : 'Eval Grass',
+      detail: encounterPressure.tone === 'surging'
+        ? `${partnerName} is braced for a wild benchmark to break through.`
+        : 'Tall grass is the first real field test after the lab rescue.',
+      tone: 'grass',
+      assetSrc: partnerSprite,
+      assetAlt: `${partnerName} sprite`,
+      chips: ['Wild table', encounterPressure.label, objectiveChip],
+    }
+  }
+
+  if (objectiveTarget.kind === 'cache' || landmark?.id === 'boardwalk' || terrain === 'B') {
+    return {
+      eyebrow: 'Route read',
+      title: 'Cachewater Boardwalk',
+      detail: routeFlags.includes('Latency Patch found')
+        ? 'The cache is recovered. The gate reader is the next northbound beat.'
+        : 'The planks hide a route kit that can rescue a close scout battle.',
+      tone: 'cache',
+      assetSrc: MAP_ASSETS.robotCyan,
+      assetAlt: 'Route tuner sprite',
+      chips: [routeFlags.includes('Latency Patch found') ? 'Cache found' : 'Cache nearby', partnerStatus, objectiveChip],
+    }
+  }
+
+  if (objectiveTarget.kind === 'trainer' || landmark?.tone === 'danger') {
+    return {
+      eyebrow: 'Route read',
+      title: 'Mira Sightline',
+      detail: 'The path narrows into a trainer lane. A fresh wild log lets Mira start the scout battle.',
+      tone: 'danger',
+      assetSrc: MAP_ASSETS.trainer,
+      assetAlt: 'Benchmark Scout Mira sprite',
+      chips: ['Trainer eyes', routeFlags.includes('First benchmark logged') ? 'Log ready' : 'Need wild log', objectiveChip],
+    }
+  }
+
+  if (objectiveTarget.kind === 'gate' || landmark?.tone === 'gatehouse' || terrain === 'D') {
+    return {
+      eyebrow: 'Route read',
+      title: 'Data Gym Ridge',
+      detail: routeFlags.includes('Latency Patch found')
+        ? 'Mira clearance and the patch are ready. The gatehouse is the next scene.'
+        : 'The reader is awake, but the route kit is still worth collecting first.',
+      tone: 'gatehouse',
+      assetSrc: MAP_ASSETS.trainer,
+      assetAlt: 'Benchmark Scout sprite',
+      chips: [routeFlags.includes('Latency Patch found') ? 'Kit ready' : 'Patch missing', 'Gate reader', objectiveChip],
+    }
+  }
+
+  return {
+    eyebrow: 'Route read',
+    title: landmark?.title ?? map.title,
+    detail: `${partnerName} is following the northbound route thread toward ${objectiveTarget.label}.`,
+    tone: landmark?.tone ?? 'route',
+    assetSrc: partnerSprite,
+    assetAlt: `${partnerName} sprite`,
+    chips: baseChips,
+  }
+}
+
 function encounterPressureFor(map: WorldMap, terrain: TerrainCode, stepsInGrass: number, grassCue: GrassEncounterCue | null): EncounterPressure {
   if (!map.hasWildEncounters) {
     return {
@@ -1930,13 +2678,8 @@ function battleOriginFor(map: WorldMap, position: Position, kind: BattleKind): {
 }
 
 function isBlocked(code: TerrainCode, trainerDefeated: boolean): boolean {
-  if (code === 'T') {
-    return false
-  }
-  if (code === 'D') {
-    return !trainerDefeated
-  }
-  return code === 'R' || code === 'W' || code === 'C' || code === 'M' || code === 'I' || code === 'H'
+  const blocked = terrainDefinitionFor(code).blocked
+  return typeof blocked === 'function' ? blocked(trainerDefeated) : blocked
 }
 
 function battleScore(model: LlmMon, level = STARTER_LEVEL): number {
@@ -2028,15 +2771,20 @@ function battleResultSummary(battle: BattleState, starter: LlmMon, discoveredIds
   }
 
   const isNewEntry = !discoveredIds.includes(battle.opponent.id)
+  const isStarterRescue = discoveredIds.length <= 1
   return {
     eyebrow: 'Benchmark packet',
-    title: isNewEntry ? 'New LLMdex entry ready' : 'LLMdex entry refreshed',
+    title: isStarterRescue ? 'Professor rescued' : isNewEntry ? 'New LLMdex entry ready' : 'LLMdex entry refreshed',
     lines: [
-      `${battle.opponent.name} ${isNewEntry ? 'will be added to the LLMdex.' : 'data was benchmarked again.'}`,
+      isStarterRescue
+        ? `${starter.name} drove the wild ${battle.opponent.name} away from the field bag.`
+        : `${battle.opponent.name} ${isNewEntry ? 'will be added to the LLMdex.' : 'data was benchmarked again.'}`,
       xpReward ? `${starter.name} gained ${xpReward} XP${leveledUp ? ' and leveled up!' : '.'}` : 'Field XP synced.',
       ...(learnedMoveName ? [`${starter.name} learned ${learnedMoveName}.`] : []),
       'Route flag ready: First benchmark logged.',
-      `${starter.name} carries forward ${Math.max(1, battle.playerHp)}/${maxHp(starter, partnerLevel)} HP.`,
+      isStarterRescue
+        ? `Professor Karpathy will recalibrate ${starter.name} to full HP before Route 01 opens.`
+        : `${starter.name} carries forward ${Math.max(1, battle.playerHp)}/${maxHp(starter, partnerLevel)} HP.`,
     ],
   }
 }
@@ -2063,7 +2811,7 @@ function battlePerformanceSummary(battle: BattleState, starter: LlmMon, partnerL
   }
 
   const hpPercent = Math.round((Math.max(1, battle.playerHp) / maxHp(starter, partnerLevel)) * 100)
-  const usedGuard = battle.log.some((entry) => entry.includes('Context Guard'))
+  const usedGuard = Boolean(battle.guardUsed || battle.log.some((entry) => entry.includes('Context Guard')))
   if (battle.kind === 'trainer') {
     return {
       grade: hpPercent >= 65 ? 'A' : hpPercent >= 35 ? 'B' : 'C',
@@ -2094,6 +2842,126 @@ function battlePerformanceSummary(battle: BattleState, starter: LlmMon, partnerL
     title: 'Close field log',
     detail: 'The dex entry is yours, but the next stop should be the lab or a patch.',
     tone: 'close',
+  }
+}
+
+function battleRoutePacket(
+  battle: BattleState,
+  starter: LlmMon,
+  discoveredIds: string[],
+  partnerLevel: number,
+  routeFlags: RouteFlag[],
+  projectedLevel?: number,
+): BattleRoutePacket {
+  const nextLevel = projectedLevel ?? partnerLevel
+  const carryHp = Math.max(1, battle.playerHp)
+  if (battle.result === 'lost') {
+    return {
+      eyebrow: 'Route return',
+      title: 'Model Lab reset',
+      detail: `${starter.name} will return to the lab at full HP. Your route notes stay saved, but this battle does not advance the badge thread.`,
+      next: 'Retry the grass with Context Guard ready.',
+      tone: 'lab',
+    }
+  }
+
+  if (battle.kind === 'trainer') {
+    return {
+      eyebrow: 'Route return',
+      title: 'Scout lane cleared',
+      detail: `Mira steps aside and the Data Gym reader accepts your log. ${starter.name} returns with ${carryHp}/${maxHp(starter, nextLevel)} HP.`,
+      next: routeFlags.includes('Latency Patch found') ? 'Enter the north gatehouse.' : 'Recover the boardwalk Latency Patch before the gate.',
+      tone: 'clearance',
+    }
+  }
+
+  const firstWildBenchmark = discoveredIds.length <= 1 || !routeFlags.includes('First benchmark logged')
+  return {
+    eyebrow: 'Route return',
+    title: firstWildBenchmark ? 'Route 01 opens' : 'Field log synced',
+    detail: firstWildBenchmark
+      ? `Professor Karpathy recalls you from the grass, registers ${battle.opponent.name}, and recalibrates ${starter.name} to full HP.`
+      : `${battle.opponent.name} data is filed. ${starter.name} returns to the same grass patch with ${carryHp}/${maxHp(starter, nextLevel)} HP.`,
+    next: firstWildBenchmark ? 'Cross Eval Grass toward Mira.' : 'Keep exploring or route back to the boardwalk.',
+    tone: 'victory',
+  }
+}
+
+function battleReadoutFor(battle: BattleState, starter: LlmMon, partnerLevel: number, activeMoves: Move[], hasReadyPatch: boolean): BattleReadout {
+  if (battle.result === 'won') {
+    return {
+      tempo: 'Benchmark complete',
+      pressure: 'Opponent HP at zero',
+      advice: 'Continue route and sync rewards.',
+      tone: 'finish',
+    }
+  }
+  if (battle.result === 'lost') {
+    return {
+      tempo: 'Lab reset needed',
+      pressure: 'Partner HP at zero',
+      advice: 'Return to the Model Lab and try a guard turn.',
+      tone: 'danger',
+    }
+  }
+
+  const playerMax = maxHp(starter, partnerLevel)
+  const playerHpPercent = playerMax ? (battle.playerHp / playerMax) * 100 : 0
+  const enemyMove = enemyMoveFor(battle.opponent)
+  const expectedEnemyDamage = damageFor(battle.opponent, starter, enemyMove, battle.guard)
+  const strongestMove = activeMoves
+    .filter((move) => move.id !== 'context-guard')
+    .map((move) => ({
+      move,
+      damage: damageRangeFor(starter, battle.opponent, move, 1, partnerLevel).max,
+    }))
+    .sort((a, b) => b.damage - a.damage)[0]
+  const canKo = Boolean(strongestMove && strongestMove.damage >= battle.enemyHp)
+  if (canKo && strongestMove) {
+    return {
+      tempo: 'KO window',
+      pressure: `${strongestMove.move.name} can finish`,
+      advice: 'Take the clean benchmark before the counterattack.',
+      tone: 'finish',
+    }
+  }
+  if (expectedEnemyDamage >= battle.playerHp) {
+    return {
+      tempo: 'Critical turn',
+      pressure: `${enemyMove.name} can drop your partner`,
+      advice: hasReadyPatch ? 'Use Latency Patch or guard before attacking.' : 'Guard now or risk a lab reset.',
+      tone: 'danger',
+    }
+  }
+  if (playerHpPercent <= 35) {
+    return {
+      tempo: 'Low HP',
+      pressure: `${enemyMove.name} threatens ${expectedEnemyDamage} damage`,
+      advice: hasReadyPatch ? 'Patch is ready; guard if you need tempo.' : 'Guard timing matters until you can heal.',
+      tone: 'danger',
+    }
+  }
+  if (battle.guard < 1) {
+    return {
+      tempo: 'Guard online',
+      pressure: `${enemyMove.name} softened this turn`,
+      advice: 'Use the guard window to attack or patch safely.',
+      tone: 'safe',
+    }
+  }
+  if (expectedEnemyDamage >= Math.max(1, Math.floor(battle.playerHp * 0.45))) {
+    return {
+      tempo: 'Pressure rising',
+      pressure: `${enemyMove.name} may hit for ${expectedEnemyDamage}`,
+      advice: 'Consider Context Guard before trading again.',
+      tone: 'watch',
+    }
+  }
+  return {
+    tempo: 'Stable tempo',
+    pressure: `${enemyMove.name} expected near ${expectedEnemyDamage}`,
+    advice: 'Attack for progress; keep guard in reserve.',
+    tone: 'safe',
   }
 }
 
@@ -2248,6 +3116,7 @@ function OverworldCharacter({
   src,
   alt,
   kind,
+  variant,
   facing = 'south',
   stepNonce = 0,
   active = false,
@@ -2257,6 +3126,7 @@ function OverworldCharacter({
   src: string
   alt: string
   kind: 'player' | 'npc'
+  variant?: string
   facing?: Facing
   stepNonce?: number
   active?: boolean
@@ -2266,7 +3136,7 @@ function OverworldCharacter({
   const walkingClass = walking ? `is-walking walking-${walking}` : ''
   const bumpClass = bumped ? `is-bumping bumping-${bumped}` : ''
   return (
-    <span key={`${kind}-${facing}-${stepNonce}-${walking ?? 'idle'}-${bumped ?? 'steady'}`} className={`character-sprite overworld-character ${kind}-sprite facing-${facing} ${walkingClass} ${bumpClass} ${active ? 'is-active' : ''}`}>
+    <span key={`${kind}-${variant ?? 'base'}-${facing}-${stepNonce}-${walking ?? 'idle'}-${bumped ?? 'steady'}`} className={`character-sprite overworld-character ${kind}-sprite asset-${variant ?? kind} facing-${facing} ${walkingClass} ${bumpClass} ${active ? 'is-active' : ''}`}>
       <span className="character-shadow" aria-hidden="true" />
       <img src={src} alt={alt} />
       <span className="character-footstep character-footstep-left" aria-hidden="true" />
@@ -2332,15 +3202,21 @@ function App() {
   const [grassEncounterCue, setGrassEncounterCue] = useState<GrassEncounterCue | null>(null)
   const [trainerNotice, setTrainerNotice] = useState<TrainerNotice | null>(null)
   const [overworldEffect, setOverworldEffect] = useState<OverworldEffect | null>(null)
+  const [routeMotion, setRouteMotion] = useState<RouteMotion | null>(null)
+  const [routeLens, setRouteLens] = useState<RouteLens | null>(null)
+  const [fieldReadPulse, setFieldReadPulse] = useState<FieldReadPulse | null>(null)
   const [routeFootsteps, setRouteFootsteps] = useState<RouteFootstep[]>([])
   const [routeClearance, setRouteClearance] = useState<RouteClearance | null>(null)
   const [labRecovery, setLabRecovery] = useState<LabRecovery | null>(null)
   const [mapTransition, setMapTransition] = useState<MapTransition | null>(null)
   const [landmarkToast, setLandmarkToast] = useState<LandmarkToast | null>(null)
+  const [routeBeat, setRouteBeat] = useState<RouteBeat | null>(null)
   const [championLog, setChampionLog] = useState<ChampionLog | null>(null)
   const [saveCeremony, setSaveCeremony] = useState<SaveCeremony | null>(null)
   const [battleReturn, setBattleReturn] = useState<BattleReturn | null>(null)
+  const [missionPacket, setMissionPacket] = useState<MissionPacket | null>(null)
   const [levelUpNotice, setLevelUpNotice] = useState<LevelUpNotice | null>(null)
+  const [introScene, setIntroScene] = useState<IntroScene>('speech')
   const [ambientTick, setAmbientTick] = useState(0)
   const [dialogue, setDialogue] = useState<DialogueState | null>(null)
   const [fieldMenuOpen, setFieldMenuOpen] = useState(false)
@@ -2362,10 +3238,14 @@ function App() {
   const trainerNoticeTimeoutRef = useRef<number | null>(null)
   const walkTimeoutRef = useRef<number | null>(null)
   const bumpTimeoutRef = useRef<number | null>(null)
+  const routeMotionTimeoutRef = useRef<number | null>(null)
   const inputCueTimeoutRef = useRef<number | null>(null)
   const saveCeremonyTimeoutRef = useRef<number | null>(null)
+  const missionPacketTimeoutRef = useRef<number | null>(null)
+  const mapTransferTimeoutRef = useRef<number | null>(null)
   const lastKeyboardMoveRef = useRef(0)
   const routeFootstepIdRef = useRef(0)
+  const seenRouteBeatsRef = useRef<Set<RouteBeatId>>(new Set())
 
   const starters = useMemo(() => STARTER_IDS.map(getModel), [])
   const previewStarter = useMemo(() => starters.find((model) => model.id === starterPreviewId) ?? starters[0], [starterPreviewId, starters])
@@ -2402,29 +3282,42 @@ function App() {
   const objectiveDistance = objectiveTarget.mapId === currentMapId
     ? Math.abs(position.x - objectiveTarget.position.x) + Math.abs(position.y - objectiveTarget.position.y)
     : null
+  const objectiveGuidePath = useMemo(() => (
+    objectiveTarget.mapId === currentMapId
+      ? routeObjectiveGuidePath(currentMap, position, objectiveTarget.position, collectedItemIds, trainerDefeated)
+      : []
+  ), [collectedItemIds, currentMap, currentMapId, objectiveTarget, position, trainerDefeated])
   const currentLandmark = useMemo(() => landmarkAt(currentMapId, position), [currentMapId, position])
   const frontTile = useMemo(() => frontPosition(position, facing), [facing, position])
   const frontTargetPrompt = useMemo<FrontTargetPrompt | null>(() => {
-    const npc = routeNpcAt(currentMapId, frontTile, trainerDefeated, ambientTick)
+    const ahead = frontPosition(position, facing)
+    const npc = routeNpcAt(currentMapId, ahead, trainerDefeated, ambientTick)
     if (npc) {
-      return { label: npc.name.replace(/^Benchmark Scout /, ''), kind: 'talk' }
+      return { label: npc.name.replace(/^Benchmark Scout /, ''), kind: 'talk', target: ahead, showTilePrompt: true }
     }
-    const item = fieldItemAt(currentMapId, frontTile)
+    const item = fieldItemAt(currentMapId, ahead)
     if (item && !collectedItemIds.includes(item.id)) {
-      return { label: item.name, kind: 'open' }
+      return { label: item.name, kind: 'open', target: ahead, showTilePrompt: true }
     }
-    const code = effectiveTileAt(currentMap, frontTile, collectedItemIds)
+    const code = effectiveTileAt(currentMap, ahead, collectedItemIds)
     if (code === 'S') {
-      return { label: currentMapId === 'gatehouse' ? 'Terminal' : 'Sign', kind: 'read' }
+      return { label: currentMapId === 'gatehouse' ? 'Terminal' : 'Sign', kind: 'read', target: ahead, showTilePrompt: true }
     }
     if (code === 'D') {
-      return { label: trainerDefeated ? 'Gatehouse' : 'Gym gate', kind: trainerDefeated ? 'enter' : 'inspect' }
+      if (currentMapId === 'gatehouse') {
+        return { label: 'Route 01 exit', kind: 'enter', target: ahead, showTilePrompt: true }
+      }
+      return { label: trainerDefeated ? 'Gatehouse' : 'Gym gate', kind: trainerDefeated ? 'enter' : 'inspect', target: ahead, showTilePrompt: true }
     }
     if (code === 'L') {
-      return { label: 'Model Lab', kind: 'inspect' }
+      return { label: 'Model Lab', kind: 'inspect', target: ahead, showTilePrompt: true }
+    }
+    const landmark = landmarkAt(currentMapId, position)
+    if (landmark) {
+      return { label: landmark.title, kind: 'inspect', target: position, showTilePrompt: false }
     }
     return null
-  }, [ambientTick, collectedItemIds, currentMap, currentMapId, frontTile, trainerDefeated])
+  }, [ambientTick, collectedItemIds, currentMap, currentMapId, facing, position, trainerDefeated])
   const frontCommand = useMemo(() => {
     if (!frontTargetPrompt) {
       return null
@@ -2439,7 +3332,8 @@ function App() {
       return { verb: 'Open', detail: `Press A to open ${frontTargetPrompt.label}.` }
     }
     if (frontTargetPrompt.kind === 'enter') {
-      return { verb: 'Enter', detail: `Press A or step forward to enter ${frontTargetPrompt.label}.` }
+      const isExit = frontTargetPrompt.label.toLowerCase().includes('exit')
+      return { verb: isExit ? 'Exit' : 'Enter', detail: `Press A or step forward to ${isExit ? 'return through' : 'enter'} ${frontTargetPrompt.label}.` }
     }
     return { verb: 'Inspect', detail: `Press A to inspect ${frontTargetPrompt.label}.` }
   }, [frontTargetPrompt])
@@ -2467,7 +3361,7 @@ function App() {
   const hasLatencyPatch = collectedItemIds.includes('latencyPatch')
   const latencyPatchUsed = usedItemIds.includes('latencyPatch')
   const canUseLatencyPatch = Boolean(starter && hasLatencyPatch && !latencyPatchUsed && displayedPartnerHp < partnerMaxHp)
-  const routeCacheTotal = Object.values(FIELD_ITEMS).flatMap((items) => Object.values(items)).length
+  const routeCacheTotal = Object.values(WORLD_OBJECT_LAYERS).flatMap((layer) => Object.values(layer.items)).length
   const routeCacheFound = collectedItemIds.length
   const dexCompletion = Math.round((discoveredIds.length / MODELS.length) * 100)
   const partnerHpPercent = partnerMaxHp ? Math.round((displayedPartnerHp / partnerMaxHp) * 100) : 0
@@ -2475,6 +3369,10 @@ function App() {
   const encounterPressure = useMemo(
     () => encounterPressureFor(currentMap, currentTerrainCode, stepsInGrass, grassEncounterCue),
     [currentMap, currentTerrainCode, grassEncounterCue, stepsInGrass],
+  )
+  const routeSceneRead = useMemo(
+    () => routeSceneReadFor(currentMap, currentTerrainCode, currentLandmark, objectiveTarget, objectiveDistance, starter, partnerHpPercent, routeFlags, encounterPressure),
+    [currentLandmark, currentMap, currentTerrainCode, encounterPressure, objectiveDistance, objectiveTarget, partnerHpPercent, routeFlags, starter],
   )
   const wildBenchmarkLogged = discoveredIds.length > 1 || routeFlags.includes('First benchmark logged')
   const routeHabitatForecast = useMemo(() => habitatForecast(), [])
@@ -2558,7 +3456,22 @@ function App() {
   }, [])
 
   const flashOverworldEffect = useCallback((kind: OverworldEffectKind, effectPosition: Position) => {
-    setOverworldEffect({ kind, position: effectPosition, nonce: Date.now() })
+    setOverworldEffect({ kind, position: effectPosition, nonce: uniqueUiNonce() })
+  }, [])
+
+  const pulseFieldRead = useCallback((pulse: Omit<FieldReadPulse, 'nonce'>) => {
+    setFieldReadPulse({ ...pulse, nonce: uniqueUiNonce() })
+  }, [])
+
+  const pulseRouteMotion = useCallback((kind: RouteMotion['kind'], direction: Facing, terrain?: TerrainCode) => {
+    if (routeMotionTimeoutRef.current !== null) {
+      window.clearTimeout(routeMotionTimeoutRef.current)
+    }
+    setRouteMotion({ kind, direction, terrain, nonce: uniqueUiNonce() })
+    routeMotionTimeoutRef.current = window.setTimeout(() => {
+      routeMotionTimeoutRef.current = null
+      setRouteMotion(null)
+    }, kind === 'walk' ? 520 : 260)
   }, [])
 
   const recordRouteFootstep = useCallback((mapId: MapId, stepPosition: Position, terrain: TerrainCode, stepFacing: Facing) => {
@@ -2585,19 +3498,20 @@ function App() {
     if (bumpTimeoutRef.current !== null) {
       window.clearTimeout(bumpTimeoutRef.current)
     }
+    pulseRouteMotion('bump', direction)
     setWalkDirection(null)
     setBumpDirection(direction)
     bumpTimeoutRef.current = window.setTimeout(() => {
       bumpTimeoutRef.current = null
       setBumpDirection(null)
     }, PLAYER_BUMP_ANIMATION_MS)
-  }, [])
+  }, [pulseRouteMotion])
 
   const showSaveCeremony = useCallback((title: string, detail: string, tone: SaveCeremony['tone']) => {
     if (saveCeremonyTimeoutRef.current !== null) {
       window.clearTimeout(saveCeremonyTimeoutRef.current)
     }
-    setSaveCeremony({ title, detail, tone, nonce: Date.now() })
+    setSaveCeremony({ title, detail, tone, nonce: uniqueUiNonce() })
     saveCeremonyTimeoutRef.current = window.setTimeout(() => {
       saveCeremonyTimeoutRef.current = null
       setSaveCeremony(null)
@@ -2605,16 +3519,51 @@ function App() {
   }, [])
 
   const showRouteClearance = useCallback((title: string, detail: string) => {
-    setRouteClearance({ title, detail, nonce: Date.now() })
+    setRouteClearance({ title, detail, nonce: uniqueUiNonce() })
   }, [])
 
   const showLabRecovery = useCallback((title: string, detail: string, hpBefore: number, hpAfter: number) => {
-    setLabRecovery({ title, detail, hpBefore, hpAfter, nonce: Date.now() })
+    setLabRecovery({ title, detail, hpBefore, hpAfter, nonce: uniqueUiNonce() })
   }, [])
 
-  const showMapTransition = useCallback((title: string, detail: string) => {
-    setMapTransition({ title, detail, nonce: Date.now() })
+  const showMapTransition = useCallback((title: string, detail: string, from: string, to: string, tone: LandmarkTone) => {
+    setMapTransition({ eyebrow: 'Area transition', title, detail, from, to, tone, nonce: uniqueUiNonce() })
   }, [])
+
+  const beginMapTransfer = useCallback((
+    title: string,
+    detail: string,
+    from: string,
+    to: string,
+    tone: LandmarkTone,
+    targetMapId: MapId,
+    targetPosition: Position,
+    targetFacing: Facing,
+    nextRouteMessage: string,
+    flag?: RouteFlag,
+  ) => {
+    if (mapTransferTimeoutRef.current !== null) {
+      window.clearTimeout(mapTransferTimeoutRef.current)
+    }
+    showMapTransition(title, detail, from, to, tone)
+    setFieldMenuOpen(false)
+    setDialogue(null)
+    setRouteFootsteps([])
+    setWalkDirection(null)
+    setBumpDirection(null)
+    setStepsInGrass(0)
+    mapTransferTimeoutRef.current = window.setTimeout(() => {
+      mapTransferTimeoutRef.current = null
+      setCurrentMapId(targetMapId)
+      setPosition(targetPosition)
+      setFacing(targetFacing)
+      setStepNonce((nonce) => nonce + 1)
+      if (flag) {
+        addRouteFlag(flag)
+      }
+      setRouteMessage(nextRouteMessage)
+    }, MAP_TRANSFER_SWAP_MS)
+  }, [addRouteFlag, showMapTransition])
 
   const showLandmarkToast = useCallback((landmark: LandmarkArea) => {
     setLandmarkToast({
@@ -2622,8 +3571,16 @@ function App() {
       title: landmark.title,
       detail: landmark.detail,
       tone: landmark.tone,
-      nonce: Date.now(),
+      nonce: uniqueUiNonce(),
     })
+  }, [])
+
+  const showRouteBeat = useCallback((beat: Omit<RouteBeat, 'nonce'>) => {
+    if (seenRouteBeatsRef.current.has(beat.id)) {
+      return
+    }
+    seenRouteBeatsRef.current.add(beat.id)
+    setRouteBeat({ ...beat, nonce: uniqueUiNonce() })
   }, [])
 
   const showChampionLog = useCallback((title: string, detail: string) => {
@@ -2631,16 +3588,38 @@ function App() {
       title,
       detail,
       teamIds: CHAMPION_TEAM,
-      nonce: Date.now(),
+      nonce: uniqueUiNonce(),
     })
   }, [])
 
   const showBattleReturn = useCallback((eyebrow: string, title: string, detail: string, tone: BattleReturn['tone']) => {
-    setBattleReturn({ eyebrow, title, detail, tone, nonce: Date.now() })
+    setBattleReturn({ eyebrow, title, detail, tone, nonce: uniqueUiNonce() })
+  }, [])
+
+  const showMissionPacket = useCallback((starterModel: LlmMon) => {
+    if (missionPacketTimeoutRef.current !== null) {
+      window.clearTimeout(missionPacketTimeoutRef.current)
+    }
+    setMissionPacket({
+      eyebrow: 'Professor route packet',
+      title: 'Route 01 field assignment',
+      detail: `${starterModel.name} is registered. Build a real route log before Mira's scout battle.`,
+      partnerId: starterModel.id,
+      steps: [
+        'Walk through Eval Grass and log one wild LLM-mon.',
+        'Keep HP high with the Model Lab or a Latency Patch.',
+        'Cross Mira Sightline and earn Data Gym clearance.',
+      ],
+      nonce: uniqueUiNonce(),
+    })
+    missionPacketTimeoutRef.current = window.setTimeout(() => {
+      missionPacketTimeoutRef.current = null
+      setMissionPacket(null)
+    }, 6200)
   }, [])
 
   const showLevelUpNotice = useCallback((partnerName: string, fromLevel: number, toLevel: number, hpGain: number, learnedMoveName?: string) => {
-    setLevelUpNotice({ partnerName, fromLevel, toLevel, hpGain, learnedMoveName, nonce: Date.now() })
+    setLevelUpNotice({ partnerName, fromLevel, toLevel, hpGain, learnedMoveName, nonce: uniqueUiNonce() })
   }, [])
 
   const cancelEncounterIntro = useCallback(() => {
@@ -2676,6 +3655,15 @@ function App() {
     }
     if (saveCeremonyTimeoutRef.current !== null) {
       window.clearTimeout(saveCeremonyTimeoutRef.current)
+    }
+    if (missionPacketTimeoutRef.current !== null) {
+      window.clearTimeout(missionPacketTimeoutRef.current)
+    }
+    if (mapTransferTimeoutRef.current !== null) {
+      window.clearTimeout(mapTransferTimeoutRef.current)
+    }
+    if (routeMotionTimeoutRef.current !== null) {
+      window.clearTimeout(routeMotionTimeoutRef.current)
     }
     if (trainerNoticeTimeoutRef.current !== null) {
       window.clearTimeout(trainerNoticeTimeoutRef.current)
@@ -2824,6 +3812,14 @@ function App() {
       return
     }
     try {
+      if (mapTransferTimeoutRef.current !== null) {
+        window.clearTimeout(mapTransferTimeoutRef.current)
+        mapTransferTimeoutRef.current = null
+      }
+      if (missionPacketTimeoutRef.current !== null) {
+        window.clearTimeout(missionPacketTimeoutRef.current)
+        missionPacketTimeoutRef.current = null
+      }
       const parsed = JSON.parse(rawSave) as Partial<SaveState>
       if (!parsed.starterId || !parsed.currentMapId || !parsed.position || !parsed.facing || !(parsed.currentMapId in WORLD_MAPS)) {
         throw new Error('Invalid save')
@@ -2853,12 +3849,14 @@ function App() {
       setRouteMessage(parsed.routeMessage ?? `${savedStarter.name} rejoined your party.`)
       setBattle(null)
       setBattleEffect(null)
+      setRouteLens(null)
       setRouteClearance(null)
       setLabRecovery(null)
       setMapTransition(null)
       setLandmarkToast(null)
       setChampionLog(null)
       setBattleReturn(null)
+      setMissionPacket(null)
       setLevelUpNotice(null)
       cancelTrainerNotice()
       setWalkDirection(null)
@@ -2888,23 +3886,33 @@ function App() {
       const loadedNotice = parsed.savedAt ? `Loaded ${new Date(parsed.savedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.` : 'Loaded save.'
       setSaveNotice(loadedNotice)
       showSaveCeremony('Journey loaded', `${loadedNotice} ${savedStarter.name} is ready on ${WORLD_MAPS[savedMapId].title}.`, 'loaded')
+      showMapTransition(
+        WORLD_MAPS[savedMapId].title,
+        WORLD_MAPS[savedMapId].introLine,
+        'Trainer record',
+        WORLD_MAPS[savedMapId].eyebrow,
+        savedMapId === 'gatehouse' ? 'gatehouse' : 'route',
+      )
       playSfx('confirm')
     } catch {
       setSaveNotice('Save data could not be loaded.')
       showSaveCeremony('Load failed', 'The trainer record could not be read.', 'error')
     }
-  }, [cancelEncounterIntro, cancelTrainerNotice, playSfx, showSaveCeremony])
+  }, [cancelEncounterIntro, cancelTrainerNotice, playSfx, showMapTransition, showSaveCeremony])
 
   const beginIntro = () => {
     playSfx('confirm')
+    setIntroScene('speech')
     setScreen('intro')
-    setRouteMessage('The benchmark tide is rising. Pick a partner before entering Route 01: Eval Grass.')
+    setRouteMessage('Your moving truck has arrived in Hayes Valley. Professor Karpathy is somewhere north of town.')
   }
 
   const chooseStarter = (model: LlmMon) => {
     playSfx('confirm')
     cancelEncounterIntro()
     cancelTrainerNotice()
+    const rescueOpponent = getModel(STARTER_RESCUE_OPPONENT_ID)
+    const starterMaxHp = maxHp(model, STARTER_LEVEL)
     setStarter(model)
     setDexFocusId(model.id)
     setDiscoveredIds([model.id])
@@ -2921,24 +3929,39 @@ function App() {
     setChampionLog(null)
     setSaveCeremony(null)
     setBattleReturn(null)
+    setMissionPacket(null)
     setLevelUpNotice(null)
     setWalkDirection(null)
     setBumpDirection(null)
     setCurrentMapId('route01')
-    setPosition({ x: 3, y: 3 })
-    setFacing('south')
-    setRouteMessage(`${model.name} joined your party. Walk into the grass to benchmark your first wild LLM-mon.`)
-    showSaveCeremony('Starter registered', `${model.name} joined your party. Your new journey begins on Route 01.`, 'starter')
-    setScreen('map')
+    setPosition(STARTER_RESCUE_POSITION)
+    setFacing('north')
+    setStepsInGrass(0)
+    setBattleEffect(null)
+    setRouteLens(null)
+    setFieldMenuOpen(false)
+    setRouteMessage(`${model.name} leapt from Professor Karpathy's field bag. Protect the professor from the wild benchmark!`)
+    setBattle({
+      opponent: rescueOpponent,
+      kind: 'wild',
+      terrain: 'grass',
+      locationLabel: 'Route 01 rescue grass',
+      playerHp: starterMaxHp,
+      enemyHp: maxHp(rescueOpponent),
+      guard: 1,
+      turn: 1,
+      log: [`${model.name} sprang from the field bag!`, `A wild ${rescueOpponent.name} cornered Professor Karpathy!`],
+    })
+    setScreen('battle')
   }
 
   const toggleFieldMenu = useCallback(() => {
-    if (screen !== 'map' || dialogue || encounterIntro || trainerNotice) {
+    if (screen !== 'map' || dialogue || encounterIntro || trainerNotice || mapTransition) {
       return
     }
     playSfx('select')
     setFieldMenuOpen((open) => !open)
-  }, [dialogue, encounterIntro, playSfx, screen, trainerNotice])
+  }, [dialogue, encounterIntro, mapTransition, playSfx, screen, trainerNotice])
 
   const useLatencyPatch = useCallback(() => {
     if (!starter) {
@@ -2977,7 +4000,7 @@ function App() {
     playSfx('encounter')
     setBattleEffect(null)
     setFieldMenuOpen(false)
-    setEncounterIntro({ kind, opponentName: opponent.name, trainerName, nonce: Date.now() })
+    setEncounterIntro({ kind, opponentName: opponent.name, trainerName, nonce: uniqueUiNonce() })
     setRouteMessage(kind === 'trainer' ? `${trainerName} locks eyes with you!` : `The grass thrashes. A wild ${opponent.name} is closing in!`)
 
     const playerHp = Math.max(1, Math.min(partnerHp || maxHp(starter, partnerLevel), maxHp(starter, partnerLevel)))
@@ -3005,7 +4028,7 @@ function App() {
       window.clearTimeout(grassEncounterTimeoutRef.current)
     }
     const origin = { mapId: currentMapId, terrainCode, position: encounterPosition }
-    setGrassEncounterCue({ opponentName: opponent.name, position: encounterPosition, nonce: Date.now() })
+    setGrassEncounterCue({ opponentName: opponent.name, position: encounterPosition, nonce: uniqueUiNonce() })
     setRouteMessage(`Something is moving in the grass... ${opponent.name} is close!`)
     playSfx('select')
     grassEncounterTimeoutRef.current = window.setTimeout(() => {
@@ -3015,19 +4038,21 @@ function App() {
     }, GRASS_ENCOUNTER_CUE_MS)
   }, [currentMapId, playSfx, startBattle])
 
-  const startDialogue = useCallback((speaker: string, lines: string[], after?: DialogueAfter) => {
+  const startDialogue = useCallback((speaker: string, lines: string[], after?: DialogueAfter, target?: Position) => {
     playSfx('select')
-    setDialogue({ speaker, lines, index: 0, after })
-  }, [playSfx])
+    setRouteLens(null)
+    setDialogue({ speaker, lines, index: 0, after, target: target ? { mapId: currentMapId, position: target } : undefined })
+  }, [currentMapId, playSfx])
 
-  const showMiraNotice = useCallback((detail: string, lines: string[], after?: DialogueAfter) => {
+  const showMiraNotice = useCallback((detail: string, lines: string[], after?: DialogueAfter, target?: Position) => {
     cancelTrainerNotice()
     playSfx('encounter')
     setTrainerNotice({
       speaker: 'Benchmark Scout Mira',
       title: 'Scout lock-on',
       detail,
-      nonce: Date.now(),
+      target,
+      nonce: uniqueUiNonce(),
     })
     setRouteMessage(`Benchmark Scout Mira spotted you: ${detail}`)
     trainerNoticeTimeoutRef.current = window.setTimeout(() => {
@@ -3051,15 +4076,24 @@ function App() {
     if (after === 'miraBattle') {
       startBattle(getModel('deepseek-v4-pro-max'), 'trainer', 'Benchmark Scout Mira', { mapId: 'route01', terrainCode: 'T', position: MIRA_POSITION })
     }
-  }, [dialogue, playSfx, startBattle])
+    if (after === 'starterRegistered' && starter) {
+      showMissionPacket(starter)
+      showSaveCeremony(
+        'Starter registered',
+        `${starter.name} is now on your trainer card. Route 01 field record opened.`,
+        'starter',
+      )
+      setRouteMessage('Route 01 is open. Walk east through Eval Grass; Mira is waiting in the sightline lane.')
+    }
+  }, [dialogue, playSfx, showMissionPacket, showSaveCeremony, startBattle, starter])
 
   const movePlayer = useCallback((dx: number, dy: number) => {
     const nextFacing = dx > 0 ? 'east' : dx < 0 ? 'west' : dy < 0 ? 'north' : 'south'
-    if (trainerNotice) {
+    if (trainerNotice || mapTransition) {
       return
     }
     setFacing(nextFacing)
-    if (screen !== 'map' || !starter || dialogue || fieldMenuOpen || encounterIntro || grassEncounterCue || trainerNotice) {
+    if (screen !== 'map' || !starter || dialogue || fieldMenuOpen || encounterIntro || grassEncounterCue || trainerNotice || mapTransition) {
       return
     }
     const next = { x: position.x + dx, y: position.y + dy }
@@ -3081,6 +4115,7 @@ function App() {
           setWalkDirection(null)
         }, PLAYER_STEP_ANIMATION_MS)
         recordRouteFootstep(currentMapId, position, currentTerrain, nextFacing)
+        pulseRouteMotion('walk', nextFacing, hopCode)
         setPosition(hopTarget)
         setStepNonce((nonce) => nonce + 1)
         flashOverworldEffect('hop', next)
@@ -3116,42 +4151,49 @@ function App() {
       return
     }
     playSfx('step')
+    setRouteLens(null)
     if (code === 'T' && !trainerDefeated) {
       if (discoveredIds.length <= 1) {
         flashOverworldEffect('talk', next)
         showMiraNotice('she checks your LLMdex before allowing a scout battle.', [
           'Hold it, trainer. Your LLMdex still only shows your starter partner.',
           'Step into the benchmark grass and log one wild model first. Then I can judge your route discipline.',
-        ])
+        ], undefined, next)
         return
       }
       showMiraNotice('your fresh wild benchmark log caught her attention.', [
         'Hold it! Your route log says you benchmarked in the grass.',
         'Good. Now show me whether your partner can balance speed, cost, and reasoning under pressure.',
-      ], 'miraBattle')
+      ], 'miraBattle', next)
       return
     }
     if (code === 'D' && trainerDefeated) {
       if (currentMapId === 'route01') {
-        showMapTransition('Data Gym Gatehouse', 'Mira clearance accepted')
-        setRouteFootsteps([])
-        setCurrentMapId('gatehouse')
-        setPosition({ x: 5, y: 5 })
-        setFacing('north')
-        setWalkDirection(null)
-        setStepNonce((nonce) => nonce + 1)
-        addRouteFlag('Gatehouse entered')
-        setRouteMessage('The Data Gym gatehouse hums with sealed league terminals. This is the edge of the vertical slice.')
+        beginMapTransfer(
+          'Data Gym Gatehouse',
+          'Mira clearance accepted. The league foyer opens ahead.',
+          'Route 01',
+          'Data Gym',
+          'gatehouse',
+          'gatehouse',
+          { x: 5, y: 5 },
+          'north',
+          'The Data Gym gatehouse hums with sealed league terminals. This is the edge of the vertical slice.',
+          'Gatehouse entered',
+        )
         return
       }
-      showMapTransition('Route 01', 'Eval Grass south exit')
-      setRouteFootsteps([])
-      setCurrentMapId('route01')
-      setPosition({ x: 13, y: 12 })
-      setFacing('east')
-      setWalkDirection(null)
-      setStepNonce((nonce) => nonce + 1)
-      setRouteMessage('You step back onto Route 01. The gatehouse lights flicker behind you.')
+      beginMapTransfer(
+        'Route 01',
+        'You step back onto Eval Grass with the checkpoint lights behind you.',
+        'Data Gym',
+        'Route 01',
+        'route',
+        'route01',
+        { x: 13, y: 12 },
+        'east',
+        'You step back onto Route 01. The gatehouse lights flicker behind you.',
+      )
       return
     }
     if (walkTimeoutRef.current !== null) {
@@ -3168,16 +4210,21 @@ function App() {
       setWalkDirection(null)
     }, PLAYER_STEP_ANIMATION_MS)
     recordRouteFootstep(currentMapId, position, currentTerrain, nextFacing)
+    pulseRouteMotion('walk', nextFacing, code)
     setPosition(next)
     setStepNonce((nonce) => nonce + 1)
     const landmark = landmarkAt(currentMapId, next)
     const newLandmark = landmark && (!landmark.flag || !routeFlags.includes(landmark.flag))
+    const routeBeatForCurrentStep = routeBeatForStep(currentMapId, next, code, routeFlags, trainerDefeated)
     if (landmark && newLandmark) {
       showLandmarkToast(landmark)
       if (landmark.flag) {
         addRouteFlag(landmark.flag)
       }
       setRouteMessage(landmark.routeMessage)
+    }
+    if (routeBeatForCurrentStep) {
+      showRouteBeat(routeBeatForCurrentStep)
     }
     if (isMiraSightTile(currentMapId, next, trainerDefeated)) {
       setStepsInGrass(0)
@@ -3187,13 +4234,13 @@ function App() {
           'Hey! I can see your route log from here.',
           'You still need one wild benchmark before I can scout your battle tempo.',
           'Use the grass around me, log a model, then cross my sight line again.',
-        ])
+        ], undefined, next)
         return
       }
       showMiraNotice('she locks onto your route and steps into battle tempo.', [
         'Trainer spotted! Your LLMdex has a fresh wild benchmark entry.',
         'Good routing. Now prove your partner can keep tempo when a scout is watching.',
-      ], 'miraBattle')
+      ], 'miraBattle', next)
       return
     }
     if (code === 'S') {
@@ -3221,10 +4268,10 @@ function App() {
     if (!newLandmark) {
       setRouteMessage(code === 'L' ? 'Professor Karpathy: pick a starter and pursue the LLM-mon League.' : currentMapId === 'gatehouse' ? 'The gatehouse floor vibrates with future league machinery.' : code === 'B' ? 'The boardwalk crosses cached-water shallows toward the Data Gym ridge.' : 'Route 01: Eval Grass stretches toward the locked Data Gym gate.')
     }
-  }, [addRouteFlag, ambientTick, collectedItemIds, currentMap, currentMapId, dialogue, discoveredIds.length, encounterIntro, fieldMenuOpen, flashOverworldEffect, flashPlayerBump, grassEncounterCue, playSfx, position, recordRouteFootstep, routeFlags, screen, showLandmarkToast, showMapTransition, showMiraNotice, starter, startWildGrassEncounter, stepsInGrass, trainerDefeated, trainerNotice])
+  }, [addRouteFlag, ambientTick, beginMapTransfer, collectedItemIds, currentMap, currentMapId, dialogue, discoveredIds.length, encounterIntro, fieldMenuOpen, flashOverworldEffect, flashPlayerBump, grassEncounterCue, mapTransition, playSfx, position, pulseRouteMotion, recordRouteFootstep, routeFlags, screen, showLandmarkToast, showMiraNotice, showRouteBeat, starter, startWildGrassEncounter, stepsInGrass, trainerDefeated, trainerNotice])
 
   const inspectTile = useCallback(() => {
-    if (encounterIntro || grassEncounterCue || trainerNotice) {
+    if (encounterIntro || grassEncounterCue || trainerNotice || mapTransition) {
       return
     }
     if (fieldMenuOpen) {
@@ -3239,11 +4286,37 @@ function App() {
     const target = frontPosition(position, facing)
     const code = effectiveTileAt(currentMap, target, collectedItemIds)
     const currentCode = effectiveTileAt(currentMap, position, collectedItemIds)
+    const lensPrompt = frontTargetPrompt
+      ? {
+          label: frontTargetPrompt.label,
+          detail: frontCommand?.detail ?? tileCue(code, trainerDefeated).detail,
+          kind: frontTargetPrompt.kind,
+          target: frontTargetPrompt.target,
+        }
+      : {
+          label: TILE_LABELS[code],
+          detail: tileCue(code, trainerDefeated).detail,
+          kind: 'inspect' as const,
+          target,
+        }
+    setRouteLens({
+      label: lensPrompt.label,
+      detail: lensPrompt.detail,
+      kind: lensPrompt.kind,
+      target: lensPrompt.target,
+      nonce: uniqueUiNonce(),
+    })
+    pulseFieldRead({
+      label: lensPrompt.label,
+      detail: lensPrompt.detail,
+      kind: lensPrompt.kind,
+      target: lensPrompt.target,
+    })
     const npc = routeNpcAt(currentMapId, target, trainerDefeated, ambientTick)
     if (npc) {
       addRouteFlag(npc.flag)
       flashOverworldEffect('talk', target)
-      startDialogue(npc.name, dialogueLinesForNpc(npc, discoveredIds.length, trainerDefeated, collectedItemIds, routeFlags))
+      startDialogue(npc.name, dialogueLinesForNpc(npc, discoveredIds.length, trainerDefeated, collectedItemIds, routeFlags), undefined, target)
       return
     }
     const item = fieldItemAt(currentMapId, target)
@@ -3256,7 +4329,7 @@ function App() {
         `Found ${item.name}!`,
         item.detail,
         'The patch is now in your trainer kit. Use it from the field menu or during battle when HP gets low.',
-      ])
+      ], undefined, target)
       return
     }
     if (code === 'L' || currentCode === 'L') {
@@ -3280,7 +4353,7 @@ function App() {
       ] : [
         'Professor Karpathy left three starter capsules ready.',
         'Choose a partner before stepping into Eval Grass.',
-      ])
+      ], undefined, labTarget)
       return
     }
     if (code === 'S' || currentCode === 'S') {
@@ -3291,7 +4364,7 @@ function App() {
           startDialogue('Gatehouse Terminal', [
             'Badge simulations are compiling.',
             'Champion archive access is restricted to the west terminal after attendant clearance.',
-          ])
+          ], undefined, signTarget)
           return
         }
         if (!routeFlags.includes('Gate attendant met')) {
@@ -3300,7 +4373,7 @@ function App() {
           startDialogue('Champion Terminal', [
             'ACCESS HELD.',
             'A league attendant must authorize this trainer card before Champion Andrej\'s note can be read.',
-          ])
+          ], undefined, signTarget)
           return
         }
         const nextRouteFlags = appendRouteFlag(routeFlags, 'Champion log read')
@@ -3319,7 +4392,7 @@ function App() {
           'CHAMPION ANDREJ // ROUTE NOTE',
           'A future badge build will test burst pressure against long-form defense.',
           'OpenAI ace. Anthropic wall. Bring a partner that can keep tempo through both.',
-        ])
+        ], undefined, signTarget)
         const saveState = buildSaveState({
           routeFlags: nextRouteFlags,
           routeMessage: nextRouteMessage,
@@ -3335,14 +4408,14 @@ function App() {
           'Benchmarks are not badges.',
           'A steady model can beat a stronger one with better tempo.',
           'Trainer tip: Context Guard can turn a bad exchange into a route clear.',
-        ])
+        ], undefined, signTarget)
       } else {
         setRouteMessage('Sign: The Data Gym opens in a future build. Champion Andrej was last seen beyond the ridge.')
         startDialogue('Route Sign', [
           'DATA GYM RIDGE',
           'The Gym opens in a future badge build.',
           'Champion Andrej was last seen beyond the north reader.',
-        ])
+        ], undefined, signTarget)
       }
       return
     }
@@ -3357,10 +4430,19 @@ function App() {
       ] : [
         'Eyes up, trainer.',
         'Step into my lane when your benchmark log is ready.',
-      ])
+      ], undefined, target)
       return
     }
     if (code === 'D') {
+      if (currentMapId === 'gatehouse') {
+        setRouteMessage('Gatehouse exit: step through or press forward to return to Route 01.')
+        startDialogue('Gatehouse Exit', [
+          'ROUTE 01 EXIT',
+          'The south reader is open.',
+          'Step forward to return to Eval Grass, or finish the champion terminal record first.',
+        ], undefined, target)
+        return
+      }
       addRouteFlag('Gym gate scouted')
       setRouteMessage(trainerDefeated ? 'The gate reader accepts Mira\'s scout clearance. Step forward to enter the Data Gym gatehouse.' : 'A poster shows Champion Andrej with an OpenAI-type and an Anthropic-type. The League unlocks after this slice.')
       startDialogue('Data Gym Gate', trainerDefeated ? [
@@ -3369,11 +4451,11 @@ function App() {
       ] : [
         'A poster shows Champion Andrej with an OpenAI-type and an Anthropic-type.',
         'The League unlocks after this vertical slice.',
-      ])
+      ], undefined, target)
       return
     }
     setRouteMessage(`${TILE_LABELS[code]} ahead: ${code === 'G' ? 'wild encounters favor open-weight LLM-mon.' : tileCue(code, trainerDefeated).detail}`)
-  }, [addRouteFlag, advanceDialogue, ambientTick, buildSaveState, collectedItemIds, currentMap, currentMapId, dialogue, discoveredIds.length, displayedPartnerHp, encounterIntro, facing, fieldMenuOpen, flashOverworldEffect, grassEncounterCue, partnerLevel, persistSave, playSfx, position, routeFlags, showChampionLog, showLabRecovery, showRouteClearance, startDialogue, starter, trainerDefeated, trainerNotice])
+  }, [addRouteFlag, advanceDialogue, ambientTick, buildSaveState, collectedItemIds, currentMap, currentMapId, dialogue, discoveredIds.length, displayedPartnerHp, encounterIntro, facing, fieldMenuOpen, flashOverworldEffect, frontCommand?.detail, frontTargetPrompt, grassEncounterCue, mapTransition, partnerLevel, persistSave, playSfx, position, pulseFieldRead, routeFlags, showChampionLog, showLabRecovery, showRouteClearance, startDialogue, starter, trainerDefeated, trainerNotice])
 
   const handleMove = useCallback((move: Move) => {
     if (!battle || !starter || battle.result) {
@@ -3382,10 +4464,11 @@ function App() {
 
     if (move.id === 'context-guard') {
       playSfx('confirm')
-      setBattleEffect({ phase: 'guard', nonce: battle.turn })
+      setBattleEffect({ phase: 'guard', nonce: battle.turn, primaryLabel: `${starter.name} used ${move.name}`, accentType: move.type })
       setBattle({
         ...battle,
         guard: 0.52,
+        guardUsed: true,
         turn: battle.turn + 1,
         log: [`${starter.name} raised Context Guard.`, ...battle.log].slice(0, 6),
       })
@@ -3396,7 +4479,7 @@ function App() {
     const playerDamage = damageFor(starter, battle.opponent, move, 1, partnerLevel)
     const nextEnemyHp = Math.max(0, battle.enemyHp - playerDamage)
     if (nextEnemyHp === 0) {
-      setBattleEffect({ phase: 'exchange', nonce: battle.turn, playerDamage })
+      setBattleEffect({ phase: 'exchange', nonce: battle.turn, primaryLabel: `${starter.name} used ${move.name}`, responseLabel: `${battle.opponent.name} benchmarked`, accentType: move.type, playerDamage })
       setBattle({
         ...battle,
         enemyHp: 0,
@@ -3411,7 +4494,7 @@ function App() {
 
     const enemyMove = enemyMoveFor(battle.opponent)
     const enemyDamage = damageFor(battle.opponent, starter, enemyMove, battle.guard)
-    setBattleEffect({ phase: 'exchange', nonce: battle.turn, playerDamage, enemyDamage })
+    setBattleEffect({ phase: 'exchange', nonce: battle.turn, primaryLabel: `${starter.name} used ${move.name}`, responseLabel: `${battle.opponent.name} used ${enemyMove.name}`, accentType: move.type, playerDamage, enemyDamage })
     const nextPlayerHp = Math.max(0, battle.playerHp - enemyDamage)
     const guardText = battle.guard < 1 ? ' Context Guard softened the hit.' : ''
     setBattle({
@@ -3446,7 +4529,7 @@ function App() {
     const enemyDamage = damageFor(battle.opponent, starter, enemyMove, battle.guard)
     const nextPlayerHp = Math.max(0, healedHp - enemyDamage)
     const guardText = battle.guard < 1 ? ' Context Guard softened the hit.' : ''
-    setBattleEffect({ phase: 'exchange', nonce: battle.turn, enemyDamage })
+    setBattleEffect({ phase: 'exchange', nonce: battle.turn, primaryLabel: `${starter.name} used Latency Patch`, responseLabel: `${battle.opponent.name} used ${enemyMove.name}`, accentType: enemyMove.type, enemyDamage })
     setBattle({
       ...battle,
       playerHp: nextPlayerHp,
@@ -3477,11 +4560,16 @@ function App() {
       const xpProgress = applyPartnerXp(partnerLevel, partnerXp, xpReward)
       const learnedMove = unlockedMovesBetween(partnerLevel, xpProgress.level)[0]
       const levelHpBonus = xpProgress.leveledUp ? maxHp(starter, xpProgress.level) - maxHp(starter, partnerLevel) : 0
-      const nextPartnerHp = Math.min(maxHp(starter, xpProgress.level), Math.max(1, battle.playerHp) + levelHpBonus)
+      const firstWildBenchmark = battle.kind === 'wild' && !routeFlags.includes('First benchmark logged')
+      const nextPartnerHp = firstWildBenchmark
+        ? maxHp(starter, xpProgress.level)
+        : Math.min(maxHp(starter, xpProgress.level), Math.max(1, battle.playerHp) + levelHpBonus)
       const nextRouteMessage = battle.kind === 'trainer'
         ? xpProgress.leveledUp
           ? `Mira: ${starter.name} reached Lv. ${xpProgress.level}. The gate reader is open now.`
           : 'Mira: Your benchmark discipline is real. The gate reader is open now. Scout the Data Gym gatehouse north of the route.'
+        : firstWildBenchmark
+          ? `Professor Karpathy is safe. ${starter.name} was recalibrated to full HP and can now explore Route 01.`
         : xpProgress.leveledUp
           ? `${battle.opponent.name} was logged. ${starter.name} reached Lv. ${xpProgress.level}!`
           : `${battle.opponent.name} added an LLMdex entry and vanished into the tall grass.`
@@ -3497,12 +4585,12 @@ function App() {
         showBattleReturn(
           'Field report',
           learnedMove ? `${starter.name} learned ${learnedMove.name}` : xpProgress.leveledUp ? `${starter.name} reached Lv. ${xpProgress.level}` : `${battle.opponent.name} registered`,
-          routeFlags.includes('First benchmark logged')
+          !firstWildBenchmark
             ? `${starter.name} gained ${xpReward} XP and returned with ${nextPartnerHp} HP.`
-            : `First wild benchmark logged. ${starter.name} gained ${xpReward} XP; Mira will now accept your scout challenge.`,
+            : `Professor Karpathy is safe. ${starter.name} gained ${xpReward} XP and was recalibrated to full HP before Route 01 opened.`,
           'victory',
         )
-        if (!routeFlags.includes('First benchmark logged')) {
+        if (firstWildBenchmark) {
           const saveState = buildSaveState({
             discoveredIds: nextDiscovered,
             routeFlags: nextRouteFlags,
@@ -3521,10 +4609,10 @@ function App() {
         showBattleReturn(
           'Scout report',
           learnedMove ? `${starter.name} learned ${learnedMove.name}` : xpProgress.leveledUp ? `${starter.name} leveled up` : 'Mira clearance synced',
-          `Mira awarded ${xpReward} XP. The north gate reader is open. Search the boardwalk cache or step into the Data Gym lobby.`,
+          `Mira awarded ${xpReward} XP. Search the boardwalk cache for the Latency Patch, then step into the Data Gym lobby.`,
           'clearance',
         )
-        showRouteClearance('Scout Clearance earned', 'Mira synced your route log. The Data Gym gate reader is now open for scouting.')
+        showRouteClearance('Scout Clearance earned', 'Mira synced your route log. The Data Gym reader is open, but the boardwalk cache is the safer next stop.')
         const saveState = buildSaveState({
           discoveredIds: nextDiscovered,
           routeFlags: nextRouteFlags,
@@ -3542,6 +4630,9 @@ function App() {
       setBattleEffect(null)
       setBattle(null)
       setScreen('map')
+      if (firstWildBenchmark) {
+        startDialogue('Professor Karpathy', professorRescueLines(starter.name, battle.opponent.name), 'starterRegistered')
+      }
       return
     }
     setRouteMessage('Professor Karpathy healed your starter and reminded you: latency matters as much as strength.')
@@ -3557,7 +4648,7 @@ function App() {
     setPosition({ x: 3, y: 3 })
     setCurrentMapId('route01')
     setScreen('map')
-  }, [battle, buildSaveState, discoveredIds, partnerLevel, partnerXp, persistSave, playSfx, routeFlags, showBattleReturn, showLevelUpNotice, showRouteClearance, starter])
+  }, [battle, buildSaveState, discoveredIds, partnerLevel, partnerXp, persistSave, playSfx, routeFlags, showBattleReturn, showLevelUpNotice, showRouteClearance, startDialogue, starter])
 
   const runFromBattle = useCallback(() => {
     if (!battle || !starter || battle.result || battle.kind !== 'wild') {
@@ -3594,6 +4685,14 @@ function App() {
   }, [overworldEffect])
 
   useEffect(() => {
+    if (!fieldReadPulse) {
+      return
+    }
+    const timeout = window.setTimeout(() => setFieldReadPulse(null), 1280)
+    return () => window.clearTimeout(timeout)
+  }, [fieldReadPulse])
+
+  useEffect(() => {
     if (!routeClearance) {
       return
     }
@@ -3624,6 +4723,14 @@ function App() {
     const timeout = window.setTimeout(() => setLandmarkToast(null), 3600)
     return () => window.clearTimeout(timeout)
   }, [landmarkToast])
+
+  useEffect(() => {
+    if (!routeBeat) {
+      return
+    }
+    const timeout = window.setTimeout(() => setRouteBeat(null), 3900)
+    return () => window.clearTimeout(timeout)
+  }, [routeBeat])
 
   useEffect(() => {
     if (!championLog) {
@@ -3705,6 +4812,10 @@ function App() {
         return
       }
       if (screen !== 'map') {
+        return
+      }
+      if (mapTransition) {
+        event.preventDefault()
         return
       }
       if (trainerNotice || grassEncounterCue) {
@@ -3796,7 +4907,7 @@ function App() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [activeMoves, advanceDialogue, applyLatencyPatchInBattle, battle, dialogue, fieldMenuOpen, finishBattle, flashInputCue, grassEncounterCue, handleMove, inspectTile, loadGame, movePlayer, runFromBattle, saveGame, screen, starter, toggleFieldMenu, trainerNotice])
+  }, [activeMoves, advanceDialogue, applyLatencyPatchInBattle, battle, dialogue, fieldMenuOpen, finishBattle, flashInputCue, grassEncounterCue, handleMove, inspectTile, loadGame, mapTransition, movePlayer, runFromBattle, saveGame, screen, starter, toggleFieldMenu, trainerNotice])
 
   const renderTitle = () => (
     <main className="screen title-screen">
@@ -3846,50 +4957,212 @@ function App() {
     </main>
   )
 
-  const renderIntro = () => (
-    <main className="screen intro-screen">
-      <section className="pixel-panel professor-lab-panel">
-        <div className="professor-stage">
-          <div className="professor-sprite-frame">
-            <img src={MAP_ASSETS.professor} alt="Professor Karpathy" />
+  const renderIntro = () => {
+    const sceneIndex = INTRO_SCENE_ORDER.indexOf(introScene)
+    const nextIntroScene = () => {
+      playSfx('confirm')
+      if (introScene === 'field') {
+        setScreen('starter')
+        return
+      }
+      setIntroScene(INTRO_SCENE_ORDER[Math.min(sceneIndex + 1, INTRO_SCENE_ORDER.length - 1)])
+    }
+    const introCopy: Record<IntroScene, { eyebrow: string; title: string; body: string; aside: string; action: string; stamp: string; status: string; location: string }> = {
+      speech: {
+        eyebrow: 'Professor Karpathy',
+        title: 'Welcome to the Hayes Valley Region.',
+        body: 'This world is inhabited by creatures we call LLM-mon. Some live in benchmark grass, some in provider clouds, and a few only appear when the route pressure is high.',
+        aside: 'You have just moved here. Before the league recognizes your trainer card, you need a partner and a first field log.',
+        action: 'Ride into town',
+        stamp: 'Region file',
+        status: 'Research feed online',
+        location: 'Professor field lab',
+      },
+      truck: {
+        eyebrow: 'Moving truck',
+        title: 'The road shakes under stacked boxes.',
+        body: 'Your family truck crawls through the south road while the Hayes Valley tide flashes past the open doors. Boxes thump, the engine hums, and your trainer card is still blank.',
+        aside: 'The driver calls out: next stop, Model Town. Professor Karpathy was seen near Route 01.',
+        action: 'Step outside',
+        stamp: 'Route approach',
+        status: 'Arrival sequence',
+        location: 'South service road',
+      },
+      home: {
+        eyebrow: 'Model Town',
+        title: 'Home is unpacked, but the route is calling.',
+        body: 'Mom checks the clock, the local terminal flickers with League news, and the path north is already buzzing. A voice from Route 01 cuts through the morning air.',
+        aside: 'Professor Karpathy needs help beyond the grass. There is no time for a lab appointment.',
+        action: 'Run north',
+        stamp: 'New home',
+        status: 'Trainer card blank',
+        location: 'Model Town',
+      },
+      field: {
+        eyebrow: 'Route 01',
+        title: 'Professor Karpathy is cornered in the grass.',
+        body: 'A wild benchmark has him pinned beside his field bag. Three starter LLM-mon are inside. He shouts for you to grab one before the grass surges again.',
+        aside: 'Pick from the field bag. Your first partner choice starts the real route.',
+        action: 'Open the field bag',
+        stamp: 'Emergency',
+        status: 'Field bag unlocked',
+        location: 'Route 01 tall grass',
+      },
+    }
+    const copy = introCopy[introScene]
+    const introSceneSprite = introScene === 'speech'
+      ? MAP_ASSETS.professor
+      : introScene === 'field'
+        ? SPRITE_ASSETS['gemma-4-31b']
+        : MAP_ASSETS.player
+    const openingTileIds = introScene === 'truck'
+      ? ['0053', '0053', '0074', '0074', '0053', '0074']
+      : introScene === 'home'
+        ? ['0001', '0013', '0014', '0048', '0062', '0002']
+        : introScene === 'field'
+          ? ['0000', '0001', '0002', '0048', '0062', '0014']
+          : ['0013', '0014', '0000', '0001', '0048', '0062']
+    const openingSceneStamps = [
+      { label: copy.location, value: copy.status },
+      { label: 'Chapter', value: `${sceneIndex + 1}/${INTRO_SCENE_ORDER.length}` },
+      { label: 'Assets', value: 'Local sprites' },
+    ]
+
+    return (
+      <main className={`screen intro-screen intro-scene-${introScene}`}>
+        <section className="pixel-panel sapphire-opening-panel">
+          <div className="opening-viewport" aria-label={`${copy.eyebrow}: ${copy.title}`}>
+            <div className="opening-sky" aria-hidden="true" />
+            <div className="opening-tile-ribbon" aria-hidden="true">
+              {openingTileIds.map((tileId, index) => <img key={`${tileId}-${index}`} src={MAP_ASSETS.tile(tileId)} alt="" />)}
+            </div>
+            <div className="opening-cutscene-card" aria-hidden="true">
+              <img src={introSceneSprite} alt="" />
+              <span>{copy.stamp}</span>
+              <strong>{copy.eyebrow}</strong>
+              <em>{sceneIndex + 1}/{INTRO_SCENE_ORDER.length}</em>
+            </div>
+            <div className="opening-status-strip" aria-hidden="true">
+              {openingSceneStamps.map((stamp) => (
+                <span key={stamp.label}>
+                  <b>{stamp.label}</b>
+                  <strong>{stamp.value}</strong>
+                </span>
+              ))}
+            </div>
+            {introScene === 'speech' ? (
+              <div className="opening-professor-tableau">
+                <img className="opening-local-professor" src={MAP_ASSETS.professorLocal} alt="" />
+                <div className="opening-professor-frame">
+                  <img src={MAP_ASSETS.professor} alt="Professor Karpathy" />
+                </div>
+                <div className="opening-mon-reveal">
+                  <img src={SPRITE_ASSETS['gemma-4-31b']} alt="Gemma 4 31B" />
+                  <span>LLM-mon</span>
+                </div>
+              </div>
+            ) : null}
+            {introScene === 'truck' ? (
+              <div className="opening-truck-scene">
+                <div className="moving-truck" aria-label="Moving truck">
+                  <span className="truck-cab" />
+                  <span className="truck-box">
+                    <i />
+                    <i />
+                    <i />
+                    <img src={MAP_ASSETS.player} alt="" />
+                  </span>
+                  <span className="truck-wheel truck-wheel-a" />
+                  <span className="truck-wheel truck-wheel-b" />
+                </div>
+                <div className="road-stripes" aria-hidden="true" />
+              </div>
+            ) : null}
+            {introScene === 'home' ? (
+              <div className="opening-town-scene">
+                <div className="town-house" aria-label="Your new home">
+                  <span />
+                  <i />
+                </div>
+                <img className="town-player" src={MAP_ASSETS.player} alt="Player" />
+                <img className="town-neighbor" src={MAP_ASSETS.trainer} alt="" />
+                <div className="town-sign">Model Town</div>
+              </div>
+            ) : null}
+            {introScene === 'field' ? (
+              <div className="opening-field-scene">
+                <span className="field-danger-sweep" aria-hidden="true" />
+                <img className="field-professor" src={MAP_ASSETS.professorLocal} alt="Professor Karpathy" />
+                <img className="field-wild" src={SPRITE_ASSETS['gemma-4-31b']} alt="Wild Gemma 4 31B" />
+                <div className="field-bag" aria-label="Professor's field bag">
+                  {starters.map((model) => (
+                    <img key={model.id} src={SPRITE_ASSETS[model.id]} alt="" />
+                  ))}
+                </div>
+                <span className="field-alert">!</span>
+                <span className="field-rescue-path" aria-hidden="true" />
+              </div>
+            ) : null}
           </div>
-          <div className="lab-orb lab-orb-openai" />
-          <div className="lab-orb lab-orb-anthropic" />
-          <div className="lab-orb lab-orb-zai" />
-        </div>
-        <div className="dialogue-box">
-          <p className="eyebrow">Professor Karpathy</p>
-          <h2>Welcome to the Hayes Valley Region.</h2>
-          <p>
-            LLM-mon live inside benchmark grass, provider clouds, and long-context caves. Trainers battle by balancing latency,
-            cost, speed, and intelligence instead of elemental firepower.
-          </p>
-          <p>
-            Choose a starter LLM-mon, cross Route 01, survive one wild encounter, and challenge Benchmark Scout Mira before the locked Data Gym gate.
-          </p>
-          <button className="pixel-button dialogue-advance" onClick={() => setScreen('starter')}>Choose starter ▾</button>
-        </div>
-      </section>
-    </main>
-  )
+          <div className="opening-dialogue">
+            <div className="opening-progress" aria-label={`Opening scene ${sceneIndex + 1} of ${INTRO_SCENE_ORDER.length}`}>
+              {INTRO_SCENE_ORDER.map((scene) => <span key={scene} className={scene === introScene ? 'is-current' : sceneIndex > INTRO_SCENE_ORDER.indexOf(scene) ? 'is-complete' : ''} />)}
+            </div>
+            <p className="eyebrow">{copy.eyebrow}</p>
+            <h2>{copy.title}</h2>
+            <p>{copy.body}</p>
+            <p>{copy.aside}</p>
+            <button className="pixel-button dialogue-advance" onClick={nextIntroScene}>{copy.action} ▾</button>
+          </div>
+        </section>
+      </main>
+    )
+  }
 
   const renderStarter = () => (
-    <main className="screen starter-screen">
-      <section className="pixel-panel wide-panel">
+    <main className="screen starter-screen field-bag-screen">
+      <section className="pixel-panel wide-panel starter-field-panel">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Model Lab</p>
-            <h2>Choose your starter LLM-mon</h2>
+            <p className="eyebrow">Route 01 emergency</p>
+            <h2>Choose from Professor Karpathy's field bag</h2>
           </div>
           <button className="pixel-button secondary" onClick={() => setScreen('llmdex')}>Open LLMdex</button>
         </div>
+        <section className="starter-field-scene" aria-label="Professor Karpathy's field bag emergency">
+          <div className="starter-field-route" aria-hidden="true">
+            <img className="starter-field-professor" src={MAP_ASSETS.professor} alt="" />
+            <img className="starter-field-wild" src={SPRITE_ASSETS['gemma-4-31b']} alt="" />
+            <span className="starter-field-alert">!</span>
+          </div>
+          <div className="starter-bag-stage">
+            <div className="starter-bag" aria-label="Three starter LLM-mon capsules">
+              {starters.map((model, index) => (
+                <button
+                  key={model.id}
+                  className={`starter-bag-slot slot-${index + 1} ${model.id === previewStarter.id ? 'is-selected' : ''}`}
+                  onClick={() => setStarterPreviewId(model.id)}
+                  aria-label={`Preview ${model.name}`}
+                >
+                  <img src={SPRITE_ASSETS[model.id]} alt="" />
+                  <span>{index + 1}</span>
+                </button>
+              ))}
+            </div>
+            <div className="starter-bag-callout">
+              <span>Field bag</span>
+              <strong>{previewStarter.name}</strong>
+              <em>{previewStarterProfile.role}</em>
+            </div>
+          </div>
+        </section>
         <section className="starter-analyzer" aria-label="Professor starter analyzer">
           <div className="starter-preview-stage">
             <Sprite model={previewStarter} />
             <span className="starter-preview-ring" style={{ '--starter-type-color': TYPE_COLORS[previewStarter.type] } as CSSProperties} aria-hidden="true" />
           </div>
           <div className="starter-preview-copy">
-            <p className="eyebrow">Professor's analyzer</p>
+            <p className="eyebrow">Field bag analyzer</p>
             <h3>{previewStarter.name}</h3>
             <div className="starter-preview-badges">
               <TypeBadge type={previewStarter.type} />
@@ -3926,8 +5199,7 @@ function App() {
   )
 
   const renderMap = () => {
-    const minimapLandmarks = LANDMARK_AREAS
-      .filter((area) => area.mapId === currentMapId)
+    const minimapLandmarks = worldLayerFor(currentMapId).landmarks
       .map((area) => ({
         ...area,
         center: {
@@ -3935,13 +5207,20 @@ function App() {
           y: (area.bounds.y1 + area.bounds.y2 + 1) / 2,
         },
         mapped: !area.flag || routeFlags.includes(area.flag),
-      }))
-    const cameraX = Math.min(Math.max(position.x - 5, 0), Math.max(0, currentMap.tiles[0].length - 10))
-    const cameraY = Math.min(Math.max(position.y - 4, 0), Math.max(0, currentMap.tiles.length - 8))
+    }))
+    const cameraWidth = 12
+    const cameraHeight = 9
     const objectiveOnCurrentMap = objectiveTarget.mapId === currentMapId
     const objectiveDelta = objectiveOnCurrentMap
       ? { x: objectiveTarget.position.x - position.x, y: objectiveTarget.position.y - position.y }
       : null
+    const cameraLead = routeCameraLeadFor(facing, walkDirection, objectiveDelta, routeSceneRead.tone)
+    const maxCameraX = Math.max(0, currentMap.tiles[0].length - cameraWidth)
+    const maxCameraY = Math.max(0, currentMap.tiles.length - cameraHeight)
+    const cameraX = clampNumber(position.x - Math.floor(cameraWidth / 2) + cameraLead.x, 0, maxCameraX)
+    const cameraY = clampNumber(position.y - Math.floor(cameraHeight / 2) + cameraLead.y, 0, maxCameraY)
+    const cameraFocusX = clampNumber(((position.x + 0.5 - cameraX) / cameraWidth) * 100, 8, 92)
+    const cameraFocusY = clampNumber(((position.y + 0.5 - cameraY) / cameraHeight) * 100, 10, 90)
     const objectiveBearing = objectiveDelta
       ? objectiveDelta.x === 0 && objectiveDelta.y === 0
         ? 'Here'
@@ -3985,6 +5264,86 @@ function App() {
       ?? (validFollowerTile(currentMap, currentMapId, followerFallbackPosition, position, collectedItemIds, trainerDefeated, ambientTick) ? followerFallbackPosition : null)
     const followerFacing = followerPosition ? facingFromDelta(followerPosition, position, oppositeFacing(facing)) : oppositeFacing(facing)
     const followerWalking = followerTrailPosition && walkDirection ? walkDirection : null
+    const rescueProfessorVisible = currentMapId === 'route01' && dialogue?.speaker === 'Professor Karpathy' && routeFlags.includes('First benchmark logged')
+    const renderAreaMap = (variant: 'side' | 'menu') => (
+      <div className={`area-map-wrap map-${variant}`}>
+        <div className="minimap-heading">
+          <p className="eyebrow">Area map</p>
+          <span>{currentMap.title}</span>
+        </div>
+        <div
+          className="minimap-grid"
+          aria-label={`${currentMap.title} minimap`}
+          style={{ gridTemplateColumns: `repeat(${currentMap.tiles[0].length}, 1fr)` }}
+        >
+          {minimapRouteGuide ? (
+            <span
+              className={`minimap-route-guide guide-${objectiveTarget.kind}`}
+              style={minimapRouteGuide as CSSProperties}
+              aria-hidden="true"
+            />
+          ) : null}
+          {currentMap.tiles.map((row, y) =>
+            row.map((code, x) => {
+              const tilePosition = { x, y }
+              const renderedCode = code === 'T' && trainerDefeated ? '.' : effectiveTileAt(currentMap, tilePosition, collectedItemIds)
+              const npcHere = routeNpcAt(currentMapId, tilePosition, trainerDefeated, ambientTick)
+              const itemHere = FIELD_ITEMS[currentMapId][positionKey(tilePosition)]
+              const playerHere = position.x === x && position.y === y
+              const objectiveHere = objectiveTarget.mapId === currentMapId && samePosition(objectiveTarget.position, tilePosition)
+              const sightlineHere = worldLayerFor(currentMapId).trainerSightlines.some((sightline) => (
+                (!sightline.requiresTrainerUndefeated || !trainerDefeated) && positionInSightline(tilePosition, sightline)
+              ))
+              const title = playerHere
+                ? 'You are here'
+                : objectiveHere
+                  ? `Next objective: ${objectiveTarget.label}`
+                  : npcHere?.name ?? itemHere?.name ?? TILE_LABELS[renderedCode]
+              return (
+                <span
+                  key={`${variant}-mini-${x}-${y}`}
+                  className={`minimap-cell mini-${renderedCode === '.' ? 'path' : renderedCode} ${playerHere ? 'mini-player' : ''} ${objectiveHere ? 'mini-objective-tile' : ''} ${npcHere || renderedCode === 'T' ? 'mini-npc' : ''} ${itemHere && !collectedItemIds.includes(itemHere.id) ? 'mini-cache' : ''} ${sightlineHere ? 'mini-sightline' : ''} ${renderedCode === 'D' && trainerDefeated ? 'mini-gate-open' : renderedCode === 'D' ? 'mini-gate-locked' : ''}`}
+                  title={title}
+                />
+              )
+            }),
+          )}
+          {minimapLandmarks.map((area) => (
+            <span
+              key={`${variant}-mini-landmark-${area.id}`}
+              className={`minimap-landmark landmark-${area.tone} ${area.mapped ? 'is-mapped' : 'is-unmapped'}`}
+              style={{
+                left: `${(area.center.x / currentMap.tiles[0].length) * 100}%`,
+                top: `${(area.center.y / currentMap.tiles.length) * 100}%`,
+              }}
+              title={`${area.title}${area.mapped ? '' : ' (unmapped)'}`}
+            >
+              {area.mapped ? area.title.replace(/^Cachewater /, '').replace(/^Champion /, '').replace(/^Model /, '') : '?'}
+            </span>
+          ))}
+          {objectiveTarget.mapId === currentMapId ? (
+            <span
+              className={`minimap-objective objective-${objectiveTarget.kind}`}
+              style={{
+                left: `${((objectiveTarget.position.x + 0.5) / currentMap.tiles[0].length) * 100}%`,
+                top: `${((objectiveTarget.position.y + 0.5) / currentMap.tiles.length) * 100}%`,
+              }}
+              title={`Next objective: ${objectiveTarget.label}`}
+            >
+              !
+            </span>
+          ) : null}
+        </div>
+        <div className="minimap-legend" aria-hidden="true">
+          <span><i className="mini-dot mini-player-dot" /> You</span>
+          <span><i className="mini-dot mini-objective-dot" /> Goal</span>
+          <span><i className="mini-dot mini-npc-dot" /> NPC</span>
+          <span><i className="mini-dot mini-cache-dot" /> Cache</span>
+          <span><i className="mini-dot mini-sightline-dot" /> Sight</span>
+          <span><i className="mini-dot mini-landmark-dot" /> Place</span>
+        </div>
+      </div>
+    )
 
     return (
     <main className="screen map-screen">
@@ -3996,7 +5355,7 @@ function App() {
               <h2>{currentMap.title}</h2>
               <span className="location-pill">{currentMap.subtitle}</span>
             </div>
-            <button className="pixel-button secondary" onClick={() => setScreen('llmdex')}>LLMdex</button>
+            <button className="pixel-button secondary" onClick={() => setScreen('llmdex')} disabled={Boolean(mapTransition)}>LLMdex</button>
           </div>
           <div className={`route-compass compass-${storyBeat.tone}`} aria-label="Route compass">
             <div>
@@ -4021,13 +5380,64 @@ function App() {
             </div>
           ) : null}
             <div
-              className={`map-viewport map-${currentMapId} pressure-${encounterPressure.tone} ${grassEncounterCue ? 'is-grass-locking' : ''} ${encounterIntro ? 'is-encountering' : ''}`}
+              className={`map-viewport map-${currentMapId} pressure-${encounterPressure.tone} scene-${routeSceneRead.tone} camera-facing-${walkDirection ?? facing} ${routeMotion?.kind === 'walk' ? `is-route-walking route-walking-${routeMotion.direction}` : ''} ${routeMotion?.kind === 'bump' ? `is-route-bumping route-bumping-${routeMotion.direction}` : ''} ${grassEncounterCue ? 'is-grass-locking' : ''} ${trainerNotice ? 'is-trainer-locking' : ''} ${encounterIntro ? 'is-encountering' : ''} ${dialogue ? 'is-dialogue-staging' : ''}`}
               style={{
                 '--camera-x': cameraX,
                 '--camera-y': cameraY,
+                '--camera-focus-x': `${cameraFocusX}%`,
+                '--camera-focus-y': `${cameraFocusY}%`,
+                '--camera-lead-x': cameraLead.x,
+                '--camera-lead-y': cameraLead.y,
                 '--encounter-pressure': `${encounterPressure.percent}%`,
               } as CSSProperties}
             >
+            <span className="route-camera-focus" aria-hidden="true" />
+            <div className="overworld-hud" aria-label="Overworld status">
+              <div className="overworld-location-chip">
+                <span>{currentMap.eyebrow}</span>
+                <strong>{currentLandmark?.title ?? currentMap.title}</strong>
+              </div>
+              <div className="overworld-objective-chip">
+                <span>Next</span>
+                <strong>{objectiveTarget.label}</strong>
+                <em>{objectiveDistance === null ? objectiveBearing : objectiveDistance === 0 ? 'Here' : `${objectiveBearing} · ${objectiveDistance}`}</em>
+              </div>
+              {starter ? (
+                <div className={`overworld-partner-chip condition-${partnerCondition.tone}`}>
+                  <span>{starter.name}</span>
+                  <strong>Lv. {partnerLevel}</strong>
+                  <i style={{ '--partner-hp': `${partnerHpPercent}%` } as CSSProperties} aria-hidden="true" />
+                </div>
+              ) : null}
+            </div>
+            <div className={`route-scene-readout scene-${routeSceneRead.tone}`} aria-label="Current route scene">
+              <div className="scene-readout-stamp" aria-hidden="true">
+                <img src={routeSceneRead.assetSrc} alt="" />
+              </div>
+              <span>{routeSceneRead.eyebrow}</span>
+              <strong>{routeSceneRead.title}</strong>
+              <p>{routeSceneRead.detail}</p>
+              <div>
+                {routeSceneRead.chips.map((chip) => <em key={chip}>{chip}</em>)}
+              </div>
+            </div>
+            <div className="overworld-action-strip" aria-label="Route controls">
+              <span>{frontCommand ? `A ${frontCommand.verb}` : dialogue ? 'A next' : 'A check'}</span>
+              <span>{encounterPressure.label}</span>
+              <span>{fieldMenuOpen ? 'Menu open' : 'Menu'}</span>
+            </div>
+            {routeMotion ? (
+              <div
+                key={routeMotion.nonce}
+                className={`route-motion-cue route-motion-${routeMotion.direction} route-motion-terrain-${routeMotion.terrain === '.' ? 'path' : routeMotion.terrain ?? 'path'} ${routeMotion.kind === 'bump' ? 'is-route-bump-cue' : 'is-route-walk-cue'}`}
+                aria-hidden="true"
+              >
+                <b>{routeMotion.kind === 'bump' ? 'Blocked' : routeMotion.terrain === 'G' ? 'Grass' : routeMotion.terrain === 'B' ? 'Boardwalk' : routeMotion.terrain === 'W' ? 'Waterline' : routeMotion.terrain === 'F' || routeMotion.terrain === 'M' ? 'Gatehouse' : routeMotion.terrain === 'H' ? 'Ledge' : 'Step'}</b>
+                <span />
+                <span />
+                <span />
+              </div>
+            ) : null}
             <div className="map-parallax-depth" aria-hidden="true">
               <span className="parallax-band parallax-skyline" />
               <span className="parallax-band parallax-midground" />
@@ -4037,6 +5447,13 @@ function App() {
               <span className="atmosphere-layer atmosphere-drift" />
               <span className="atmosphere-layer atmosphere-sparkle" />
               <span className="atmosphere-layer atmosphere-scanline" />
+            </div>
+            <div className={`route-diorama diorama-${currentMapId}`} aria-hidden="true">
+              <span className="diorama-horizon diorama-horizon-a" />
+              <span className="diorama-horizon diorama-horizon-b" />
+              <span className="diorama-landmark diorama-landmark-a" />
+              <span className="diorama-landmark diorama-landmark-b" />
+              <span className="diorama-road-glint" />
             </div>
             <div
               className="tile-map"
@@ -4054,19 +5471,57 @@ function App() {
                   const playerHere = position.x === x && position.y === y
                   const tilePosition = { x, y }
                   const followerHere = Boolean(starter && followerPosition && followerPosition.x === x && followerPosition.y === y)
+                  const rescueProfessorHere = rescueProfessorVisible && samePosition(tilePosition, STARTER_RESCUE_PROFESSOR_POSITION)
                   const codeForRender = code === 'T' && trainerDefeated ? '.' : effectiveTileAt(currentMap, tilePosition, collectedItemIds)
                   const miraScene = codeForRender === 'T' && dialogue?.speaker === 'Benchmark Scout Mira'
                   const visibleNpc = routeNpcAt(currentMapId, tilePosition, trainerDefeated, ambientTick)
                   const npcActive = Boolean(visibleNpc && dialogue?.speaker === visibleNpc.name)
+                  const npcSpeechLabel = npcActive && dialogue ? overworldSpeechLabel(dialogue.speaker) : null
                   const npcFacing = visibleNpc ? npcActive ? oppositeFacing(facing) : ambientNpcFacing(visibleNpc, ambientTick) : undefined
                   const npcWalking = visibleNpc && !npcActive ? npcWalkDirection(visibleNpc, ambientTick) : null
                   const npcPlate = visibleNpc ? npcRolePlate(visibleNpc) : null
                   const playerInGrass = playerHere && codeForRender === 'G'
+                  const playerSpeaking = playerHere && Boolean(dialogue && !routeNpcAt(currentMapId, position, trainerDefeated, ambientTick) && dialogue.speaker === 'Trainer')
                   const followerInGrass = followerHere && codeForRender === 'G'
+                  const grassPressureActive = codeForRender === 'G' && (encounterPressure.tone === 'rustling' || encounterPressure.tone === 'surging')
+                  const objectSpeaking = Boolean(
+                    dialogue?.target
+                    && dialogue.target.mapId === currentMapId
+                    && samePosition(dialogue.target.position, tilePosition)
+                    && !visibleNpc
+                    && !rescueProfessorHere
+                    && !playerSpeaking
+                  )
+                  const rescueProfessorSpeaking = rescueProfessorHere && Boolean(dialogue?.speaker === 'Professor Karpathy')
+                  const dialogueFocusTone = npcActive
+                    ? 'npc'
+                    : objectSpeaking
+                      ? 'object'
+                      : playerSpeaking
+                        ? 'player'
+                        : rescueProfessorSpeaking
+                          ? 'professor'
+                          : null
                   const tileEffect = overworldEffect?.position.x === x && overworldEffect.position.y === y ? overworldEffect : null
-                  const routeFootstep = routeFootsteps.find((footstep) => footstep.mapId === currentMapId && footstep.position.x === x && footstep.position.y === y)
+                  const routeFootstepIndex = routeFootsteps.findIndex((footstep) => footstep.mapId === currentMapId && footstep.position.x === x && footstep.position.y === y)
+                  const routeFootstep = routeFootstepIndex >= 0 ? routeFootsteps[routeFootstepIndex] : null
                   const grassCueHere = grassEncounterCue?.position.x === x && grassEncounterCue.position.y === y ? grassEncounterCue : null
-                  const miraSightLine = isMiraSightTile(currentMapId, tilePosition, trainerDefeated) && discoveredIds.length > 1
+                  const miraSightline = trainerSightlineAt(currentMapId, tilePosition, trainerDefeated)
+                  const miraSightLine = Boolean(miraSightline) && discoveredIds.length > 1
+                  const sightlineStep = miraSightline
+                    ? Math.min(
+                      6,
+                      Math.max(
+                        1,
+                        miraSightline.direction === 'north' || miraSightline.direction === 'south'
+                          ? Math.abs(tilePosition.y - miraSightline.origin.y)
+                          : Math.abs(tilePosition.x - miraSightline.origin.x),
+                      ),
+                    )
+                    : 0
+                  const miraLockActive = Boolean(trainerNotice?.speaker === 'Benchmark Scout Mira')
+                  const miraScoutTile = currentMapId === 'route01' && codeForRender === 'T'
+                  const trainerLockTarget = miraLockActive && playerHere
                   const championTerminalRead = currentMapId === 'gatehouse' && codeForRender === 'S' && positionKey(tilePosition) === '4,3' && routeFlags.includes('Champion log read')
                   const championTerminal = currentMapId === 'gatehouse' && codeForRender === 'S' && positionKey(tilePosition) === '4,3'
                   const championTerminalAuthorized = championTerminal && routeFlags.includes('Gate attendant met') && !routeFlags.includes('Champion log read')
@@ -4074,11 +5529,24 @@ function App() {
                   const gatehouseGuideFloor = currentMapId === 'gatehouse' && codeForRender === 'F' && ((x === 5 && y >= 3 && y <= 5) || (y === 3 && x >= 4 && x <= 5))
                   const depthClasses = tileDepthClasses(currentMap, tilePosition, codeForRender)
                   const elevationClasses = tileElevationClasses(currentMapId, tilePosition, codeForRender)
+                  const heightTransitionClasses = tileHeightTransitionClasses(currentMap, tilePosition, codeForRender)
                   const neighborClasses = tileNeighborClasses(currentMap, tilePosition, codeForRender)
                   const routeDecoration = routeDecorationFor(currentMapId, codeForRender, x, y)
+                  const terrainCrown = terrainCrownFor(currentMapId, currentMap, tilePosition, codeForRender)
                   const ambientDetail = ambientDetailFor(currentMapId, codeForRender, x, y, ambientTick)
+                  const rowDepthClass = y < position.y
+                    ? 'tile-behind-player-row'
+                    : y === position.y
+                      ? 'tile-player-row'
+                      : 'tile-front-player-row'
+                  const cameraDepthClass = y <= cameraY + 1
+                    ? 'tile-camera-back'
+                    : y >= cameraY + cameraHeight - 2
+                      ? 'tile-camera-front'
+                      : 'tile-camera-mid'
                   const landmarkMarker = landmarkMarkerAt(currentMapId, tilePosition)
                   const landmarkMapped = landmarkMarker && (!landmarkMarker.flag || routeFlags.includes(landmarkMarker.flag))
+                  const routeSignpost = routeSignpostFor(currentMapId, tilePosition, codeForRender, trainerDefeated, routeFlags)
                   const objectAffordance = codeForRender === 'S'
                     ? currentMapId === 'gatehouse'
                       ? championTerminalRead
@@ -4095,18 +5563,31 @@ function App() {
                           ? 'lab'
                           : null
                   const objectiveHere = objectiveTarget.mapId === currentMapId && objectiveTarget.position.x === x && objectiveTarget.position.y === y
+                  const objectiveGuideStep = objectiveTarget.mapId === currentMapId && !objectiveHere && !dialogue && !fieldMenuOpen && !encounterIntro && !grassEncounterCue && !trainerNotice
+                    ? objectiveGuidePath.find((step) => samePosition(step.position, tilePosition))
+                    : null
+                  const objectiveGuide = objectiveGuideStep?.direction ?? null
+                  const actionTargetHere = Boolean(frontTargetPrompt?.showTilePrompt && samePosition(frontTargetPrompt.target, tilePosition) && !playerHere && !dialogue && !fieldMenuOpen && !encounterIntro && !grassEncounterCue && !trainerNotice)
+                  const actionPrompt = actionTargetHere ? frontTargetPrompt : null
+                  const routeLensHere = Boolean(routeLens && samePosition(routeLens.target, tilePosition))
+                  const fieldReadHere = Boolean(fieldReadPulse && samePosition(fieldReadPulse.target, tilePosition))
+                  const objectGlint = Boolean(objectAffordance && !playerHere && (objectiveHere || actionTargetHere || (codeForRender === 'I' && !collectedItemIds.includes('latencyPatch')) || championTerminalAuthorized || (codeForRender === 'D' && trainerDefeated)))
                   return (
                     <div
                       key={`${x}-${y}`}
-                      className={`tile tile-${codeForRender === '.' ? 'path' : codeForRender} ${depthClasses} ${elevationClasses} ${neighborClasses} ${playerInGrass ? 'tile-player-in-grass' : ''} ${followerInGrass ? 'tile-follower-in-grass' : ''} ${codeForRender === 'D' && trainerDefeated ? 'tile-gate-open' : ''} ${championTerminalRead ? 'tile-terminal-read' : ''} ${championTerminalAuthorized ? 'tile-terminal-authorized' : ''} ${championTerminalLocked ? 'tile-terminal-locked' : ''} ${gatehouseGuideFloor ? 'tile-guide-floor' : ''}`}
+                      className={`tile tile-${codeForRender === '.' ? 'path' : codeForRender} ${depthClasses} ${elevationClasses} ${heightTransitionClasses} ${neighborClasses} ${rowDepthClass} ${cameraDepthClass} ${grassPressureActive ? `tile-grass-pressure grass-pressure-${encounterPressure.tone}` : ''} ${playerInGrass ? 'tile-player-in-grass' : ''} ${followerInGrass ? 'tile-follower-in-grass' : ''} ${rescueProfessorHere ? 'tile-rescue-professor' : ''} ${dialogueFocusTone ? `tile-dialogue-focus dialogue-focus-${dialogueFocusTone}` : ''} ${objectiveGuide ? `tile-objective-guide objective-guide-${objectiveTarget.kind}` : ''} ${miraScoutTile ? 'tile-mira-scout' : ''} ${miraSightLine ? `tile-mira-sightline sight-step-${sightlineStep}` : ''} ${miraLockActive && miraSightLine ? 'tile-sightline-locked' : ''} ${trainerLockTarget ? 'tile-trainer-lock-target' : ''} ${actionPrompt ? `tile-action-target action-${actionPrompt.kind}` : ''} ${routeLensHere ? `tile-route-lens lens-${routeLens?.kind}` : ''} ${codeForRender === 'D' && trainerDefeated ? 'tile-gate-open' : ''} ${championTerminalRead ? 'tile-terminal-read' : ''} ${championTerminalAuthorized ? 'tile-terminal-authorized' : ''} ${championTerminalLocked ? 'tile-terminal-locked' : ''} ${gatehouseGuideFloor ? 'tile-guide-floor' : ''}`}
                       title={TILE_LABELS[codeForRender]}
-                      style={{ zIndex: y * 2 + tileDepthBoost(currentMap, tilePosition, codeForRender) + (codeForRender === 'C' || playerHere || followerHere || codeForRender === 'T' || visibleNpc ? 2 : 0) }}
+                      style={{ zIndex: y * 2 + tileDepthBoost(currentMap, tilePosition, codeForRender) + (codeForRender === 'C' || playerHere || followerHere || rescueProfessorHere || codeForRender === 'T' || visibleNpc ? 2 : 0) }}
                     >
                       <span className="tile-contact-shadow" aria-hidden="true" />
                       <span className="tile-height-face" aria-hidden="true" />
+                      <span className="height-rim" aria-hidden="true" />
                       <img className="tile-art" src={tileImageFor(codeForRender, x, y)} alt="" />
+                      {dialogueFocusTone ? <span className={`dialogue-focus-ring focus-${dialogueFocusTone}`} aria-hidden="true" /> : null}
                       {neighborClasses ? <span className="terrain-seams" aria-hidden="true" /> : null}
-                      {routeFootstep ? <span key={routeFootstep.id} className={`route-footstep footstep-${routeFootstep.terrain === '.' ? 'path' : routeFootstep.terrain} footstep-facing-${routeFootstep.facing}`} aria-hidden="true" /> : null}
+                      <span className="tile-surface-glaze" aria-hidden="true" />
+                      {terrainCrown ? <span className={`terrain-crown crown-${terrainCrown}`} aria-hidden="true" /> : null}
+                      {routeFootstep ? <span key={routeFootstep.id} className={`route-footstep footstep-${routeFootstep.terrain === '.' ? 'path' : routeFootstep.terrain} footstep-facing-${routeFootstep.facing} footstep-age-${Math.min(routeFootstepIndex, 4)}`} aria-hidden="true" /> : null}
                       {routeDecoration ? <span className={`route-decor decor-${routeDecoration}`} aria-hidden="true" /> : null}
                       {ambientDetail ? <span className={`ambient-detail ambient-${ambientDetail} ambient-phase-${(x + y + ambientTick) % 4}`} aria-hidden="true" /> : null}
                       {landmarkMarker ? (
@@ -4115,13 +5596,27 @@ function App() {
                           <em>{landmarkMapped ? landmarkMarker.title : '?'}</em>
                         </span>
                       ) : null}
+                      {routeSignpost ? (
+                        <span className={`route-world-sign signpost-${routeSignpost.tone}`} aria-label={`${routeSignpost.eyebrow}: ${routeSignpost.title}. ${routeSignpost.detail}`}>
+                          <b>{routeSignpost.eyebrow}</b>
+                          <strong>{routeSignpost.title}</strong>
+                          <em>{routeSignpost.detail}</em>
+                        </span>
+                      ) : null}
                       {objectiveHere ? (
                         <span className={`objective-marker objective-${objectiveTarget.kind}`} aria-label={`Next objective: ${objectiveTarget.label}`}>
                           <i aria-hidden="true" />
                           <em>{objectiveTarget.label}</em>
                         </span>
                       ) : null}
+                      {objectiveGuide ? (
+                        <>
+                          <span className={`objective-route-thread thread-${objectiveGuide} objective-${objectiveTarget.kind}`} aria-hidden="true" />
+                          <span className={`objective-guide-cue cue-${objectiveGuide} objective-${objectiveTarget.kind}`} aria-hidden="true" />
+                        </>
+                      ) : null}
                       {codeForRender === 'G' ? <span className="grass-shimmer" /> : null}
+                      {grassPressureActive ? <span className="grass-pressure-rustle" aria-hidden="true" /> : null}
                       {playerInGrass ? <span className="grass-foreground" aria-hidden="true" /> : null}
                       {codeForRender === '.' && (x + y) % 4 === 0 ? <span className="route-pebble" /> : null}
                       {codeForRender === 'R' ? <span className="ridge-highlight" /> : null}
@@ -4129,35 +5624,52 @@ function App() {
                       {codeForRender === 'C' ? <span className="tree-canopy" /> : null}
                       {codeForRender === 'B' ? (
                         <>
+                          <span className="boardwalk-cast-shadow" aria-hidden="true" />
                           <span className="boardwalk-rail" />
                           <span className="boardwalk-shine" aria-hidden="true" />
+                          <span className="boardwalk-plank-depth" aria-hidden="true" />
                         </>
                       ) : null}
                       {codeForRender === 'W' ? (
                         <>
+                          <span className="water-reflection-band water-reflection-a" aria-hidden="true" />
+                          <span className="water-reflection-band water-reflection-b" aria-hidden="true" />
                           <span className="water-current" aria-hidden="true" />
                           <span className="water-sparkle" />
+                          <span className="water-depth-shadow" aria-hidden="true" />
                         </>
                       ) : null}
                       {codeForRender === 'M' ? <span className="terminal-scan" aria-hidden="true" /> : null}
                       {gatehouseGuideFloor ? <span className="floor-guide-arrow" aria-hidden="true" /> : null}
                       {championTerminalAuthorized ? <span className="terminal-authorized-glow" aria-hidden="true" /> : null}
                       {championTerminalLocked ? <span className="terminal-lock-light" aria-hidden="true" /> : null}
-                      {miraSightLine ? <span className="trainer-sight-line" aria-hidden="true" /> : null}
-                      {frontTile.x === x && frontTile.y === y && !playerHere ? (
+                      {miraSightLine ? (
+                        <>
+                          <span className="trainer-sight-line" aria-hidden="true" />
+                          <span className="trainer-sight-pulse" aria-hidden="true" />
+                        </>
+                      ) : null}
+                      {trainerLockTarget ? <span className="trainer-lock-badge" aria-hidden="true">!</span> : null}
+                      {actionPrompt ? (
                         <>
                           <span className="interaction-cursor" />
-                          {frontTargetPrompt ? (
-                            <span className={`front-target-prompt prompt-${frontTargetPrompt.kind}`}>
-                              <b>A</b>
-                              <em>{frontTargetPrompt.label}</em>
-                            </span>
-                          ) : null}
+                          <span className={`front-target-prompt prompt-${actionPrompt.kind}`}>
+                            <b>A</b>
+                            <em>{actionPrompt.label}</em>
+                          </span>
                         </>
+                      ) : null}
+                      {routeLensHere && routeLens ? <span key={routeLens.nonce} className={`route-lens-lock lock-${routeLens.kind}`} aria-hidden="true" /> : null}
+                      {fieldReadHere && fieldReadPulse ? (
+                        <span key={fieldReadPulse.nonce} className={`field-read-pulse pulse-${fieldReadPulse.kind}`} aria-label={`${fieldReadPulse.label}: ${fieldReadPulse.detail}`}>
+                          <b>{fieldReadPulse.kind === 'talk' ? 'Talk' : fieldReadPulse.kind === 'read' ? 'Read' : fieldReadPulse.kind === 'open' ? 'Open' : fieldReadPulse.kind === 'enter' ? 'Enter' : 'Check'}</b>
+                          <em>{fieldReadPulse.label}</em>
+                        </span>
                       ) : null}
                       {tileEffect ? <span key={`${tileEffect.kind}-${tileEffect.nonce}`} className={`overworld-effect effect-${tileEffect.kind}`} /> : null}
                       {grassCueHere ? (
                         <span key={grassCueHere.nonce} className="grass-encounter-cue" aria-label={`Wild ${grassCueHere.opponentName} is moving in the grass`}>
+                          <b aria-hidden="true" />
                           <i aria-hidden="true" />
                           <em>{grassCueHere.opponentName}</em>
                         </span>
@@ -4165,24 +5677,42 @@ function App() {
                       {codeForRender === 'S' ? <span className="sign-marker">!</span> : null}
                       {codeForRender === 'I' ? <span className="field-capsule" aria-label={fieldItemAt(currentMapId, tilePosition)?.name ?? 'Cache capsule'} /> : null}
                       {objectAffordance ? <span className={`object-affordance affordance-${objectAffordance}`} aria-hidden="true" /> : null}
+                      {objectGlint ? <span className={`object-glint glint-${objectiveHere ? objectiveTarget.kind : actionPrompt?.kind ?? 'inspect'}`} aria-hidden="true" /> : null}
+                      {objectSpeaking && dialogue ? <span className="overworld-speech-bubble bubble-object" aria-hidden="true">{overworldSpeechLabel(dialogue.speaker)}</span> : null}
                       {codeForRender === 'T' ? (
                         <>
                           <span className={`trainer-alert ${miraScene ? 'trainer-alert-scene' : ''}`}>!</span>
-                          <OverworldCharacter src={MAP_ASSETS.trainer} alt="Benchmark Scout Mira" kind="npc" active={miraScene} />
+                          <OverworldCharacter src={MAP_ASSETS.trainer} alt="Benchmark Scout Mira" kind="npc" variant="trainer" active={miraScene} />
                         </>
                       ) : null}
                       {visibleNpc && !playerHere ? (
                         <>
                           {npcPlate && !npcActive ? <span className={`npc-role-plate npc-role-${npcPlate.tone}`} aria-hidden="true">{npcPlate.label}</span> : null}
                           {!npcActive ? <span className="npc-idle-cue" aria-hidden="true">...</span> : null}
+                          {npcSpeechLabel ? <span className="overworld-speech-bubble bubble-npc" aria-hidden="true">{npcSpeechLabel}</span> : null}
                           <OverworldCharacter
                             src={MAP_ASSETS[visibleNpc.sprite]}
                             alt={visibleNpc.name}
                             kind="npc"
+                            variant={visibleNpc.sprite}
                             facing={npcFacing}
                             stepNonce={ambientTick}
                             walking={npcWalking}
                             active={npcActive}
+                          />
+                        </>
+                      ) : null}
+                      {rescueProfessorHere && !playerHere ? (
+                        <>
+                          {dialogue ? <span className="overworld-speech-bubble bubble-professor" aria-hidden="true">{overworldSpeechLabel(dialogue.speaker)}</span> : <span className="rescue-professor-cue" aria-hidden="true">Professor</span>}
+                          <OverworldCharacter
+                            src={MAP_ASSETS.professor}
+                            alt="Professor Karpathy"
+                            kind="npc"
+                            variant="professor"
+                            facing="east"
+                            stepNonce={ambientTick}
+                            active
                           />
                         </>
                       ) : null}
@@ -4205,7 +5735,8 @@ function App() {
                           ) : null}
                         </>
                       ) : null}
-                      {playerHere ? <OverworldCharacter src={MAP_ASSETS.player} alt="Player" kind="player" facing={facing} stepNonce={stepNonce} walking={walkDirection} bumped={bumpDirection} active={Boolean(dialogue)} /> : null}
+                      {playerSpeaking ? <span className="overworld-speech-bubble bubble-player" aria-hidden="true">You</span> : null}
+                      {playerHere ? <OverworldCharacter src={MAP_ASSETS.player} alt="Player" kind="player" variant="player" facing={facing} stepNonce={stepNonce} walking={walkDirection} bumped={bumpDirection} active={Boolean(dialogue)} /> : null}
                     </div>
                   )
                 }),
@@ -4217,6 +5748,11 @@ function App() {
               <span />
             </div>
             <div key={currentMapId} className={`route-name-banner route-banner-${currentMapId}`} role="status" aria-live="polite">
+              <div className="route-banner-map-stamp" aria-hidden="true">
+                <img src={MAP_ASSETS.player} alt="" />
+                {starter ? <img src={SPRITE_ASSETS[starter.id]} alt="" /> : null}
+                <img src={currentMapId === 'gatehouse' ? MAP_ASSETS.robotCyan : MAP_ASSETS.trainer} alt="" />
+              </div>
               <span>{currentMap.eyebrow}</span>
               <strong>{currentMap.title}</strong>
               <em>{currentMap.subtitle}</em>
@@ -4227,13 +5763,29 @@ function App() {
             </div>
             {encounterIntro ? (
               <div key={encounterIntro.nonce} className={`encounter-intro encounter-${encounterIntro.kind}`} aria-live="assertive">
+                <i className="encounter-wipe-core" aria-hidden="true" />
                 <span>{encounterIntro.kind === 'trainer' ? 'Trainer sighted' : 'Wild benchmark'}</span>
                 <strong>{encounterIntro.kind === 'trainer' ? encounterIntro.trainerName : encounterIntro.opponentName}</strong>
               </div>
             ) : null}
             {trainerNotice ? (
-              <div key={trainerNotice.nonce} className="trainer-notice-scene" role="status" aria-live="assertive">
+              <div
+                key={trainerNotice.nonce}
+                className="trainer-notice-scene"
+                role="status"
+                aria-live="assertive"
+                style={{
+                  '--trainer-approach-x': trainerNotice.target ? `${Math.max(-1, Math.min(1, trainerNotice.target.x - MIRA_POSITION.x)) * 32}px` : '0px',
+                  '--trainer-approach-y': trainerNotice.target ? `${Math.max(0, Math.min(1, trainerNotice.target.y - MIRA_POSITION.y)) * 42}px` : '36px',
+                } as CSSProperties}
+              >
+                <span className="trainer-focus-bracket trainer-focus-left" aria-hidden="true" />
+                <span className="trainer-focus-bracket trainer-focus-right" aria-hidden="true" />
                 <div className="trainer-notice-line" aria-hidden="true" />
+                <div className="trainer-approach-stage" aria-hidden="true">
+                  <img src={MAP_ASSETS.trainer} alt="" />
+                  <span>!</span>
+                </div>
                 <div className="trainer-notice-card">
                   <span>!</span>
                   <div>
@@ -4249,6 +5801,21 @@ function App() {
                 <span>{landmarkToast.eyebrow}</span>
                 <strong>{landmarkToast.title}</strong>
                 <p>{landmarkToast.detail}</p>
+              </div>
+            ) : null}
+            {routeBeat ? (
+              <div key={routeBeat.nonce} className={`route-beat-card beat-${routeBeat.tone}`} role="status" aria-live="polite">
+                <span>{routeBeat.eyebrow}</span>
+                <strong>{routeBeat.title}</strong>
+                <p>{routeBeat.detail}</p>
+              </div>
+            ) : null}
+            {routeLens ? (
+              <div key={routeLens.nonce} className={`route-lens-card lens-${routeLens.kind}`} role="status" aria-live="polite">
+                <span>Route Lens</span>
+                <strong>{routeLens.label}</strong>
+                <p>{routeLens.detail}</p>
+                <em>{routeLens.kind === 'talk' ? 'Talk' : routeLens.kind === 'read' ? 'Read' : routeLens.kind === 'open' ? 'Open' : routeLens.kind === 'enter' ? 'Enter' : 'Inspect'}</em>
               </div>
             ) : null}
             <div className={`encounter-pressure-plaque pressure-${encounterPressure.tone}`} role="status" aria-live="polite">
@@ -4284,6 +5851,24 @@ function App() {
               <span>{battleReturn.eyebrow}</span>
               <strong>{battleReturn.title}</strong>
               <p>{battleReturn.detail}</p>
+            </div>
+          ) : null}
+          {missionPacket ? (
+            <div key={missionPacket.nonce} className="mission-packet-card" role="status" aria-live="polite">
+              <div className="mission-packet-stamp" aria-hidden="true">
+                <img src={SPRITE_ASSETS[missionPacket.partnerId]} alt="" />
+              </div>
+              <span>{missionPacket.eyebrow}</span>
+              <strong>{missionPacket.title}</strong>
+              <p>{missionPacket.detail}</p>
+              <div className="mission-packet-steps">
+                {missionPacket.steps.map((step, index) => (
+                  <em key={step}>
+                    <b>{index + 1}</b>
+                    {step}
+                  </em>
+                ))}
+              </div>
             </div>
           ) : null}
           {levelUpNotice ? (
@@ -4328,10 +5913,15 @@ function App() {
             </div>
           ) : null}
           {mapTransition ? (
-            <div key={mapTransition.nonce} className="map-transition-card" role="status" aria-live="polite">
-              <span>Area transition</span>
+            <div key={mapTransition.nonce} className={`map-transition-card transition-${mapTransition.tone}`} role="status" aria-live="polite">
+              <span>{mapTransition.eyebrow}</span>
               <strong>{mapTransition.title}</strong>
               <p>{mapTransition.detail}</p>
+              <div className="map-transition-route" aria-label={`Moving from ${mapTransition.from} to ${mapTransition.to}`}>
+                <b>{mapTransition.from}</b>
+                <i aria-hidden="true" />
+                <b>{mapTransition.to}</b>
+              </div>
             </div>
           ) : null}
         </div>
@@ -4381,6 +5971,19 @@ function App() {
               <span>{storyBeat.chapter}</span>
               <strong>{storyBeat.title}</strong>
               <p>{storyBeat.detail}</p>
+            </div>
+            <div className={`route-scene-card scene-${routeSceneRead.tone}`} aria-label="Route scene read">
+              <div className="route-scene-card-head">
+                <img src={routeSceneRead.assetSrc} alt="" />
+                <div>
+                  <span>{routeSceneRead.eyebrow}</span>
+                  <strong>{routeSceneRead.title}</strong>
+                </div>
+              </div>
+              <p>{routeSceneRead.detail}</p>
+              <div className="route-scene-chip-row">
+                {routeSceneRead.chips.map((chip) => <em key={chip}>{chip}</em>)}
+              </div>
             </div>
             <div className={`chapter-progress chapter-${storyBeat.tone}`} aria-label="Chapter progress">
               <div>
@@ -4445,90 +6048,31 @@ function App() {
             </div>
           </div>
           <div className="pixel-panel minimap-panel">
-            <div className="minimap-heading">
-              <p className="eyebrow">Area map</p>
-              <span>{currentMap.title}</span>
-            </div>
-            <div
-              className="minimap-grid"
-              aria-label={`${currentMap.title} minimap`}
-              style={{ gridTemplateColumns: `repeat(${currentMap.tiles[0].length}, 1fr)` }}
-            >
-              {minimapRouteGuide ? (
-                <span
-                  className={`minimap-route-guide guide-${objectiveTarget.kind}`}
-                  style={minimapRouteGuide as CSSProperties}
-                  aria-hidden="true"
-                />
-              ) : null}
-              {currentMap.tiles.map((row, y) =>
-                row.map((code, x) => {
-                  const tilePosition = { x, y }
-                  const renderedCode = code === 'T' && trainerDefeated ? '.' : effectiveTileAt(currentMap, tilePosition, collectedItemIds)
-                  const npcHere = routeNpcAt(currentMapId, tilePosition, trainerDefeated, ambientTick)
-                  const playerHere = position.x === x && position.y === y
-                  return (
-                    <span
-                      key={`mini-${x}-${y}`}
-                      className={`minimap-cell mini-${renderedCode === '.' ? 'path' : renderedCode} ${playerHere ? 'mini-player' : ''} ${npcHere || renderedCode === 'T' ? 'mini-npc' : ''}`}
-                      title={playerHere ? 'You are here' : npcHere?.name ?? TILE_LABELS[renderedCode]}
-                    />
-                  )
-                }),
-              )}
-              {minimapLandmarks.map((area) => (
-                <span
-                  key={`mini-landmark-${area.id}`}
-                  className={`minimap-landmark landmark-${area.tone} ${area.mapped ? 'is-mapped' : 'is-unmapped'}`}
-                  style={{
-                    left: `${(area.center.x / currentMap.tiles[0].length) * 100}%`,
-                    top: `${(area.center.y / currentMap.tiles.length) * 100}%`,
-                  }}
-                  title={`${area.title}${area.mapped ? '' : ' (unmapped)'}`}
-                >
-                  {area.mapped ? area.title.replace(/^Cachewater /, '').replace(/^Champion /, '').replace(/^Model /, '') : '?'}
-                </span>
-              ))}
-              {objectiveTarget.mapId === currentMapId ? (
-                <span
-                  className={`minimap-objective objective-${objectiveTarget.kind}`}
-                  style={{
-                    left: `${((objectiveTarget.position.x + 0.5) / currentMap.tiles[0].length) * 100}%`,
-                    top: `${((objectiveTarget.position.y + 0.5) / currentMap.tiles.length) * 100}%`,
-                  }}
-                  title={`Next objective: ${objectiveTarget.label}`}
-                >
-                  !
-                </span>
-              ) : null}
-            </div>
-            <div className="minimap-legend" aria-hidden="true">
-              <span><i className="mini-dot mini-player-dot" /> You</span>
-              <span><i className="mini-dot mini-objective-dot" /> Goal</span>
-              <span><i className="mini-dot mini-npc-dot" /> NPC</span>
-              <span><i className="mini-dot mini-cache-dot" /> Cache</span>
-              <span><i className="mini-dot mini-ledge-dot" /> Ledge</span>
-              <span><i className="mini-dot mini-landmark-dot" /> Place</span>
-            </div>
+            {renderAreaMap('side')}
           </div>
           <div className="pixel-panel controls-panel">
             <p>{routeMessage}</p>
             <div className="quick-actions">
-              <button className="pixel-button secondary" onClick={toggleFieldMenu}>{fieldMenuOpen ? 'Close menu' : 'Field menu'}</button>
+              <button className="pixel-button secondary" onClick={toggleFieldMenu} disabled={Boolean(mapTransition)}>{fieldMenuOpen ? 'Close menu' : 'Field menu'}</button>
               <button className={`pixel-button secondary sound-toggle ${audioOn ? 'is-on' : ''}`} onClick={toggleAudio}>{audioOn ? 'Audio on' : 'Audio off'}</button>
             </div>
             <div className="dpad">
               <span />
-              <button className={inputCue === 'north' ? 'is-pressed' : ''} onClick={() => { flashInputCue('north'); movePlayer(0, -1) }}>▲</button>
+              <button className={inputCue === 'north' ? 'is-pressed' : ''} onClick={() => { flashInputCue('north'); movePlayer(0, -1) }} disabled={Boolean(mapTransition)}>▲</button>
               <span />
-              <button className={inputCue === 'west' ? 'is-pressed' : ''} onClick={() => { flashInputCue('west'); movePlayer(-1, 0) }}>◀</button>
-              <button className={inputCue === 'action' ? 'is-pressed' : ''} onClick={() => { flashInputCue('action'); if (dialogue) { advanceDialogue() } else { inspectTile() } }}>A</button>
-              <button className={inputCue === 'east' ? 'is-pressed' : ''} onClick={() => { flashInputCue('east'); movePlayer(1, 0) }}>▶</button>
+              <button className={inputCue === 'west' ? 'is-pressed' : ''} onClick={() => { flashInputCue('west'); movePlayer(-1, 0) }} disabled={Boolean(mapTransition)}>◀</button>
+              <button className={inputCue === 'action' ? 'is-pressed' : ''} onClick={() => { flashInputCue('action'); if (dialogue) { advanceDialogue() } else { inspectTile() } }} disabled={Boolean(mapTransition)}>A</button>
+              <button className={inputCue === 'east' ? 'is-pressed' : ''} onClick={() => { flashInputCue('east'); movePlayer(1, 0) }} disabled={Boolean(mapTransition)}>▶</button>
               <span />
-              <button className={inputCue === 'south' ? 'is-pressed' : ''} onClick={() => { flashInputCue('south'); movePlayer(0, 1) }}>▼</button>
+              <button className={inputCue === 'south' ? 'is-pressed' : ''} onClick={() => { flashInputCue('south'); movePlayer(0, 1) }} disabled={Boolean(mapTransition)}>▼</button>
               <span />
             </div>
-            <p className="hint">Use the on-screen pad. Grass has weighted wild encounters; closed-source legends are intentionally rare.</p>
+            <div className="trainer-control-strip" aria-label="Keyboard controls">
+              <span><b>Move</b> WASD / arrows</span>
+              <span><b>A</b> Space / Enter</span>
+              <span><b>Menu</b> M</span>
+            </div>
+            <p className="hint">Grass has weighted wild encounters; closed-source legends are intentionally rare.</p>
           </div>
         </aside>
       </section>
@@ -4545,12 +6089,14 @@ function App() {
               <p className="eyebrow">{dialogue.speaker}</p>
               <span>{dialogue.index + 1}/{dialogue.lines.length}</span>
             </div>
-            <p>{dialogue.lines[dialogue.index]}</p>
+            <p key={`${dialogue.speaker}-${dialogue.index}`} className="dialogue-line-text">
+              <span>{dialogue.lines[dialogue.index]}</span>
+            </p>
             <div className="dialogue-page-pips" aria-hidden="true">
               {dialogue.lines.map((line, index) => <i key={`${line}-${index}`} className={index <= dialogue.index ? 'is-read' : ''} />)}
             </div>
           </div>
-          <button className="dialogue-next" onClick={advanceDialogue} aria-label={dialogue.index < dialogue.lines.length - 1 ? 'Advance dialogue' : 'Close dialogue'}>{dialogue.index < dialogue.lines.length - 1 ? 'A' : '✓'}</button>
+          <button className={`dialogue-next ${dialogue.index < dialogue.lines.length - 1 ? 'has-more' : 'is-final'}`} onClick={advanceDialogue} aria-label={dialogue.index < dialogue.lines.length - 1 ? 'Advance dialogue' : 'Close dialogue'}>{dialogue.index < dialogue.lines.length - 1 ? 'A' : '✓'}</button>
         </div>
       ) : null}
       {fieldMenuOpen ? (
@@ -4586,6 +6132,9 @@ function App() {
                 <strong>{objective.label}</strong>
               </div>
             </div>
+            <section className="field-menu-card area-map-card trainer-area-map">
+              {renderAreaMap('menu')}
+            </section>
             <section className="trainer-card-board" aria-label="Trainer card route stamps">
               <div className="trainer-card-main">
                 <span>Trainer Card</span>
@@ -4703,7 +6252,8 @@ function App() {
                 <p className="eyebrow">Controls</p>
                 <span>D-pad / WASD: walk</span>
                 <span>A / Space / Enter: inspect or advance</span>
-                <span>M: open menu</span>
+                <span>M or Escape: close menu</span>
+                <span>Battle: 1-5 moves, 6 patch, R run</span>
               </article>
               <article className="field-menu-card save-card">
                 <p className="eyebrow">Save</p>
@@ -4715,6 +6265,24 @@ function App() {
                     <span>{saveProgress}% route record</span>
                   </div>
                 ) : null}
+                <div className="save-record-snapshot" aria-label="Current trainer record snapshot">
+                  <span>
+                    <b>Area</b>
+                    <strong>{currentMap.title}</strong>
+                  </span>
+                  <span>
+                    <b>Partner</b>
+                    <strong>{starter ? `Lv. ${partnerLevel} · ${displayedPartnerHp}/${partnerMaxHp} HP` : 'No partner'}</strong>
+                  </span>
+                  <span>
+                    <b>Next</b>
+                    <strong>{objectiveTarget.label}</strong>
+                  </span>
+                  <span>
+                    <b>Dex</b>
+                    <strong>{discoveredIds.length}/{MODELS.length}</strong>
+                  </span>
+                </div>
                 <div className="save-actions">
                   <button className="pixel-button" onClick={saveGame}>Save</button>
                   <button className="pixel-button secondary" onClick={loadGame} disabled={!hasSave}>Load</button>
@@ -4743,9 +6311,11 @@ function App() {
     const resultSummary = battle.result ? battleResultSummary(battle, starter, discoveredIds, battleXpProjection?.level ?? partnerLevel, battleXpReward, battleXpProjection?.leveledUp, projectedLearnedMove?.name) : null
     const dexRegistration = battle.result ? battleDexRegistration(battle, discoveredIds) : null
     const performanceSummary = battle.result ? battlePerformanceSummary(battle, starter, partnerLevel) : null
+    const routePacket = battle.result ? battleRoutePacket(battle, starter, discoveredIds, partnerLevel, routeFlags, battleXpProjection?.level) : null
     const guardActive = battle.guard < 1 && !battle.result
     const battlePatchLabel = hasLatencyPatch ? latencyPatchUsed ? 'Patch used' : 'Patch ready' : 'No patch'
     const commandTarget = battle.kind === 'trainer' ? battle.trainerName ?? battle.opponent.name : `Wild ${battle.opponent.name}`
+    const battleReadout = battleReadoutFor(battle, starter, partnerLevel, activeMoves, hasLatencyPatch && !latencyPatchUsed)
     return (
       <main className="screen battle-screen">
         <section className={`battle-arena pixel-panel ${battle.turn === 1 ? 'battle-entering' : ''}`}>
@@ -4765,6 +6335,7 @@ function App() {
               '--enemy-type-color': TYPE_COLORS[battle.opponent.type],
               '--player-type-color': TYPE_COLORS[starter.type],
               '--impact-color': battleEffect?.enemyDamage ? TYPE_COLORS[battle.opponent.type] : TYPE_COLORS[starter.type],
+              '--action-color': battleEffect?.accentType ? TYPE_COLORS[battleEffect.accentType] : TYPE_COLORS[starter.type],
             } as CSSProperties}
           >
             <div className="battle-location-plaque" aria-label={`Battle location: ${battle.locationLabel}`}>
@@ -4778,6 +6349,14 @@ function App() {
               <span className="battle-terrain-prop prop-c" />
               <span className="battle-foreground-sweep" />
             </div>
+            {battle.turn === 1 ? (
+              <div className={`battle-entry-stage entry-${battle.kind}`} aria-hidden="true">
+                <span className="entry-orb entry-enemy-orb" />
+                <span className="entry-orb entry-player-orb" />
+                <span className="entry-speed-line entry-speed-a" />
+                <span className="entry-speed-line entry-speed-b" />
+              </div>
+            ) : null}
             <div className="battle-tactics-strip" aria-label="Battle tactical state">
               <span>
                 <b>Turn</b>
@@ -4796,6 +6375,18 @@ function App() {
                 <strong>{battlePatchLabel}</strong>
               </span>
             </div>
+            <div className={`battle-readout readout-${battleReadout.tone}`} aria-label="Battle tactical readout">
+              <span>{battleReadout.tempo}</span>
+              <strong>{battleReadout.pressure}</strong>
+              <p>{battleReadout.advice}</p>
+            </div>
+            {battleEffect ? (
+              <div key={`action-${battleEffect.nonce}-${battleEffect.phase}`} className={`battle-action-callout action-${battleEffect.phase}`} aria-live="polite">
+                <span>{battleEffect.phase === 'guard' ? 'Guard' : 'Action'}</span>
+                <strong>{battleEffect.primaryLabel}</strong>
+                {battleEffect.responseLabel ? <em>{battleEffect.responseLabel}</em> : null}
+              </div>
+            ) : null}
             <div className={`enemy-platform ${battleEffect?.phase === 'exchange' ? 'is-hit' : ''}`}>
               <div className="battle-side-label enemy-side-label">
                 <span>{battle.kind === 'trainer' ? battle.trainerName : 'Wild'}</span>
@@ -4814,7 +6405,7 @@ function App() {
               <BattleHud label={starter.name} model={starter} hp={battle.playerHp} max={playerMax} level={partnerLevel} />
               {battleEffect?.enemyDamage ? <span key={`player-${battleEffect.nonce}`} className="damage-pop player-damage">-{battleEffect.enemyDamage}</span> : null}
             </div>
-            {momentumLines.length ? (
+            {momentumLines.length && !battleEffect ? (
               <div className="battle-stage-exchange" aria-label="Latest battle exchange summary">
                 <span>Latest exchange</span>
                 {momentumLines.map((entry, index) => <strong key={`stage-${entry}-${index}`}>{entry}</strong>)}
@@ -4872,6 +6463,14 @@ function App() {
                       </div>
                     </div>
                   ) : null}
+                  {routePacket ? (
+                    <div className={`battle-route-packet route-packet-${routePacket.tone}`} aria-label="Route return packet">
+                      <span>{routePacket.eyebrow}</span>
+                      <strong>{routePacket.title}</strong>
+                      <p>{routePacket.detail}</p>
+                      <em>{routePacket.next}</em>
+                    </div>
+                  ) : null}
                   <div className="battle-reward-list">
                     {resultSummary.lines.map((line) => <span key={line}>{line}</span>)}
                   </div>
@@ -4883,11 +6482,18 @@ function App() {
                     <span>Choose command</span>
                     <strong>{starter.name} vs {commandTarget}</strong>
                     <p>{guardActive ? 'Context Guard will soften the next incoming move.' : 'Pick a move, use your kit, or run from wild benchmarks.'}</p>
+                    <div className="battle-command-tabs" aria-hidden="true">
+                      <i className="is-active">Fight</i>
+                      <i className={hasLatencyPatch && !latencyPatchUsed ? 'is-ready' : ''}>Kit</i>
+                      <i>Guard</i>
+                      <i className={battle.kind === 'wild' ? 'is-ready' : ''}>Run</i>
+                    </div>
                   </div>
                   {activeMoves.map((move, index) => {
                     const forecast = moveForecastFor(starter, battle, move, partnerLevel)
                     return (
-                    <button key={move.id} className={`move-button forecast-${forecast.tone}`} onClick={() => handleMove(move)}>
+                    <button key={move.id} className={`move-button forecast-${forecast.tone} ${index === 0 ? 'is-default-command' : ''}`} onClick={() => handleMove(move)}>
+                      <span className="command-cursor" aria-hidden="true" />
                       <span className="move-meta">
                         <span className="battle-shortcut">{index + 1}</span>
                         <TypeBadge type={move.type} />
@@ -4908,6 +6514,7 @@ function App() {
                   })}
                   {nextMovePreview ? (
                     <button className="move-button locked-move-button" disabled aria-disabled="true">
+                      <span className="command-cursor" aria-hidden="true" />
                       <span className="move-meta">
                         <span className="battle-shortcut">{activeMoves.length + 1}</span>
                         <TypeBadge type={nextMovePreview.type} />
@@ -4926,6 +6533,7 @@ function App() {
                     </button>
                   ) : null}
                   <button className="move-button battle-item-button" onClick={applyLatencyPatchInBattle} disabled={!hasLatencyPatch || latencyPatchUsed || battle.playerHp >= playerMax}>
+                    <span className="command-cursor" aria-hidden="true" />
                     <span className="move-meta">
                       <span className="battle-shortcut">6</span>
                       <em>ITEM</em>
@@ -4939,6 +6547,7 @@ function App() {
                   </button>
                   {battle.kind === 'wild' ? (
                     <button className="move-button run-button" onClick={runFromBattle}>
+                      <span className="command-cursor" aria-hidden="true" />
                       <span className="move-meta">
                         <span className="battle-shortcut">R</span>
                         <em>ESCAPE</em>
@@ -4960,7 +6569,9 @@ function App() {
     )
   }
 
-  const renderLLMdex = () => (
+  const renderLLMdex = () => {
+    const dexSignal = nextDexSignal(discoveredIds)
+    return (
     <main className="screen llmdex-screen">
       <section className="pixel-panel llmdex-panel">
         <div className="section-heading dex-heading">
@@ -4977,6 +6588,12 @@ function App() {
           </div>
           <i style={{ '--dex-progress': `${dexCompletion}%` } as CSSProperties} aria-hidden="true" />
           <p>{dexCompletion}% synced · New wild benchmarks unlock full stat files and citations.</p>
+        </div>
+        <div className={`dex-route-scan ${dexSignal ? 'scan-active' : 'scan-complete'}`} aria-label="Route habitat scan">
+          <span>Route scan</span>
+          <strong>{dexSignal ? `${dexSignal.model.name} signal` : 'Route table complete'}</strong>
+          <p>{dexSignal ? `${dexSignal.chance}% Eval Grass signal. Walk tall benchmark grass to register this entry.` : 'Every current Eval Grass signal is registered. Future badge routes can expand the dex.'}</p>
+          <em>{dexSignal ? `${dexSignal.model.type} · ${dexSignal.model.rarity}` : 'All local signals synced'}</em>
         </div>
         <div className="llmdex-layout">
           <aside className="dex-focus-panel">
@@ -5065,7 +6682,8 @@ function App() {
         </div>
       </section>
     </main>
-  )
+    )
+  }
 
   return (
     <div className="app-shell">
