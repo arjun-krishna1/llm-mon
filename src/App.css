@@ -672,7 +672,7 @@ dd {
 
 .battle-menu {
   display: grid;
-  grid-template-columns: minmax(260px, 0.9fr) minmax(360px, 1.1fr);
+  grid-template-columns: minmax(260px, 0.82fr) minmax(340px, 1.05fr) minmax(220px, 0.55fr);
   gap: 16px;
   margin-top: 16px;
 }
@@ -691,10 +691,69 @@ dd {
   margin-bottom: 8px;
 }
 
-.move-grid {
+.battle-panel,
+.command-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.battle-panel {
+  align-content: stretch;
+}
+
+.battle-panel button,
+.command-grid button {
+  min-height: 68px;
+}
+
+.command-grid button {
+  border-color: #160b08;
+  color: #fff4cf;
+  background: linear-gradient(#42553d, #172e20);
+}
+
+.command-grid button.active {
+  color: #211109;
+  background: linear-gradient(#ffe374, #f49a3e);
+  outline: 4px solid #fff4cf;
+}
+
+.bag-item,
+.party-slot {
+  display: grid;
+  align-items: center;
+  text-align: left;
+}
+
+.bag-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.bag-item small,
+.party-slot small {
+  font-weight: 900;
+}
+
+.party-slot {
+  grid-template-columns: 54px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 3px 10px;
+}
+
+.party-slot img {
+  grid-row: span 2;
+  width: 54px;
+  height: 54px;
+  border: 3px solid #211109;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff4cf;
+}
+
+.party-slot.locked {
+  filter: saturate(0.78);
 }
 
 .dex-layout {
@@ -821,10 +880,23 @@ dd {
     display: none;
   }
 
-  .move-grid,
+  .battle-panel,
+  .command-grid,
   .field-actions {
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .battle-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .command-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .battle-panel .party-slot {
+    grid-column: 1 / -1;
   }
 
   .field-actions {

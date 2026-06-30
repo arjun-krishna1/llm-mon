@@ -3,6 +3,7 @@ import './App.css'
 
 type Screen = 'title' | 'story' | 'starter' | 'field' | 'battle' | 'dex'
 type StarterId = 'claude' | 'gpt' | 'glm'
+type BattleCommand = 'prompt' | 'bag' | 'swap'
 
 interface Starter {
   id: StarterId
@@ -279,11 +280,21 @@ function FieldScreen({ starter, onBattle, onDex }: { starter: Starter; onBattle:
 }
 
 function BattleScreen({ starter, onField }: { starter: Starter; onField: () => void }) {
+  const [command, setCommand] = useState<BattleCommand>('prompt')
+
   const moves = useMemo(() => {
     if (starter.id === 'claude') return ['Warm Nudge', 'Guardrail', 'Tiny Myth', 'Careful Refusal']
     if (starter.id === 'gpt') return ['Prompt Pulse', 'Tool Tap', 'Focus Token', 'Omni Assist']
     return ['Logic Spark', 'Graph Paw', 'Pattern Guard', 'Matrix Read']
   }, [starter])
+
+  const bagItems = ['Prompt Orb', 'Cache Potion', 'Debug Patch', 'Latency Heal']
+  const bench = starters.filter((option) => option.id !== starter.id)
+  const commandHelp = {
+    prompt: 'Choose a starter move and pressure the HalluciHound before it spreads Hallucination.',
+    bag: 'Prompt Orbs and Cache Potions are ready for the first wild encounter loop.',
+    swap: 'Your bench is still in the emergency satchel, but the interface already teaches party flow.',
+  }[command]
 
   return (
     <section className="screen battle-screen">
@@ -313,10 +324,37 @@ function BattleScreen({ starter, onField }: { starter: Starter; onField: () => v
       <div className="battle-menu">
         <div className="battle-dialogue">
           <strong>What should {starter.name} do?</strong>
-          <span>The first battle should feel bold, readable, and close to the storyboard rescue beat.</span>
+          <span>{commandHelp}</span>
         </div>
-        <div className="move-grid">
-          {moves.map((move) => <button key={move}>{move}</button>)}
+        <div className="battle-panel">
+          {command === 'prompt' && moves.map((move) => <button key={move}>{move}</button>)}
+          {command === 'bag' && bagItems.map((item, index) => (
+            <button className="bag-item" key={item}>
+              <span>{item}</span>
+              <small>{index === 0 ? 'x5' : index === 1 ? 'x2' : 'x1'}</small>
+            </button>
+          ))}
+          {command === 'swap' && (
+            <>
+              <button className="party-slot active">
+                <img src={starter.image} alt="" />
+                <span>{starter.name}</span>
+                <small>Active</small>
+              </button>
+              {bench.map((option) => (
+                <button className="party-slot locked" key={option.id}>
+                  <img src={option.image} alt="" />
+                  <span>{option.name}</span>
+                  <small>Satchel</small>
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+        <div className="command-grid" aria-label="Battle commands">
+          <button className={command === 'prompt' ? 'active' : ''} onClick={() => setCommand('prompt')}>Prompt</button>
+          <button className={command === 'bag' ? 'active' : ''} onClick={() => setCommand('bag')}>Bag</button>
+          <button className={command === 'swap' ? 'active' : ''} onClick={() => setCommand('swap')}>Swap</button>
           <button onClick={onField}>Run</button>
         </div>
       </div>

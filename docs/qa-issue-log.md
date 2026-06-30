@@ -32,6 +32,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally.
   - Evidence: generated `hallucihound_battle_sprite.png` from the Chapter 1 visual direction, removed the layered CSS placeholder, and browser-tested battle layout on desktop and mobile with no horizontal overflow.
 
+- **[P2] Align first battle menu with Prompt / Bag / Swap / Run loop.**
+  - Status: Resolved locally.
+  - Evidence: upgraded the first battle menu from a flat move list to the documented core command loop with contextual Prompt moves, Bag items, Swap party preview, and Run-to-field behavior. Browser pass verifies Prompt, Bag, Swap, and Run on desktop and mobile with no horizontal overflow.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
