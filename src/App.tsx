@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 
-type Screen = 'title' | 'intro' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge' | 'services' | 'pier'
+type Screen = 'title' | 'intro' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge' | 'services' | 'pier' | 'mission'
 type StarterId = 'claude' | 'gpt' | 'glm'
 type BattleCommand = 'prompt' | 'bag' | 'swap'
 type BagCategory = 'orbs' | 'medicine' | 'field' | 'gear'
 type PierPhase = 'challenge' | 'battle' | 'rewards'
+type MissionMode = 'catch' | 'trainers' | 'items'
 
 interface Starter {
   id: StarterId
@@ -107,6 +108,31 @@ interface ServiceStop {
 interface RewardUnlock {
   name: string
   source: string
+  detail: string
+}
+
+interface WildEncounter {
+  id: string
+  name: string
+  level: string
+  types: string
+  rarity: string
+  catchRate: number
+  prompt: string
+  image: string
+  palette: string
+}
+
+interface TrainerBeat {
+  name: string
+  party: string
+  line: string
+  reward: string
+}
+
+interface RoutePickup {
+  name: string
+  location: string
   detail: string
 }
 
@@ -634,6 +660,81 @@ const pierRewards: RewardUnlock[] = [
   },
 ]
 
+const missionEncounters: WildEncounter[] = [
+  {
+    id: 'ragcoon',
+    name: 'RAGcoon',
+    level: 'Lv. 3-5',
+    types: 'Retrieve / Normal',
+    rarity: 'Common',
+    catchRate: 74,
+    prompt: 'Lower HP, then ask it to fetch one clean source before throwing a Prompt Orb.',
+    image: asset('assets/llmmon/sprites-ai/command-a-plus.png'),
+    palette: 'retrieve',
+  },
+  {
+    id: 'gemma',
+    name: 'Gemma Bud',
+    level: 'Lv. 3-5',
+    types: 'Garden / Efficient',
+    rarity: 'Common',
+    catchRate: 68,
+    prompt: 'Status pressure helps. Gemma responds well to calm, short alignment prompts.',
+    image: asset('assets/llmmon/sprites-ai/gemma-4-31b.png'),
+    palette: 'garden',
+  },
+  {
+    id: 'mistral',
+    name: 'Mistral Pup',
+    level: 'Lv. 4-5',
+    types: 'Wind / Speed',
+    rarity: 'Rare',
+    catchRate: 42,
+    prompt: 'Do not rush the orb. Slow it first or it will tailwind out of the prompt window.',
+    image: asset('assets/llmmon/sprites-ai/mistral-medium-35.png'),
+    palette: 'wind',
+  },
+]
+
+const missionTrainers: TrainerBeat[] = [
+  {
+    name: 'Young Founder Calvin',
+    party: 'RAGcoon Lv. 5',
+    line: 'My demo finds any context you forgot.',
+    reward: '+96T',
+  },
+  {
+    name: 'Bug Coder Rick',
+    party: 'Token Moth Lv. 4 x2',
+    line: 'Two tiny bugs can still eat the whole build.',
+    reward: '+88T',
+  },
+  {
+    name: 'Lass Tiana',
+    party: 'TinyLlama Lv. 4, Gemma Bud Lv. 4',
+    line: 'Cute teams can still benchmark hard.',
+    reward: '+104T',
+  },
+]
+
+const missionPickups: RoutePickup[] = [
+  {
+    name: 'Context Berry x2',
+    location: 'Twin street trees',
+    detail: 'Restores HP in battle and teaches route foraging before Menlo Park.',
+  },
+  {
+    name: 'Debug Patch',
+    location: 'Behind mural wall',
+    detail: 'Cures glitch status before Token Moth pressure becomes common.',
+  },
+  {
+    name: 'Cache Potion',
+    location: 'Below ledge shortcut',
+    detail: 'Rewards players who read the city path instead of sprinting north.',
+  },
+]
+
 const chapterSteps = [
   'Moving van arrival',
   'Karpathy lab search',
@@ -889,6 +990,7 @@ function FieldScreen({
   onBadge,
   onServices,
   onPier,
+  onMission,
 }: {
   starter: Starter
   onBattle: () => void
@@ -899,6 +1001,7 @@ function FieldScreen({
   onBadge: () => void
   onServices: () => void
   onPier: () => void
+  onMission: () => void
 }) {
   return (
     <section className="screen field-screen">
@@ -913,6 +1016,7 @@ function FieldScreen({
           <button onClick={onQuest}>QuestNav</button>
           <button onClick={onServices}>SoMa Services</button>
           <button onClick={onPier}>Benchmark Pier</button>
+          <button onClick={onMission}>Mission Context</button>
           <button onClick={onModel}>Model Card</button>
           <button onClick={onBadge}>Badge Case</button>
           <button onClick={onBattle}>Battle</button>
@@ -939,6 +1043,128 @@ function FieldScreen({
       <div className="dialogue-box">
         <strong>Professor Karpathy</strong>
         <span>Quick, choose a move from the starter card. The HalluciHound is hallucinating stack traces again.</span>
+      </div>
+    </section>
+  )
+}
+
+function MissionScreen({ starter, onBack }: { starter: Starter; onBack: () => void }) {
+  const [mode, setMode] = useState<MissionMode>('catch')
+  const [selectedEncounterId, setSelectedEncounterId] = useState('ragcoon')
+  const selectedEncounter = missionEncounters.find((encounter) => encounter.id === selectedEncounterId) ?? missionEncounters[0]
+  const profile = modelProfiles[starter.id]
+
+  return (
+    <section className="screen mission-screen">
+      <header className="screen-header">
+        <div>
+          <p className="kicker">Mission Context Lane</p>
+          <h2>First Catching Route</h2>
+        </div>
+        <button className="icon-button" onClick={onBack} aria-label="Return to field">B</button>
+      </header>
+      <div className="mission-shell">
+        <section className="mission-route-stage">
+          <img src={asset('assets/llmmon/mythos/generated/storyboard_3_first_quests_and_early_gameplay.png')} alt="" />
+          <div className="mission-route-grid" aria-hidden="true">
+            <span className="mural">Mural</span>
+            <span className="grass one" />
+            <span className="grass two" />
+            <span className="ledge">Ledge</span>
+            <span className="pickup berry">Berry</span>
+            <span className="pickup patch">Patch</span>
+            <span className="trainer-dot founder">Calvin</span>
+            <span className="trainer-dot coder">Rick</span>
+            <span className="trainer-dot lass">Tiana</span>
+            <span className="route-player">▲</span>
+          </div>
+          <article className="mission-dialogue">
+            <p className="kicker">Willa catching lesson</p>
+            <h3>Prompt Orbs are live</h3>
+            <p>Lower HP, add status if you can, then make a clear ask. Wild LLMMON join when the prompt lands.</p>
+          </article>
+        </section>
+        <aside className="catch-panel">
+          <div>
+            <p className="kicker">Wild signal</p>
+            <h3>{selectedEncounter.name}</h3>
+          </div>
+          <div className={`catch-portrait ${selectedEncounter.palette}`}>
+            <img src={selectedEncounter.image} alt="" />
+            <span>{selectedEncounter.rarity}</span>
+          </div>
+          <dl>
+            <div><dt>Level</dt><dd>{selectedEncounter.level}</dd></div>
+            <div><dt>Type</dt><dd>{selectedEncounter.types}</dd></div>
+            <div><dt>Orb odds</dt><dd>{selectedEncounter.catchRate}%</dd></div>
+          </dl>
+          <div className="catch-meter">
+            <span style={{ '--value': `${selectedEncounter.catchRate}%` } as React.CSSProperties}>Prompt fit</span>
+          </div>
+          <p>{selectedEncounter.prompt}</p>
+        </aside>
+        <nav className="mission-mode-tabs" aria-label="Mission Context Lane views">
+          <button className={mode === 'catch' ? 'active' : ''} onClick={() => setMode('catch')}>Catch</button>
+          <button className={mode === 'trainers' ? 'active' : ''} onClick={() => setMode('trainers')}>Trainers</button>
+          <button className={mode === 'items' ? 'active' : ''} onClick={() => setMode('items')}>Items</button>
+        </nav>
+        <section className="mission-detail-card">
+          {mode === 'catch' && (
+            <>
+              <div className="encounter-list">
+                {missionEncounters.map((encounter) => (
+                  <button className={encounter.id === selectedEncounter.id ? 'active' : ''} key={encounter.id} onClick={() => setSelectedEncounterId(encounter.id)}>
+                    <img src={encounter.image} alt="" />
+                    <span>{encounter.name}</span>
+                    <small>{encounter.level}</small>
+                  </button>
+                ))}
+              </div>
+              <div className="orb-kit">
+                <p className="kicker">Prompt Orb kit</p>
+                <h3>5 orbs, one clean first catch</h3>
+                <ol>
+                  <li>Open with {profile.moves[0].name} to test damage.</li>
+                  <li>Stop near red HP; do not overfit the prompt.</li>
+                  <li>Throw a Prompt Orb when the meter is above 50%.</li>
+                </ol>
+              </div>
+            </>
+          )}
+          {mode === 'trainers' && (
+            <div className="trainer-beat-list">
+              {missionTrainers.map((trainer) => (
+                <article key={trainer.name}>
+                  <strong>{trainer.name}</strong>
+                  <span>{trainer.party}</span>
+                  <p>{trainer.line}</p>
+                  <small>{trainer.reward}</small>
+                </article>
+              ))}
+            </div>
+          )}
+          {mode === 'items' && (
+            <div className="pickup-list">
+              {missionPickups.map((pickup) => (
+                <article key={pickup.name}>
+                  <strong>{pickup.name}</strong>
+                  <span>{pickup.location}</span>
+                  <p>{pickup.detail}</p>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+        <aside className="mission-party-card">
+          <p className="kicker">Route party</p>
+          <h3>{starter.name}</h3>
+          <img src={starter.image} alt="" />
+          <div className="mission-party-bars">
+            <span style={{ '--value': '100%' } as React.CSSProperties}>HP ready</span>
+            <span style={{ '--value': '60%' } as React.CSSProperties}>Orb stock</span>
+            <span style={{ '--value': `${profile.xpProgress + 35}%` } as React.CSSProperties}>Route XP</span>
+          </div>
+        </aside>
       </div>
     </section>
   )
@@ -1583,13 +1809,14 @@ export default function App() {
           onConfirm={() => setScreen('field')}
         />
       )}
-      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onQuest={() => setScreen('quest')} onServices={() => setScreen('services')} onPier={() => setScreen('pier')} onModel={() => setScreen('model')} onBadge={() => setScreen('badge')} />}
+      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onQuest={() => setScreen('quest')} onServices={() => setScreen('services')} onPier={() => setScreen('pier')} onMission={() => setScreen('mission')} onModel={() => setScreen('model')} onBadge={() => setScreen('badge')} />}
       {screen === 'battle' && <BattleScreen starter={selectedStarter} onField={() => setScreen('field')} />}
       {screen === 'dex' && <DexScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'bag' && <BagScreen onBack={() => setScreen('field')} />}
       {screen === 'quest' && <QuestScreen onBack={() => setScreen('field')} />}
       {screen === 'services' && <ServicesScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'pier' && <PierScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
+      {screen === 'mission' && <MissionScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'model' && <ModelCardScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'badge' && <BadgeScreen onBack={() => setScreen('field')} />}
     </main>

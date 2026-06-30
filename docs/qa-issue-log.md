@@ -80,6 +80,14 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: production-preview browser smoke found normal activation could stall on Professor Karpathy's intro A-button. Added guarded pointer, mouse, click, and keyboard activation for the intro dialogue, then verified the built bundle advances through intro and storyboard into starter selection.
 
+- **[P2] Add Mission Context Lane catching route UI.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: added a Mission Context field action and full route screen with catching lesson, route map, wild LLMMON encounter cards, prompt-orb odds, trainer beats, route pickups, and party readiness. Browser-tested desktop and mobile Catch, Trainers, Items, Mistral Pup selection, return-to-field RPGJS canvas, no console errors, no page-level horizontal overflow, and visible catch prompt/sprite rendering.
+
+- **[P2] Fix Mission Context catch-panel clipping.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: browser QA found the selected Mistral Pup catch prompt was present but clipped inside the catch panel. Tightened the panel rows, enlarged/framed the encounter sprite stage, and verified desktop/mobile prompt text and sprites are visible.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

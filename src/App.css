@@ -487,6 +487,7 @@ button:active {
 .quest-screen,
 .services-screen,
 .pier-screen,
+.mission-screen,
 .model-screen,
 .badge-screen,
 .dex-screen {
@@ -1055,6 +1056,487 @@ dd {
 .reward-card small {
   grid-area: source;
   font-weight: 900;
+}
+
+.mission-screen {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 28px 28px,
+    radial-gradient(circle at 16% 18%, rgba(255, 227, 116, 0.32), transparent 20rem),
+    radial-gradient(circle at 82% 14%, rgba(30, 159, 104, 0.32), transparent 22rem),
+    linear-gradient(#274c61 0 36%, #4d9c64 36% 68%, #cf8750 68%);
+}
+
+.mission-shell {
+  display: grid;
+  grid-template-columns: minmax(520px, 1.1fr) minmax(300px, 0.48fr) minmax(340px, 0.62fr);
+  grid-template-rows: minmax(112px, auto) minmax(0, 1fr) minmax(230px, auto);
+  gap: 18px;
+  height: calc(100vh - 146px);
+}
+
+.mission-route-stage,
+.catch-panel,
+.mission-mode-tabs,
+.mission-detail-card,
+.mission-party-card {
+  border: 5px solid #211109;
+  border-radius: 8px;
+  box-shadow: 0 9px 0 #6d2b18;
+}
+
+.mission-route-stage {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1 / -1;
+  min-height: 0;
+  overflow: hidden;
+  background: #17351e;
+}
+
+.mission-route-stage > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(1.08) contrast(1.04);
+}
+
+.mission-route-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 244, 207, 0.16), transparent 32%, rgba(33, 17, 9, 0.36)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 7px);
+  mix-blend-mode: soft-light;
+}
+
+.mission-route-grid {
+  position: absolute;
+  inset: 7%;
+  border: 4px solid rgba(33, 17, 9, 0.82);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, transparent 0 37%, rgba(255, 244, 207, 0.82) 37% 49%, transparent 49%),
+    linear-gradient(0deg, transparent 0 44%, rgba(255, 244, 207, 0.72) 44% 56%, transparent 56%),
+    linear-gradient(#4e9b64 0 48%, #c5784b 48% 72%, #5b696b 72%);
+  box-shadow: inset 0 0 0 8px rgba(255, 244, 207, 0.18);
+}
+
+.mission-route-grid > span {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 3px solid #211109;
+  color: #211109;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.48rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.mission-route-grid .mural {
+  left: 4%;
+  top: 8%;
+  width: 30%;
+  height: 18%;
+  color: #fff4cf;
+  background:
+    linear-gradient(135deg, rgba(255, 227, 116, 0.72), transparent 36%),
+    linear-gradient(#2b4e65, #7b2c56);
+}
+
+.mission-route-grid .grass {
+  width: 25%;
+  height: 24%;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(90deg, rgba(33, 17, 9, 0.14) 0 5px, transparent 5px 16px),
+    linear-gradient(#89c66b, #2f8e55);
+}
+
+.mission-route-grid .grass.one {
+  right: 7%;
+  top: 8%;
+}
+
+.mission-route-grid .grass.two {
+  left: 6%;
+  bottom: 12%;
+}
+
+.mission-route-grid .ledge {
+  right: 7%;
+  bottom: 19%;
+  width: 28%;
+  height: 12%;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 244, 207, 0.18) 0 8px, transparent 8px 24px),
+    linear-gradient(#9a5d3e, #5c382d);
+}
+
+.mission-route-grid .pickup {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: linear-gradient(#fff4cf 0 44%, #211109 44% 54%, #e96223 54%);
+  box-shadow: 0 5px 0 rgba(33, 17, 9, 0.28);
+}
+
+.mission-route-grid .pickup.berry {
+  left: 30%;
+  top: 34%;
+}
+
+.mission-route-grid .pickup.patch {
+  right: 27%;
+  bottom: 36%;
+}
+
+.mission-route-grid .trainer-dot,
+.mission-route-grid .route-player {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  color: #fff4cf;
+  background:
+    radial-gradient(circle at 50% 22%, #fff4cf 0 18%, transparent 19%),
+    linear-gradient(#1ba7b5 0 48%, #2b4e65 48%);
+  text-shadow: 1px 1px 0 #211109;
+  box-shadow: 0 6px 0 rgba(33, 17, 9, 0.3);
+}
+
+.mission-route-grid .trainer-dot.founder {
+  right: 20%;
+  top: 37%;
+}
+
+.mission-route-grid .trainer-dot.coder {
+  left: 21%;
+  bottom: 30%;
+  background:
+    radial-gradient(circle at 50% 22%, #fff4cf 0 18%, transparent 19%),
+    linear-gradient(#1e9f68 0 48%, #362016 48%);
+}
+
+.mission-route-grid .trainer-dot.lass {
+  right: 12%;
+  bottom: 7%;
+  background:
+    radial-gradient(circle at 50% 22%, #fff4cf 0 18%, transparent 19%),
+    linear-gradient(#f07d2d 0 48%, #7b2c56 48%);
+}
+
+.mission-route-grid .route-player {
+  left: 43%;
+  top: 55%;
+  width: 50px;
+  height: 50px;
+  background: #e96223;
+}
+
+.mission-dialogue {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 5%;
+  z-index: 1;
+  border: 4px solid #211109;
+  border-radius: 8px;
+  padding: 18px;
+  background: rgba(255, 244, 207, 0.96);
+  box-shadow: 0 7px 0 rgba(33, 17, 9, 0.36);
+}
+
+.mission-dialogue h3,
+.catch-panel h3,
+.mission-detail-card h3,
+.mission-party-card h3,
+.encounter-list span,
+.trainer-beat-list strong,
+.pickup-list strong {
+  font-family: "Press Start 2P", monospace;
+}
+
+.mission-dialogue h3,
+.catch-panel h3,
+.mission-detail-card h3,
+.mission-party-card h3 {
+  margin-bottom: 12px;
+  font-size: clamp(0.92rem, 1.8vw, 1.25rem);
+  line-height: 1.45;
+}
+
+.catch-panel {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: grid;
+  grid-template-rows: auto minmax(150px, 0.48fr) auto auto minmax(72px, auto);
+  gap: 12px;
+  padding: 16px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(255, 227, 116, 0.48), transparent 11rem),
+    #fff4cf;
+}
+
+.catch-portrait {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 150px;
+  border: 4px solid #211109;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(#d8f7ee, #6dbd7a);
+}
+
+.catch-portrait.retrieve {
+  background: linear-gradient(#fff8cf, #9bc9d1);
+}
+
+.catch-portrait.garden {
+  background: linear-gradient(#fff8cf, #95c95c);
+}
+
+.catch-portrait.wind {
+  background: linear-gradient(#e5ffff, #7fb0d8);
+}
+
+.catch-portrait img {
+  width: min(88%, 190px);
+  max-height: 170px;
+  object-fit: contain;
+  border: 4px solid rgba(33, 17, 9, 0.22);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 244, 207, 0.42);
+  filter: drop-shadow(0 10px 0 rgba(33, 17, 9, 0.2));
+}
+
+.catch-portrait span {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  border: 3px solid #211109;
+  border-radius: 999px;
+  padding: 7px 9px;
+  background: #fff4cf;
+  font-weight: 900;
+}
+
+.catch-panel dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.catch-panel dl div {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  border-bottom: 2px solid rgba(33, 17, 9, 0.16);
+  padding-bottom: 6px;
+}
+
+.catch-panel dt {
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.48rem;
+}
+
+.catch-panel dd {
+  margin: 0;
+  font-weight: 900;
+}
+
+.catch-panel > p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.32;
+}
+
+.catch-meter span,
+.mission-party-bars span {
+  display: block;
+  overflow: hidden;
+  border: 3px solid #211109;
+  border-radius: 999px;
+  padding: 8px 10px;
+  color: #fff4cf;
+  background:
+    linear-gradient(90deg, #1e9f68 var(--value), #362016 var(--value)),
+    #362016;
+  font-weight: 900;
+}
+
+.mission-mode-tabs {
+  grid-column: 3;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  background: #fff4cf;
+}
+
+.mission-mode-tabs button {
+  min-height: 64px;
+  padding: 8px;
+}
+
+.mission-mode-tabs button.active {
+  color: #fff4cf;
+  background: linear-gradient(#1e9f68, #17351e);
+}
+
+.mission-detail-card {
+  grid-column: 3;
+  grid-row: 2;
+  display: grid;
+  gap: 14px;
+  min-height: 0;
+  padding: 16px;
+  overflow: auto;
+  background:
+    linear-gradient(90deg, rgba(33, 17, 9, 0.08) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(#fff4cf, #e8bd6d);
+}
+
+.encounter-list {
+  display: grid;
+  gap: 9px;
+}
+
+.encounter-list button {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 74px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.encounter-list button.active {
+  outline: 4px solid #fff4cf;
+  background: linear-gradient(#ffe374, #f07d2d);
+}
+
+.encounter-list img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+}
+
+.encounter-list span {
+  font-size: 0.52rem;
+  line-height: 1.35;
+}
+
+.encounter-list small {
+  font-weight: 900;
+}
+
+.orb-kit {
+  border: 4px solid #211109;
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 244, 207, 0.78);
+}
+
+.orb-kit ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.42;
+  font-weight: 900;
+}
+
+.trainer-beat-list,
+.pickup-list {
+  display: grid;
+  gap: 10px;
+}
+
+.trainer-beat-list article,
+.pickup-list article {
+  display: grid;
+  gap: 7px;
+  border: 4px solid #211109;
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 244, 207, 0.82);
+}
+
+.trainer-beat-list strong,
+.pickup-list strong {
+  font-size: 0.58rem;
+  line-height: 1.35;
+}
+
+.trainer-beat-list span,
+.pickup-list span {
+  font-weight: 900;
+}
+
+.trainer-beat-list p,
+.pickup-list p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.trainer-beat-list small {
+  justify-self: start;
+  border: 3px solid #211109;
+  border-radius: 999px;
+  padding: 7px 9px;
+  color: #fff4cf;
+  background: #2b4e65;
+  font-weight: 900;
+}
+
+.mission-party-card {
+  grid-column: 2 / 4;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: minmax(170px, 0.24fr) minmax(130px, 0.22fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  color: #fff4cf;
+  background:
+    radial-gradient(circle at 12% 50%, rgba(255, 227, 116, 0.28), transparent 12rem),
+    linear-gradient(90deg, #211109, #2b4e65);
+}
+
+.mission-party-card .kicker {
+  color: #ffe374;
+}
+
+.mission-party-card h3 {
+  margin-bottom: 0;
+}
+
+.mission-party-card img {
+  width: 100%;
+  max-height: 150px;
+  object-fit: contain;
+  border: 3px solid rgba(255, 244, 207, 0.32);
+  border-radius: 6px;
+  padding: 6px;
+  background: rgba(255, 244, 207, 0.1);
+  filter: drop-shadow(0 10px 0 rgba(0, 0, 0, 0.28));
+}
+
+.mission-party-bars {
+  display: grid;
+  gap: 8px;
 }
 
 .services-screen {
@@ -3198,6 +3680,7 @@ dd {
   .quest-shell,
   .services-shell,
   .pier-shell,
+  .mission-shell,
   .model-shell,
   .badge-layout,
   .badge-grid,
@@ -3209,6 +3692,7 @@ dd {
   .quest-shell,
   .services-shell,
   .pier-shell,
+  .mission-shell,
   .model-shell,
   .dex-shell {
     grid-template-rows: auto auto auto auto;
@@ -3249,6 +3733,7 @@ dd {
   .quest-screen,
   .services-screen,
   .pier-screen,
+  .mission-screen,
   .model-screen,
   .badge-screen,
   .dex-screen {
@@ -3329,9 +3814,19 @@ dd {
     min-height: 620px;
   }
 
+  .mission-route-stage {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 620px;
+  }
+
   .rival-card,
   .pier-command-card,
-  .pier-rewards {
+  .pier-rewards,
+  .catch-panel,
+  .mission-mode-tabs,
+  .mission-detail-card,
+  .mission-party-card {
     grid-column: auto;
     grid-row: auto;
   }
@@ -3341,8 +3836,22 @@ dd {
   }
 
   .pier-command-card,
-  .pier-rewards {
+  .pier-rewards,
+  .catch-panel,
+  .mission-detail-card {
     min-height: 300px;
+  }
+
+  .mission-mode-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mission-party-card {
+    grid-template-columns: minmax(0, 1fr) 160px;
+  }
+
+  .mission-party-bars {
+    grid-column: 1 / -1;
   }
 
   .rival-card img {
@@ -3674,6 +4183,62 @@ dd {
       "name"
       "detail"
       "source";
+  }
+
+  .mission-route-stage {
+    min-height: 680px;
+  }
+
+  .mission-route-grid {
+    inset: 5%;
+  }
+
+  .mission-route-grid .trainer-dot {
+    width: 54px;
+    height: 54px;
+    font-size: 0.4rem;
+  }
+
+  .mission-route-grid .pickup {
+    width: 44px;
+    height: 44px;
+    font-size: 0.38rem;
+  }
+
+  .mission-dialogue {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    padding: 14px;
+  }
+
+  .mission-mode-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .mission-mode-tabs button {
+    min-height: 54px;
+  }
+
+  .catch-panel dl div,
+  .encounter-list button,
+  .mission-party-card {
+    grid-template-columns: 1fr;
+  }
+
+  .catch-portrait {
+    min-height: 230px;
+  }
+
+  .catch-portrait img {
+    width: min(92%, 250px);
+    max-height: 220px;
+    padding: 6px;
+  }
+
+  .mission-party-card img {
+    justify-self: center;
+    max-height: 180px;
   }
 
   .model-screen .screen-header h2 {
