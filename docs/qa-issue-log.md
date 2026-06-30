@@ -24,15 +24,15 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally.
   - Evidence: browser field pass shows the adjacent mini-map now matches the RPGJS route language with a Bay edge, dock tiles, Octavia 101 spine, Karpathy Lab spur, Rescue Beat marker, player marker, and gym route. Mobile pass confirms the map collapses to a square grid with no horizontal overflow.
 
+- **[P2] Polish mobile header action placement.**
+  - Status: Resolved locally.
+  - Evidence: browser mobile pass shows storyboard, starter, and PromptDex headers keep the A/B action button pinned to the right edge of the header, with the heading on the left and no horizontal overflow. Desktop pass confirms the existing wide header layout remains intact.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
 
 ## P2
-
-- **Polish mobile header action placement.**
-  - Evidence: mobile storyboard and starter passes stack correctly with no horizontal overflow, but the circular A/B action button floats between header text and content.
-  - Suggested Linear title: `[P2] Polish mobile header action placement`
 
 - **Create final pixel-art HalluciHound asset.**
   - Evidence: browser battle pass shows the layered CSS HalluciHound is a strong upgrade from the orb placeholder, but it should eventually be replaced with a dedicated pixel sprite matching the starter card quality.

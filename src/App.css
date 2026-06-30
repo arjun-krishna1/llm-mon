@@ -914,8 +914,30 @@ dd {
 @media (max-width: 620px) {
   .screen-header,
   .field-topbar {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .screen-header .kicker,
+  .screen-header h2 {
+    grid-column: 1;
+  }
+
+  .screen-header h2,
+  .field-topbar h2 {
+    font-size: clamp(1rem, 6vw, 1.42rem);
+  }
+
+  .icon-button {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    width: 52px;
+    min-width: 52px;
+    height: 52px;
+    padding: 0;
+    align-self: center;
   }
 
   .title-hud h1 {
@@ -930,6 +952,11 @@ dd {
   .field-actions {
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .field-actions {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .enemy-card,
