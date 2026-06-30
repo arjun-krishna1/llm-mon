@@ -126,10 +126,56 @@ button:active {
 }
 
 .primary-action {
+  position: relative;
+  overflow: hidden;
   width: min(280px, 100%);
   margin-top: 14px;
+  padding-left: 48px;
   font-family: "Press Start 2P", monospace;
   font-size: 0.72rem;
+  animation: pressStartPulse 1.45s steps(2, end) infinite;
+}
+
+.primary-action::before {
+  content: "";
+  position: absolute;
+  inset: 4px auto 4px 8px;
+  width: 32px;
+  border: 3px solid #2a160c;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #fffbe5 0 16%, transparent 17%), #e95f24;
+  box-shadow: inset -3px -4px 0 rgba(70, 20, 10, 0.32);
+}
+
+.primary-action::after {
+  content: "";
+  position: absolute;
+  inset: -35% auto -35% -38%;
+  width: 34%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  transform: skewX(-16deg);
+  animation: pressStartSweep 2.2s linear infinite;
+}
+
+@keyframes pressStartPulse {
+  0%,
+  44% {
+    filter: brightness(1);
+  }
+  45%,
+  100% {
+    filter: brightness(1.15);
+  }
+}
+
+@keyframes pressStartSweep {
+  0% {
+    transform: translateX(0) skewX(-16deg);
+  }
+  58%,
+  100% {
+    transform: translateX(440%) skewX(-16deg);
+  }
 }
 
 .title-strip {
@@ -840,6 +886,13 @@ dd {
 
   .dialogue-box {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary-action,
+  .primary-action::after {
+    animation: none;
   }
 }
 

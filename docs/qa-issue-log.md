@@ -36,6 +36,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally.
   - Evidence: upgraded the first battle menu from a flat move list to the documented core command loop with contextual Prompt moves, Bag items, Swap party preview, and Run-to-field behavior. Browser pass verifies Prompt, Bag, Swap, and Run on desktop and mobile with no horizontal overflow.
 
+- **[P2] Add title-screen Press Start animation.**
+  - Status: Resolved locally.
+  - Evidence: added a pulsing Press Start button with an A-button cue and sweep highlight, plus reduced-motion fallback. Browser title pass verifies desktop and mobile layout with no overflow and confirms Press Start still advances to the storyboard screen.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
