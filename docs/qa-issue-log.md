@@ -20,6 +20,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally.
   - Evidence: deployed smoke test initially showed a black RPGJS canvas because production TMX files are emitted to `assets/data`; after fixing the client map base path, local production preview renders the route canvas correctly.
 
+- **[P2] Align chapter mini-map with regenerated Hayes route.**
+  - Status: Resolved locally.
+  - Evidence: browser field pass shows the adjacent mini-map now matches the RPGJS route language with a Bay edge, dock tiles, Octavia 101 spine, Karpathy Lab spur, Rescue Beat marker, player marker, and gym route. Mobile pass confirms the map collapses to a square grid with no horizontal overflow.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
@@ -29,10 +33,6 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
 - **Polish mobile header action placement.**
   - Evidence: mobile storyboard and starter passes stack correctly with no horizontal overflow, but the circular A/B action button floats between header text and content.
   - Suggested Linear title: `[P2] Polish mobile header action placement`
-
-- **Unify chapter mini-map with regenerated RPGJS route.**
-  - Evidence: browser field pass shows the RPGJS canvas now has a Hayes/Octavia route, but the adjacent simplified mini-map still uses the previous generic tile arrangement.
-  - Suggested Linear title: `[P2] Align chapter mini-map with regenerated Hayes route`
 
 - **Create final pixel-art HalluciHound asset.**
   - Evidence: browser battle pass shows the layered CSS HalluciHound is a strong upgrade from the orb placeholder, but it should eventually be replaced with a dedicated pixel sprite matching the starter card quality.

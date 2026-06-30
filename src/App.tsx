@@ -88,13 +88,25 @@ const chapterSteps = [
 ]
 
 const mapTiles = [
-  'tree', 'path', 'path', 'lab', 'path', 'grass', 'grass', 'water',
-  'tree', 'grass', 'path', 'path', 'path', 'grass', 'sign', 'water',
-  'house', 'path', 'path', 'player', 'path', 'grass', 'grass', 'dock',
-  'house', 'path', 'grass', 'grass', 'path', 'path', 'npc', 'dock',
-  'tree', 'path', 'grass', 'path', 'path', 'gate', 'path', 'water',
-  'tree', 'path', 'path', 'path', 'grass', 'grass', 'path', 'water',
+  'water', 'water', 'dock', 'grass', 'tree', 'tree', 'grass', 'grass',
+  'water', 'dock', 'path', 'path', 'path', 'sign', 'grass', 'rescue',
+  'water', 'dock', 'path', 'player', 'path', 'path', 'path', 'npc',
+  'water', 'grass', 'path', 'path', 'road', 'path', 'grass', 'tree',
+  'grass', 'lab', 'path', 'grass', 'road', 'grass', 'grass', 'tree',
+  'tree', 'path', 'path', 'path', 'road', 'path', 'gate', 'grass',
+  'tree', 'grass', 'grass', 'path', 'road', 'path', 'dock', 'water',
+  'grass', 'grass', 'tree', 'path', 'road', 'dock', 'water', 'water',
 ]
+
+const mapGlyphs: Record<string, string> = {
+  gate: 'GYM',
+  lab: 'LAB',
+  npc: '!',
+  player: '▲',
+  rescue: '!',
+  road: '101',
+  sign: 'i',
+}
 
 function RpgRuntime() {
   const [status, setStatus] = useState('booting RPGJS')
@@ -244,7 +256,7 @@ function FieldScreen({ starter, onBattle, onDex }: { starter: Starter; onBattle:
         <RpgRuntime />
         <div className="map-preview" aria-label="Chapter map preview">
           {mapTiles.map((tile, index) => (
-            <span className={`tile ${tile}`} key={`${tile}-${index}`}>{tile === 'player' ? '▲' : tile === 'npc' ? '!' : ''}</span>
+            <span className={`tile ${tile}`} key={`${tile}-${index}`}>{mapGlyphs[tile] ?? ''}</span>
           ))}
         </div>
         <aside className="quest-panel">
