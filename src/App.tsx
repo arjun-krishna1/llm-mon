@@ -295,18 +295,12 @@ function BattleScreen({ starter, onField }: { starter: Starter; onField: () => v
           </div>
           <span className="hp-bar danger"><i /></span>
         </div>
-        <div className="enemy-sprite halluci-hound" aria-label="HalluciHound battle sprite">
-          <span className="hound-ear left" />
-          <span className="hound-ear right" />
-          <span className="hound-body" />
-          <span className="hound-mask" />
-          <span className="hound-eye left" />
-          <span className="hound-eye right" />
-          <span className="hound-tail" />
-          <span className="hound-glitch g1">?</span>
-          <span className="hound-glitch g2">!</span>
-          <span className="hound-glitch g3">#</span>
-        </div>
+        <img
+          className="enemy-sprite halluci-hound"
+          src={asset('assets/llmmon/mythos/generated/hallucihound_battle_sprite.png')}
+          alt=""
+          aria-label="HalluciHound battle sprite"
+        />
         <img className="partner-sprite" src={starter.image} alt="" />
         <div className="partner-card">
           <div>

@@ -9,8 +9,8 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Evidence: browser field pass shows RPGJS canvas online with a Bay-side route, Octavia 101 path, Karpathy Lab marker, and Rescue Beat marker on desktop and mobile.
 
 - **[P1] Add production HalluciHound battle sprite.**
-  - Status: Improved locally with a custom layered HalluciHound battle sprite.
-  - Evidence: browser battle pass shows a non-placeholder masked glitch hound with ears, legs, tail, and glitch tiles on desktop and mobile.
+  - Status: Resolved locally with a generated transparent battle sprite.
+  - Evidence: browser battle pass shows a dedicated black-and-magenta masked HalluciHound bitmap sprite with readable body, legs, cream mask, and glitch tail on desktop and mobile.
 
 - **[P2] Refine title overlay to avoid duplicate logo.**
   - Status: Resolved locally.
@@ -28,15 +28,17 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally.
   - Evidence: browser mobile pass shows storyboard, starter, and PromptDex headers keep the A/B action button pinned to the right edge of the header, with the heading on the left and no horizontal overflow. Desktop pass confirms the existing wide header layout remains intact.
 
+- **[P2] Replace CSS HalluciHound with final pixel-art sprite.**
+  - Status: Resolved locally.
+  - Evidence: generated `hallucihound_battle_sprite.png` from the Chapter 1 visual direction, removed the layered CSS placeholder, and browser-tested battle layout on desktop and mobile with no horizontal overflow.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
 
 ## P2
 
-- **Create final pixel-art HalluciHound asset.**
-  - Evidence: browser battle pass shows the layered CSS HalluciHound is a strong upgrade from the orb placeholder, but it should eventually be replaced with a dedicated pixel sprite matching the starter card quality.
-  - Suggested Linear title: `[P2] Replace CSS HalluciHound with final pixel-art sprite`
+- No open P2 issues from the current browser pass.
 
 ## P3
 
