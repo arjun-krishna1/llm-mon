@@ -32,6 +32,8 @@ type BattleTerrain = 'grass' | 'boardwalk' | 'gatehouse' | 'trainer' | 'route'
 type RouteDecoration = 'grass-tuft' | 'path-flower' | 'path-stone' | 'shore-reed' | 'lab-light' | 'terminal-cable'
 type AmbientDetail = 'grass-rustle' | 'path-leaf' | 'water-glint' | 'shore-bubble' | 'canopy-drift' | 'terminal-beacon' | 'gate-spark' | 'floor-scan'
 type ObjectiveTargetKind = 'grass' | 'trainer' | 'cache' | 'gate' | 'attendant' | 'terminal' | 'exit'
+type PartnerReadTone = 'ready' | 'warning' | 'discovery' | 'gatehouse'
+type EncounterPressureTone = 'quiet' | 'rustling' | 'surging' | 'sealed'
 
 interface Citation {
   label: string
@@ -179,6 +181,15 @@ interface BattleReturn {
   nonce: number
 }
 
+interface LevelUpNotice {
+  partnerName: string
+  fromLevel: number
+  toLevel: number
+  hpGain: number
+  learnedMoveName?: string
+  nonce: number
+}
+
 interface QuestStep {
   label: string
   complete: boolean
@@ -208,6 +219,19 @@ interface ObjectiveTarget {
   mapId: MapId
   position: Position
   kind: ObjectiveTargetKind
+}
+
+interface PartnerFieldRead {
+  label: string
+  detail: string
+  tone: PartnerReadTone
+}
+
+interface EncounterPressure {
+  label: string
+  detail: string
+  percent: number
+  tone: EncounterPressureTone
 }
 
 interface StarterLabProfile {
@@ -282,6 +306,8 @@ interface SaveState {
   collectedItemIds: FieldItemId[]
   usedItemIds: FieldItemId[]
   partnerHp: number
+  partnerLevel: number
+  partnerXp: number
   trainerDefeated: boolean
   routeMessage: string
   savedAt: string
@@ -307,6 +333,10 @@ const KEY_REPEAT_MOVE_MS = 190
 const AMBIENT_TICK_MS = 1700
 const MAP_TRANSITION_MS = 1050
 const BATTLE_EFFECT_MS = 1200
+const GRASS_SURGE_STEP_THRESHOLD = 2
+const GRASS_ENCOUNTER_STEP_THRESHOLD = 3
+const STARTER_LEVEL = 5
+const MAX_PARTNER_LEVEL = 12
 
 const AA_LEADERBOARD: Citation = {
   label: 'Artificial Analysis LLM Leaderboard',
@@ -871,6 +901,10 @@ const STARTER_MOVES: Move[] = [
   { id: 'benchmark-surge', name: 'Benchmark Surge', type: 'Normal', power: 31, effect: 'High power, softened by latency and cost.' },
 ]
 
+const LEARNED_MOVES: Array<Move & { level: number }> = [
+  { id: 'route-overclock', name: 'Route Overclock', type: 'Normal', power: 36, effect: 'Unlocked at Lv. 6. Heavy route damage boosted by your partner type.', level: 6 },
+]
+
 const ROUTE01_MAP: TerrainCode[][] = [
   Array.from('RRRRRRRRRRRRRRRRRR') as TerrainCode[],
   Array.from('RLL..GGGG..CCCCDDR') as TerrainCode[],
@@ -1104,8 +1138,55 @@ function getModel(id: string): LlmMon {
   return model
 }
 
-function maxHp(model: LlmMon): number {
-  return 76 + Math.round(model.stats.intelligence * 1.18) + (model.availability !== 'closed API' ? 8 : 0)
+function xpToNextLevel(level: number): number {
+  return level >= MAX_PARTNER_LEVEL ? 0 : 42 + level * 12
+}
+
+function clampPartnerLevel(level: number): number {
+  return Math.max(STARTER_LEVEL, Math.min(MAX_PARTNER_LEVEL, Math.floor(level)))
+}
+
+function maxHp(model: LlmMon, level = STARTER_LEVEL): number {
+  return 76 + Math.round(model.stats.intelligence * 1.18) + (model.availability !== 'closed API' ? 8 : 0) + (clampPartnerLevel(level) - STARTER_LEVEL) * 9
+}
+
+function xpRewardFor(opponent: LlmMon, kind: BattleKind): number {
+  const rarityBonus: Record<Rarity, number> = {
+    starter: 10,
+    common: 12,
+    uncommon: 18,
+    rare: 26,
+    legendary: 42,
+  }
+  return Math.round(opponent.stats.intelligence * 0.7 + rarityBonus[opponent.rarity] + (kind === 'trainer' ? 34 : 0))
+}
+
+function applyPartnerXp(level: number, xp: number, reward: number): { level: number; xp: number; leveledUp: boolean; levelsGained: number } {
+  let nextLevel = clampPartnerLevel(level)
+  let nextXp = Math.max(0, xp + reward)
+  let levelsGained = 0
+  while (nextLevel < MAX_PARTNER_LEVEL) {
+    const needed = xpToNextLevel(nextLevel)
+    if (nextXp < needed) {
+      break
+    }
+    nextXp -= needed
+    nextLevel += 1
+    levelsGained += 1
+  }
+  if (nextLevel >= MAX_PARTNER_LEVEL) {
+    nextXp = 0
+  }
+  return { level: nextLevel, xp: nextXp, leveledUp: levelsGained > 0, levelsGained }
+}
+
+function unlockedMovesBetween(previousLevel: number, nextLevel: number): Array<Move & { level: number }> {
+  return LEARNED_MOVES.filter((move) => previousLevel < move.level && nextLevel >= move.level)
+}
+
+function xpPercentFor(level: number, xp: number): number {
+  const needed = xpToNextLevel(level)
+  return needed ? Math.max(0, Math.min(100, Math.round((xp / needed) * 100))) : 100
 }
 
 function statPercent(value: number, max: number): number {
@@ -1138,6 +1219,7 @@ function habitatForecast(): { model: LlmMon; chance: number }[] {
 function describeSave(saveState: SaveState): string {
   const map = WORLD_MAPS[saveState.currentMapId]
   const starterName = getModel(saveState.starterId).name
+  const level = saveState.partnerLevel ?? STARTER_LEVEL
   const progress = saveState.routeFlags.includes('Champion log read')
     ? 'Slice complete'
     : saveState.routeFlags.includes('Gatehouse entered')
@@ -1148,7 +1230,7 @@ function describeSave(saveState: SaveState): string {
           ? 'Mira ready'
           : 'Route started'
   const savedTime = new Date(saveState.savedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-  return `${map.title} · ${progress} · ${starterName} · ${savedTime}`
+  return `${map.title} · ${progress} · Lv. ${level} ${starterName} · ${savedTime}`
 }
 
 function saveProgressPercent(saveState: SaveState): number {
@@ -1426,7 +1508,7 @@ function dialogueRoleFor(speaker: string): string {
 }
 
 function starterLabProfile(model: LlmMon): StarterLabProfile {
-  if (model.id === 'gpt-5-mini') {
+  if (model.id === 'gpt-54-mini-medium') {
     return {
       role: 'Fast opener',
       routeRead: 'Best for players who want to win early wild encounters through speed and low-cost pressure.',
@@ -1434,7 +1516,7 @@ function starterLabProfile(model: LlmMon): StarterLabProfile {
       professorNote: 'Nimble partners teach tempo. They make Route 01 feel quick, but punish sloppy guard timing.',
     }
   }
-  if (model.id === 'claude-sonnet-4-5') {
+  if (model.id === 'claude-45-haiku') {
     return {
       role: 'Steady defender',
       routeRead: 'Best for players who want safer scout battles and fewer risky low-HP returns to the lab.',
@@ -1453,6 +1535,30 @@ function starterLabProfile(model: LlmMon): StarterLabProfile {
 function frontPosition(position: Position, facing: Facing): Position {
   const delta = facingDelta(facing)
   return { x: position.x + delta.x, y: position.y + delta.y }
+}
+
+function trailingPosition(position: Position, facing: Facing): Position {
+  const delta = facingDelta(facing)
+  return { x: position.x - delta.x, y: position.y - delta.y }
+}
+
+function validFollowerTile(
+  map: WorldMap,
+  mapId: MapId,
+  position: Position,
+  playerPosition: Position,
+  collectedItemIds: FieldItemId[],
+  trainerDefeated: boolean,
+  tick: number,
+): boolean {
+  if (samePosition(position, playerPosition)) {
+    return false
+  }
+  const code = effectiveTileAt(map, position, collectedItemIds)
+  if (isBlocked(code, trainerDefeated) || code === 'T') {
+    return false
+  }
+  return !routeNpcAt(mapId, position, trainerDefeated, tick)
 }
 
 function routeObjective(map: WorldMap, trainerDefeated: boolean, discoveredCount: number, routeFlags: RouteFlag[]): FieldCue {
@@ -1681,6 +1787,131 @@ function tileCue(code: TerrainCode, trainerDefeated: boolean): FieldCue {
   return { label: TILE_LABELS[code], detail: 'A quiet stretch of Route 01.' }
 }
 
+function partnerFieldRead(
+  partner: LlmMon | null,
+  map: WorldMap,
+  terrain: TerrainCode,
+  objectiveTarget: ObjectiveTarget,
+  objectiveDistance: number | null,
+  landmark: LandmarkArea | undefined,
+  hpPercent: number,
+  routeFlags: RouteFlag[],
+): PartnerFieldRead {
+  if (!partner) {
+    return {
+      label: 'No partner',
+      detail: 'Choose a starter before reading route pressure.',
+      tone: 'warning',
+    }
+  }
+  if (hpPercent <= 25) {
+    return {
+      label: 'Partner warning',
+      detail: `${partner.name} is wavering. Heal at the lab or spend a patch before the next fight.`,
+      tone: 'warning',
+    }
+  }
+  if (objectiveDistance === 0) {
+    return {
+      label: 'Target found',
+      detail: `${partner.name} is focused on ${objectiveTarget.label}. Face it and press A.`,
+      tone: objectiveTarget.kind === 'gate' || objectiveTarget.kind === 'terminal' ? 'gatehouse' : 'discovery',
+    }
+  }
+  if (objectiveDistance !== null && objectiveDistance <= 2) {
+    return {
+      label: 'Close signal',
+      detail: `${partner.name} senses ${objectiveTarget.label} nearby. Check your facing before pressing A.`,
+      tone: objectiveTarget.kind === 'trainer' ? 'warning' : 'discovery',
+    }
+  }
+  if (landmark) {
+    return {
+      label: landmark.title,
+      detail: `${partner.name} mapped this place: ${landmark.detail}`,
+      tone: landmark.tone === 'danger' ? 'warning' : landmark.tone === 'gatehouse' ? 'gatehouse' : 'discovery',
+    }
+  }
+  if (map.id === 'gatehouse') {
+    return {
+      label: routeFlags.includes('Champion log read') ? 'Archive filed' : 'Terminal pressure',
+      detail: routeFlags.includes('Champion log read')
+        ? `${partner.name} is ready to save this route record.`
+        : `${partner.name} is watching the sealed machines for an authorized terminal.`,
+      tone: 'gatehouse',
+    }
+  }
+  if (terrain === 'G') {
+    return {
+      label: 'Grass pressure',
+      detail: `${partner.name} can feel wild benchmark data moving under the grass.`,
+      tone: 'warning',
+    }
+  }
+  if (terrain === 'B') {
+    return {
+      label: 'Boardwalk read',
+      detail: `${partner.name} is tracking cachewater reflections toward the hidden route kit.`,
+      tone: 'discovery',
+    }
+  }
+  return {
+    label: 'Route read',
+    detail: `${partner.name} is tracking ${objectiveTarget.label}: ${objectiveTarget.detail}`,
+    tone: 'ready',
+  }
+}
+
+function encounterPressureFor(map: WorldMap, terrain: TerrainCode, stepsInGrass: number, grassCue: GrassEncounterCue | null): EncounterPressure {
+  if (!map.hasWildEncounters) {
+    return {
+      label: 'Signal sealed',
+      detail: 'No wild benchmark signal inside this area.',
+      percent: 0,
+      tone: 'sealed',
+    }
+  }
+  if (grassCue) {
+    return {
+      label: 'Wild signal',
+      detail: `${grassCue.opponentName} is breaking through the grass.`,
+      percent: 100,
+      tone: 'surging',
+    }
+  }
+  if (terrain !== 'G') {
+    return {
+      label: 'Grass quiet',
+      detail: 'Step into tall benchmark grass to search for wild model data.',
+      percent: 8,
+      tone: 'quiet',
+    }
+  }
+  const percent = Math.min(96, 24 + stepsInGrass * 28)
+  if (stepsInGrass >= GRASS_SURGE_STEP_THRESHOLD) {
+    return {
+      label: 'Grass surging',
+      detail: stepsInGrass >= GRASS_ENCOUNTER_STEP_THRESHOLD ? 'The grass is ready to break into battle.' : 'The next step could trigger a wild benchmark.',
+      percent,
+      tone: 'surging',
+    }
+  }
+  if (stepsInGrass >= 1) {
+    return {
+      label: 'Grass rustling',
+      detail: 'Something is moving nearby. Keep walking or leave the patch.',
+      percent,
+      tone: 'rustling',
+    }
+  }
+  return {
+    label: 'Grass quiet',
+    detail: 'Tall grass is active, but no model has locked on yet.',
+    percent,
+    tone: 'quiet',
+  }
+}
+
 function battleOriginFor(map: WorldMap, position: Position, kind: BattleKind): { terrain: BattleTerrain; locationLabel: string } {
   const code = tileAt(map, position)
   if (kind === 'trainer') {
@@ -1708,35 +1939,35 @@ function isBlocked(code: TerrainCode, trainerDefeated: boolean): boolean {
   return code === 'R' || code === 'W' || code === 'C' || code === 'M' || code === 'I' || code === 'H'
 }
 
-function battleScore(model: LlmMon): number {
-  return model.stats.intelligence * 0.9 + model.stats.outputSpeed / 22 - model.stats.latency / 16 - model.stats.blendedCost * 1.5
+function battleScore(model: LlmMon, level = STARTER_LEVEL): number {
+  return model.stats.intelligence * 0.9 + model.stats.outputSpeed / 22 - model.stats.latency / 16 - model.stats.blendedCost * 1.5 + (clampPartnerLevel(level) - STARTER_LEVEL) * 2.6
 }
 
-function damageFor(attacker: LlmMon, defender: LlmMon, move: Move, guard: number): number {
+function damageFor(attacker: LlmMon, defender: LlmMon, move: Move, guard: number, attackerLevel = STARTER_LEVEL): number {
   if (move.id === 'context-guard') {
     return 0
   }
-  const signatureBonus = move.type === attacker.type ? 1.22 : 1
+  const signatureBonus = move.type === attacker.type ? move.id === 'route-overclock' ? 1.32 : 1.22 : 1
   const availabilityBonus = attacker.availability !== 'closed API' && defender.availability === 'closed API' ? 1.08 : 1
   const jitter = 0.88 + Math.random() * 0.24
-  const base = move.power + battleScore(attacker) / 2.6 - defender.stats.intelligence / 12
+  const base = move.power + battleScore(attacker, attackerLevel) / 2.6 - defender.stats.intelligence / 12
   return Math.max(7, Math.round(base * signatureBonus * availabilityBonus * jitter * guard))
 }
 
-function damageRangeFor(attacker: LlmMon, defender: LlmMon, move: Move, guard: number): { min: number; max: number } {
+function damageRangeFor(attacker: LlmMon, defender: LlmMon, move: Move, guard: number, attackerLevel = STARTER_LEVEL): { min: number; max: number } {
   if (move.id === 'context-guard') {
     return { min: 0, max: 0 }
   }
-  const signatureBonus = move.type === attacker.type ? 1.22 : 1
+  const signatureBonus = move.type === attacker.type ? move.id === 'route-overclock' ? 1.32 : 1.22 : 1
   const availabilityBonus = attacker.availability !== 'closed API' && defender.availability === 'closed API' ? 1.08 : 1
-  const base = move.power + battleScore(attacker) / 2.6 - defender.stats.intelligence / 12
+  const base = move.power + battleScore(attacker, attackerLevel) / 2.6 - defender.stats.intelligence / 12
   return {
     min: Math.max(7, Math.round(base * signatureBonus * availabilityBonus * 0.88 * guard)),
     max: Math.max(7, Math.round(base * signatureBonus * availabilityBonus * 1.12 * guard)),
   }
 }
 
-function moveForecastFor(attacker: LlmMon, battle: BattleState, move: Move): { damage: string; outcome: string; tone: 'guard' | 'ko' | 'strong' | 'steady' } {
+function moveForecastFor(attacker: LlmMon, battle: BattleState, move: Move, attackerLevel = STARTER_LEVEL): { damage: string; outcome: string; tone: 'guard' | 'ko' | 'strong' | 'steady' } {
   if (move.id === 'context-guard') {
     return {
       damage: 'Incoming x0.52',
@@ -1744,7 +1975,7 @@ function moveForecastFor(attacker: LlmMon, battle: BattleState, move: Move): { d
       tone: 'guard',
     }
   }
-  const range = damageRangeFor(attacker, battle.opponent, move, 1)
+  const range = damageRangeFor(attacker, battle.opponent, move, 1, attackerLevel)
   const afterMin = Math.max(0, battle.enemyHp - range.min)
   const afterMax = Math.max(0, battle.enemyHp - range.max)
   const koLikely = afterMax === 0
@@ -1769,7 +2000,7 @@ function battleMomentum(log: string[]): string[] {
   return log.slice(0, 2).map((entry) => entry.replace(/\.$/, ''))
 }
 
-function battleResultSummary(battle: BattleState, starter: LlmMon, discoveredIds: string[]): { eyebrow: string; title: string; lines: string[] } {
+function battleResultSummary(battle: BattleState, starter: LlmMon, discoveredIds: string[], partnerLevel: number, xpReward?: number, leveledUp?: boolean, learnedMoveName?: string): { eyebrow: string; title: string; lines: string[] } {
   if (battle.result === 'lost') {
     return {
       eyebrow: 'Recovery packet',
@@ -1788,8 +2019,10 @@ function battleResultSummary(battle: BattleState, starter: LlmMon, discoveredIds
       title: 'Mira synced your battle log',
       lines: [
         'Route flag ready: Mira defeated.',
+        xpReward ? `${starter.name} gained ${xpReward} XP${leveledUp ? ' and leveled up!' : '.'}` : 'Trainer XP synced.',
+        ...(learnedMoveName ? [`${starter.name} learned ${learnedMoveName}.`] : []),
         'Data Gym gate reader will open after you continue.',
-        `${starter.name} carries forward ${Math.max(1, battle.playerHp)}/${maxHp(starter)} HP.`,
+        `${starter.name} carries forward ${Math.max(1, battle.playerHp)}/${maxHp(starter, partnerLevel)} HP.`,
       ],
     }
   }
@@ -1800,8 +2033,10 @@ function battleResultSummary(battle: BattleState, starter: LlmMon, discoveredIds
     title: isNewEntry ? 'New LLMdex entry ready' : 'LLMdex entry refreshed',
     lines: [
       `${battle.opponent.name} ${isNewEntry ? 'will be added to the LLMdex.' : 'data was benchmarked again.'}`,
+      xpReward ? `${starter.name} gained ${xpReward} XP${leveledUp ? ' and leveled up!' : '.'}` : 'Field XP synced.',
+      ...(learnedMoveName ? [`${starter.name} learned ${learnedMoveName}.`] : []),
       'Route flag ready: First benchmark logged.',
-      `${starter.name} carries forward ${Math.max(1, battle.playerHp)}/${maxHp(starter)} HP.`,
+      `${starter.name} carries forward ${Math.max(1, battle.playerHp)}/${maxHp(starter, partnerLevel)} HP.`,
     ],
   }
 }
@@ -1817,7 +2052,7 @@ function battleDexRegistration(battle: BattleState, discoveredIds: string[]): { 
   }
 }
 
-function battlePerformanceSummary(battle: BattleState, starter: LlmMon): { grade: string; title: string; detail: string; tone: 'clear' | 'steady' | 'close' | 'reset' } {
+function battlePerformanceSummary(battle: BattleState, starter: LlmMon, partnerLevel: number): { grade: string; title: string; detail: string; tone: 'clear' | 'steady' | 'close' | 'reset' } {
   if (battle.result === 'lost') {
     return {
       grade: 'LAB',
@@ -1827,7 +2062,7 @@ function battlePerformanceSummary(battle: BattleState, starter: LlmMon): { grade
     }
   }
 
-  const hpPercent = Math.round((Math.max(1, battle.playerHp) / maxHp(starter)) * 100)
+  const hpPercent = Math.round((Math.max(1, battle.playerHp) / maxHp(starter, partnerLevel)) * 100)
   const usedGuard = battle.log.some((entry) => entry.includes('Context Guard'))
   if (battle.kind === 'trainer') {
     return {
@@ -2042,6 +2277,37 @@ function OverworldCharacter({
   )
 }
 
+function PartnerFollower({
+  model,
+  facing,
+  walking,
+  stepNonce,
+  inGrass,
+  hpPercent,
+}: {
+  model: LlmMon
+  facing: Facing
+  walking: Facing | null
+  stepNonce: number
+  inGrass: boolean
+  hpPercent: number
+}) {
+  const conditionClass = hpPercent <= 25 ? 'condition-critical' : hpPercent <= 55 ? 'condition-tired' : 'condition-ready'
+  return (
+    <span
+      key={`partner-${model.id}-${facing}-${stepNonce}-${walking ?? 'idle'}`}
+      className={`partner-follower follower-facing-${facing} ${walking ? `is-following walking-${walking}` : ''} ${inGrass ? 'is-in-grass' : ''} ${conditionClass}`}
+      aria-label={`${model.name} is following you`}
+      style={{ '--partner-type-color': TYPE_COLORS[model.type] } as CSSProperties}
+    >
+      <span className="partner-shadow" aria-hidden="true" />
+      <img src={SPRITE_ASSETS[model.id]} alt="" />
+      <span className="partner-orbit" aria-hidden="true" />
+      <span className="partner-status-pip" aria-hidden="true" />
+    </span>
+  )
+}
+
 function App() {
   const [screen, setScreen] = useState<Screen>('title')
   const [starter, setStarter] = useState<LlmMon | null>(null)
@@ -2058,6 +2324,8 @@ function App() {
   const [collectedItemIds, setCollectedItemIds] = useState<FieldItemId[]>([])
   const [usedItemIds, setUsedItemIds] = useState<FieldItemId[]>([])
   const [partnerHp, setPartnerHp] = useState(0)
+  const [partnerLevel, setPartnerLevel] = useState(STARTER_LEVEL)
+  const [partnerXp, setPartnerXp] = useState(0)
   const [battle, setBattle] = useState<BattleState | null>(null)
   const [battleEffect, setBattleEffect] = useState<BattleEffect | null>(null)
   const [encounterIntro, setEncounterIntro] = useState<EncounterIntro | null>(null)
@@ -2072,6 +2340,7 @@ function App() {
   const [championLog, setChampionLog] = useState<ChampionLog | null>(null)
   const [saveCeremony, setSaveCeremony] = useState<SaveCeremony | null>(null)
   const [battleReturn, setBattleReturn] = useState<BattleReturn | null>(null)
+  const [levelUpNotice, setLevelUpNotice] = useState<LevelUpNotice | null>(null)
   const [ambientTick, setAmbientTick] = useState(0)
   const [dialogue, setDialogue] = useState<DialogueState | null>(null)
   const [fieldMenuOpen, setFieldMenuOpen] = useState(false)
@@ -2096,6 +2365,7 @@ function App() {
   const inputCueTimeoutRef = useRef<number | null>(null)
   const saveCeremonyTimeoutRef = useRef<number | null>(null)
   const lastKeyboardMoveRef = useRef(0)
+  const routeFootstepIdRef = useRef(0)
 
   const starters = useMemo(() => STARTER_IDS.map(getModel), [])
   const previewStarter = useMemo(() => starters.find((model) => model.id === starterPreviewId) ?? starters[0], [starterPreviewId, starters])
@@ -2104,8 +2374,23 @@ function App() {
     if (!starter) {
       return STARTER_MOVES
     }
-    return STARTER_MOVES.map((move) => (move.id === 'typed-burst' ? { ...move, type: starter.type, name: `${starter.type} Burst` } : move))
-  }, [starter])
+    const learnedMoves = LEARNED_MOVES
+      .filter((move) => partnerLevel >= move.level)
+      .map((move) => (move.id === 'route-overclock' ? { ...move, type: starter.type, name: `${starter.type} Overclock` } : move))
+    return [
+      ...STARTER_MOVES.map((move) => (move.id === 'typed-burst' ? { ...move, type: starter.type, name: `${starter.type} Burst` } : move)),
+      ...learnedMoves,
+    ]
+  }, [partnerLevel, starter])
+  const nextLearnedMove = useMemo(() => LEARNED_MOVES.find((move) => partnerLevel < move.level), [partnerLevel])
+  const nextMovePreview = useMemo(() => {
+    if (!starter || !nextLearnedMove) {
+      return null
+    }
+    return nextLearnedMove.id === 'route-overclock'
+      ? { ...nextLearnedMove, type: starter.type, name: `${starter.type} Overclock` }
+      : nextLearnedMove
+  }, [nextLearnedMove, starter])
   const currentMap = WORLD_MAPS[currentMapId]
   const objective = useMemo(() => routeObjective(currentMap, trainerDefeated, discoveredIds.length, routeFlags), [currentMap, discoveredIds.length, routeFlags, trainerDefeated])
   const questSteps = useMemo(() => routeQuestSteps(currentMap, discoveredIds.length, trainerDefeated, collectedItemIds, routeFlags), [collectedItemIds, currentMap, discoveredIds.length, routeFlags, trainerDefeated])
@@ -2175,8 +2460,10 @@ function App() {
     const focusId = dexFocusId && discoveredIds.includes(dexFocusId) ? dexFocusId : fallbackId
     return focusId ? getModel(focusId) : null
   }, [dexFocusId, discoveredIds, starter])
-  const partnerMaxHp = starter ? maxHp(starter) : 0
+  const partnerMaxHp = starter ? maxHp(starter, partnerLevel) : 0
   const displayedPartnerHp = starter ? Math.max(0, Math.min(partnerHp || partnerMaxHp, partnerMaxHp)) : 0
+  const partnerXpNeeded = xpToNextLevel(partnerLevel)
+  const partnerXpPercent = partnerXpNeeded ? Math.round((partnerXp / partnerXpNeeded) * 100) : 100
   const hasLatencyPatch = collectedItemIds.includes('latencyPatch')
   const latencyPatchUsed = usedItemIds.includes('latencyPatch')
   const canUseLatencyPatch = Boolean(starter && hasLatencyPatch && !latencyPatchUsed && displayedPartnerHp < partnerMaxHp)
@@ -2184,6 +2471,11 @@ function App() {
   const routeCacheFound = collectedItemIds.length
   const dexCompletion = Math.round((discoveredIds.length / MODELS.length) * 100)
   const partnerHpPercent = partnerMaxHp ? Math.round((displayedPartnerHp / partnerMaxHp) * 100) : 0
+  const currentTerrainCode = effectiveTileAt(currentMap, position, collectedItemIds)
+  const encounterPressure = useMemo(
+    () => encounterPressureFor(currentMap, currentTerrainCode, stepsInGrass, grassEncounterCue),
+    [currentMap, currentTerrainCode, grassEncounterCue, stepsInGrass],
+  )
   const wildBenchmarkLogged = discoveredIds.length > 1 || routeFlags.includes('First benchmark logged')
   const routeHabitatForecast = useMemo(() => habitatForecast(), [])
   const partnerCondition = partnerHpPercent <= 25
@@ -2256,6 +2548,10 @@ function App() {
         ? 'Route Rookie'
         : 'Lab Rookie'
   const trainerCardProgress = Math.round((trainerCardStamps.filter((stamp) => stamp.complete).length / trainerCardStamps.length) * 100)
+  const partnerRead = useMemo(
+    () => partnerFieldRead(starter, currentMap, currentTerrainCode, objectiveTarget, objectiveDistance, currentLandmark, partnerHpPercent, routeFlags),
+    [currentLandmark, currentMap, currentTerrainCode, objectiveDistance, objectiveTarget, partnerHpPercent, routeFlags, starter],
+  )
 
   const addRouteFlag = useCallback((flag: RouteFlag) => {
     setRouteFlags((flags) => appendRouteFlag(flags, flag))
@@ -2266,7 +2562,8 @@ function App() {
   }, [])
 
   const recordRouteFootstep = useCallback((mapId: MapId, stepPosition: Position, terrain: TerrainCode, stepFacing: Facing) => {
-    const id = Date.now()
+    routeFootstepIdRef.current += 1
+    const id = routeFootstepIdRef.current
     setRouteFootsteps((footsteps) => [
       { id, mapId, position: stepPosition, terrain, facing: stepFacing },
       ...footsteps.filter((footstep) => footstep.mapId !== mapId || positionKey(footstep.position) !== positionKey(stepPosition)),
@@ -2340,6 +2637,10 @@ function App() {
 
   const showBattleReturn = useCallback((eyebrow: string, title: string, detail: string, tone: BattleReturn['tone']) => {
     setBattleReturn({ eyebrow, title, detail, tone, nonce: Date.now() })
+  }, [])
+
+  const showLevelUpNotice = useCallback((partnerName: string, fromLevel: number, toLevel: number, hpGain: number, learnedMoveName?: string) => {
+    setLevelUpNotice({ partnerName, fromLevel, toLevel, hpGain, learnedMoveName, nonce: Date.now() })
   }, [])
 
   const cancelEncounterIntro = useCallback(() => {
@@ -2498,12 +2799,14 @@ function App() {
       collectedItemIds,
       usedItemIds,
       partnerHp: displayedPartnerHp,
+      partnerLevel,
+      partnerXp,
       trainerDefeated,
       routeMessage,
       savedAt: new Date().toISOString(),
       ...overrides,
     }
-  }, [collectedItemIds, currentMapId, discoveredIds, displayedPartnerHp, facing, position, routeFlags, routeMessage, starter, trainerDefeated, usedItemIds])
+  }, [collectedItemIds, currentMapId, discoveredIds, displayedPartnerHp, facing, partnerLevel, partnerXp, position, routeFlags, routeMessage, starter, trainerDefeated, usedItemIds])
 
   const saveGame = useCallback(() => {
     const saveState = buildSaveState()
@@ -2528,7 +2831,10 @@ function App() {
       const savedMapId = parsed.currentMapId as MapId
       const savedStarter = getModel(parsed.starterId)
       const savedDiscovered = parsed.discoveredIds?.filter((id) => MODELS.some((model) => model.id === id)) ?? [savedStarter.id]
-      const savedMaxHp = maxHp(savedStarter)
+      const savedPartnerLevel = typeof parsed.partnerLevel === 'number' ? clampPartnerLevel(parsed.partnerLevel) : STARTER_LEVEL
+      const savedPartnerXpNeeded = xpToNextLevel(savedPartnerLevel)
+      const savedPartnerXp = typeof parsed.partnerXp === 'number' ? Math.max(0, Math.min(parsed.partnerXp, savedPartnerXpNeeded || 0)) : 0
+      const savedMaxHp = maxHp(savedStarter, savedPartnerLevel)
       const savedPartnerHp = typeof parsed.partnerHp === 'number' ? Math.max(1, Math.min(parsed.partnerHp, savedMaxHp)) : savedMaxHp
 
       setStarter(savedStarter)
@@ -2541,6 +2847,8 @@ function App() {
       setCollectedItemIds(parsed.collectedItemIds?.filter((id) => id === 'latencyPatch') ?? [])
       setUsedItemIds(parsed.usedItemIds?.filter((id) => id === 'latencyPatch') ?? [])
       setPartnerHp(savedPartnerHp)
+      setPartnerLevel(savedPartnerLevel)
+      setPartnerXp(savedPartnerXp)
       setTrainerDefeated(Boolean(parsed.trainerDefeated))
       setRouteMessage(parsed.routeMessage ?? `${savedStarter.name} rejoined your party.`)
       setBattle(null)
@@ -2551,6 +2859,7 @@ function App() {
       setLandmarkToast(null)
       setChampionLog(null)
       setBattleReturn(null)
+      setLevelUpNotice(null)
       cancelTrainerNotice()
       setWalkDirection(null)
       cancelEncounterIntro()
@@ -2568,6 +2877,8 @@ function App() {
         collectedItemIds: parsed.collectedItemIds?.filter((id) => id === 'latencyPatch') ?? [],
         usedItemIds: parsed.usedItemIds?.filter((id) => id === 'latencyPatch') ?? [],
         partnerHp: savedPartnerHp,
+        partnerLevel: savedPartnerLevel,
+        partnerXp: savedPartnerXp,
         trainerDefeated: Boolean(parsed.trainerDefeated),
         routeMessage: parsed.routeMessage ?? `${savedStarter.name} rejoined your party.`,
         savedAt: parsed.savedAt ?? new Date().toISOString(),
@@ -2600,7 +2911,9 @@ function App() {
     setRouteFlags(['Starter chosen'])
     setCollectedItemIds([])
     setUsedItemIds([])
-    setPartnerHp(maxHp(model))
+    setPartnerLevel(STARTER_LEVEL)
+    setPartnerXp(0)
+    setPartnerHp(maxHp(model, STARTER_LEVEL))
     setRouteClearance(null)
     setLabRecovery(null)
     setMapTransition(null)
@@ -2608,6 +2921,7 @@ function App() {
     setChampionLog(null)
     setSaveCeremony(null)
     setBattleReturn(null)
+    setLevelUpNotice(null)
     setWalkDirection(null)
     setBumpDirection(null)
     setCurrentMapId('route01')
@@ -2666,7 +2980,7 @@ function App() {
     setEncounterIntro({ kind, opponentName: opponent.name, trainerName, nonce: Date.now() })
     setRouteMessage(kind === 'trainer' ? `${trainerName} locks eyes with you!` : `The grass thrashes. A wild ${opponent.name} is closing in!`)
 
-    const playerHp = Math.max(1, Math.min(partnerHp || maxHp(starter), maxHp(starter)))
+    const playerHp = Math.max(1, Math.min(partnerHp || maxHp(starter, partnerLevel), maxHp(starter, partnerLevel)))
     encounterTimeoutRef.current = window.setTimeout(() => {
       encounterTimeoutRef.current = null
       setBattle({
@@ -2684,7 +2998,7 @@ function App() {
       setEncounterIntro(null)
       setScreen('battle')
     }, ENCOUNTER_TRANSITION_MS)
-  }, [cancelEncounterIntro, cancelTrainerNotice, currentMap, partnerHp, playSfx, position, starter])
+  }, [cancelEncounterIntro, cancelTrainerNotice, currentMap, partnerHp, partnerLevel, playSfx, position, starter])
 
   const startWildGrassEncounter = useCallback((opponent: LlmMon, encounterPosition: Position, terrainCode: TerrainCode) => {
     if (grassEncounterTimeoutRef.current !== null) {
@@ -2772,8 +3086,12 @@ function App() {
         flashOverworldEffect('hop', next)
         setRouteMessage(hopCode === 'G' ? 'You hopped the route ledge into rustling benchmark grass.' : 'You hopped down the one-way route ledge.')
         if (hopCode === 'G' && currentMap.hasWildEncounters) {
-          setStepsInGrass((steps) => steps + 1)
+          const grassSteps = stepsInGrass + 1
+          setStepsInGrass(grassSteps)
           flashOverworldEffect('grass', hopTarget)
+          if (grassSteps >= GRASS_SURGE_STEP_THRESHOLD) {
+            setRouteMessage('You hopped into surging grass. A wild benchmark is close.')
+          }
         }
         return
       }
@@ -2887,9 +3205,11 @@ function App() {
       setStepsInGrass(grassSteps)
       flashOverworldEffect('grass', next)
       setWalkDirection(nextFacing)
-      if (grassSteps >= 2 && Math.random() < 0.42) {
+      if (grassSteps >= GRASS_ENCOUNTER_STEP_THRESHOLD && Math.random() < 0.58) {
         setStepsInGrass(0)
         startWildGrassEncounter(weightedEncounter(), next, code)
+      } else if (grassSteps >= GRASS_SURGE_STEP_THRESHOLD) {
+        setRouteMessage(newLandmark && landmark ? landmark.routeMessage : 'The grass surges around your partner. One more step could force a wild benchmark.')
       } else {
         setRouteMessage(newLandmark && landmark ? landmark.routeMessage : 'The benchmark grass rustles with open-weight models.')
       }
@@ -2942,7 +3262,7 @@ function App() {
     if (code === 'L' || currentCode === 'L') {
       const labTarget = code === 'L' ? target : position
       if (starter) {
-        const healedHp = maxHp(starter)
+        const healedHp = maxHp(starter, partnerLevel)
         const hpBefore = displayedPartnerHp
         setPartnerHp(healedHp)
         showLabRecovery(
@@ -3053,7 +3373,7 @@ function App() {
       return
     }
     setRouteMessage(`${TILE_LABELS[code]} ahead: ${code === 'G' ? 'wild encounters favor open-weight LLM-mon.' : tileCue(code, trainerDefeated).detail}`)
-  }, [addRouteFlag, advanceDialogue, ambientTick, buildSaveState, collectedItemIds, currentMap, currentMapId, dialogue, discoveredIds.length, displayedPartnerHp, encounterIntro, facing, fieldMenuOpen, flashOverworldEffect, grassEncounterCue, persistSave, playSfx, position, routeFlags, showChampionLog, showLabRecovery, showRouteClearance, startDialogue, starter, trainerDefeated, trainerNotice])
+  }, [addRouteFlag, advanceDialogue, ambientTick, buildSaveState, collectedItemIds, currentMap, currentMapId, dialogue, discoveredIds.length, displayedPartnerHp, encounterIntro, facing, fieldMenuOpen, flashOverworldEffect, grassEncounterCue, partnerLevel, persistSave, playSfx, position, routeFlags, showChampionLog, showLabRecovery, showRouteClearance, startDialogue, starter, trainerDefeated, trainerNotice])
 
   const handleMove = useCallback((move: Move) => {
     if (!battle || !starter || battle.result) {
@@ -3073,7 +3393,7 @@ function App() {
     }
 
     playSfx('hit')
-    const playerDamage = damageFor(starter, battle.opponent, move, 1)
+    const playerDamage = damageFor(starter, battle.opponent, move, 1, partnerLevel)
     const nextEnemyHp = Math.max(0, battle.enemyHp - playerDamage)
     if (nextEnemyHp === 0) {
       setBattleEffect({ phase: 'exchange', nonce: battle.turn, playerDamage })
@@ -3107,13 +3427,13 @@ function App() {
         ...battle.log,
       ].slice(0, 6),
     })
-  }, [battle, playSfx, starter])
+  }, [battle, partnerLevel, playSfx, starter])
 
   const applyLatencyPatchInBattle = useCallback(() => {
     if (!battle || !starter || battle.result || !hasLatencyPatch || latencyPatchUsed) {
       return
     }
-    const playerMax = maxHp(starter)
+    const playerMax = maxHp(starter, partnerLevel)
     if (battle.playerHp >= playerMax) {
       return
     }
@@ -3139,10 +3459,10 @@ function App() {
         ...battle.log,
       ].slice(0, 6),
     })
-  }, [battle, hasLatencyPatch, latencyPatchUsed, playSfx, starter])
+  }, [battle, hasLatencyPatch, latencyPatchUsed, partnerLevel, playSfx, starter])
 
   const finishBattle = useCallback(() => {
-    if (!battle) {
+    if (!battle || !starter) {
       return
     }
     playSfx('confirm')
@@ -3153,20 +3473,33 @@ function App() {
         : battle.kind === 'trainer'
           ? appendRouteFlag(routeFlags, 'Mira defeated')
           : routeFlags
-      const nextPartnerHp = Math.max(1, battle.playerHp)
+      const xpReward = xpRewardFor(battle.opponent, battle.kind)
+      const xpProgress = applyPartnerXp(partnerLevel, partnerXp, xpReward)
+      const learnedMove = unlockedMovesBetween(partnerLevel, xpProgress.level)[0]
+      const levelHpBonus = xpProgress.leveledUp ? maxHp(starter, xpProgress.level) - maxHp(starter, partnerLevel) : 0
+      const nextPartnerHp = Math.min(maxHp(starter, xpProgress.level), Math.max(1, battle.playerHp) + levelHpBonus)
       const nextRouteMessage = battle.kind === 'trainer'
-        ? 'Mira: Your benchmark discipline is real. The gate reader is open now. Scout the Data Gym gatehouse north of the route.'
-        : `${battle.opponent.name} added an LLMdex entry and vanished into the tall grass.`
+        ? xpProgress.leveledUp
+          ? `Mira: ${starter.name} reached Lv. ${xpProgress.level}. The gate reader is open now.`
+          : 'Mira: Your benchmark discipline is real. The gate reader is open now. Scout the Data Gym gatehouse north of the route.'
+        : xpProgress.leveledUp
+          ? `${battle.opponent.name} was logged. ${starter.name} reached Lv. ${xpProgress.level}!`
+          : `${battle.opponent.name} added an LLMdex entry and vanished into the tall grass.`
       setPartnerHp(nextPartnerHp)
+      setPartnerLevel(xpProgress.level)
+      setPartnerXp(xpProgress.xp)
       setDiscoveredIds(nextDiscovered)
+      if (xpProgress.leveledUp) {
+        showLevelUpNotice(starter.name, partnerLevel, xpProgress.level, levelHpBonus, learnedMove?.name)
+      }
       if (battle.kind === 'wild') {
         setRouteFlags(nextRouteFlags)
         showBattleReturn(
           'Field report',
-          `${battle.opponent.name} registered`,
+          learnedMove ? `${starter.name} learned ${learnedMove.name}` : xpProgress.leveledUp ? `${starter.name} reached Lv. ${xpProgress.level}` : `${battle.opponent.name} registered`,
           routeFlags.includes('First benchmark logged')
-            ? `${starter?.name ?? 'Your partner'} returned to the route with ${nextPartnerHp} HP.`
-            : 'First wild benchmark logged. Mira will now accept your scout challenge.',
+            ? `${starter.name} gained ${xpReward} XP and returned with ${nextPartnerHp} HP.`
+            : `First wild benchmark logged. ${starter.name} gained ${xpReward} XP; Mira will now accept your scout challenge.`,
           'victory',
         )
         if (!routeFlags.includes('First benchmark logged')) {
@@ -3174,6 +3507,8 @@ function App() {
             discoveredIds: nextDiscovered,
             routeFlags: nextRouteFlags,
             partnerHp: nextPartnerHp,
+            partnerLevel: xpProgress.level,
+            partnerXp: xpProgress.xp,
             routeMessage: nextRouteMessage,
           })
           if (saveState) {
@@ -3185,8 +3520,8 @@ function App() {
         setRouteFlags(nextRouteFlags)
         showBattleReturn(
           'Scout report',
-          'Mira clearance synced',
-          'The north gate reader is open. Search the boardwalk cache or step into the Data Gym lobby.',
+          learnedMove ? `${starter.name} learned ${learnedMove.name}` : xpProgress.leveledUp ? `${starter.name} leveled up` : 'Mira clearance synced',
+          `Mira awarded ${xpReward} XP. The north gate reader is open. Search the boardwalk cache or step into the Data Gym lobby.`,
           'clearance',
         )
         showRouteClearance('Scout Clearance earned', 'Mira synced your route log. The Data Gym gate reader is now open for scouting.')
@@ -3194,6 +3529,8 @@ function App() {
           discoveredIds: nextDiscovered,
           routeFlags: nextRouteFlags,
           partnerHp: nextPartnerHp,
+          partnerLevel: xpProgress.level,
+          partnerXp: xpProgress.xp,
           trainerDefeated: true,
           routeMessage: nextRouteMessage,
         })
@@ -3208,7 +3545,7 @@ function App() {
       return
     }
     setRouteMessage('Professor Karpathy healed your starter and reminded you: latency matters as much as strength.')
-    setPartnerHp(starter ? maxHp(starter) : 0)
+    setPartnerHp(starter ? maxHp(starter, partnerLevel) : 0)
     showBattleReturn(
       'Lab report',
       'Partner recalibrated',
@@ -3220,7 +3557,7 @@ function App() {
     setPosition({ x: 3, y: 3 })
     setCurrentMapId('route01')
     setScreen('map')
-  }, [battle, buildSaveState, discoveredIds, persistSave, playSfx, routeFlags, showBattleReturn, showRouteClearance, starter])
+  }, [battle, buildSaveState, discoveredIds, partnerLevel, partnerXp, persistSave, playSfx, routeFlags, showBattleReturn, showLevelUpNotice, showRouteClearance, starter])
 
   const runFromBattle = useCallback(() => {
     if (!battle || !starter || battle.result || battle.kind !== 'wild') {
@@ -3305,6 +3642,14 @@ function App() {
   }, [battleReturn])
 
   useEffect(() => {
+    if (!levelUpNotice) {
+      return
+    }
+    const timeout = window.setTimeout(() => setLevelUpNotice(null), 5600)
+    return () => window.clearTimeout(timeout)
+  }, [levelUpNotice])
+
+  useEffect(() => {
     if (screen !== 'map' || dialogue || fieldMenuOpen || encounterIntro || grassEncounterCue || trainerNotice) {
       return
     }
@@ -3348,7 +3693,7 @@ function App() {
           handleMove(activeMoves[moveIndex])
           return
         }
-        if (event.key === '5') {
+        if (event.key === '6') {
           event.preventDefault()
           applyLatencyPatchInBattle()
           return
@@ -3631,6 +3976,15 @@ function App() {
           routeFlags.includes('Gate attendant met') ? 'Sol authorized' : 'Find Sol',
           routeFlags.includes('Champion log read') ? 'Champion log read' : 'Terminal locked',
         ]
+    const followerTrailPosition = routeFootsteps.find((footstep) => (
+      footstep.mapId === currentMapId
+      && validFollowerTile(currentMap, currentMapId, footstep.position, position, collectedItemIds, trainerDefeated, ambientTick)
+    ))?.position
+    const followerFallbackPosition = trailingPosition(position, facing)
+    const followerPosition = followerTrailPosition
+      ?? (validFollowerTile(currentMap, currentMapId, followerFallbackPosition, position, collectedItemIds, trainerDefeated, ambientTick) ? followerFallbackPosition : null)
+    const followerFacing = followerPosition ? facingFromDelta(followerPosition, position, oppositeFacing(facing)) : oppositeFacing(facing)
+    const followerWalking = followerTrailPosition && walkDirection ? walkDirection : null
 
     return (
     <main className="screen map-screen">
@@ -3666,13 +4020,14 @@ function App() {
               <p>{frontCommand.detail}</p>
             </div>
           ) : null}
-          <div
-            className={`map-viewport map-${currentMapId} ${grassEncounterCue ? 'is-grass-locking' : ''} ${encounterIntro ? 'is-encountering' : ''}`}
-            style={{
-              '--camera-x': cameraX,
-              '--camera-y': cameraY,
-            } as CSSProperties}
-          >
+            <div
+              className={`map-viewport map-${currentMapId} pressure-${encounterPressure.tone} ${grassEncounterCue ? 'is-grass-locking' : ''} ${encounterIntro ? 'is-encountering' : ''}`}
+              style={{
+                '--camera-x': cameraX,
+                '--camera-y': cameraY,
+                '--encounter-pressure': `${encounterPressure.percent}%`,
+              } as CSSProperties}
+            >
             <div className="map-parallax-depth" aria-hidden="true">
               <span className="parallax-band parallax-skyline" />
               <span className="parallax-band parallax-midground" />
@@ -3698,6 +4053,7 @@ function App() {
                 row.map((code, x) => {
                   const playerHere = position.x === x && position.y === y
                   const tilePosition = { x, y }
+                  const followerHere = Boolean(starter && followerPosition && followerPosition.x === x && followerPosition.y === y)
                   const codeForRender = code === 'T' && trainerDefeated ? '.' : effectiveTileAt(currentMap, tilePosition, collectedItemIds)
                   const miraScene = codeForRender === 'T' && dialogue?.speaker === 'Benchmark Scout Mira'
                   const visibleNpc = routeNpcAt(currentMapId, tilePosition, trainerDefeated, ambientTick)
@@ -3706,6 +4062,7 @@ function App() {
                   const npcWalking = visibleNpc && !npcActive ? npcWalkDirection(visibleNpc, ambientTick) : null
                   const npcPlate = visibleNpc ? npcRolePlate(visibleNpc) : null
                   const playerInGrass = playerHere && codeForRender === 'G'
+                  const followerInGrass = followerHere && codeForRender === 'G'
                   const tileEffect = overworldEffect?.position.x === x && overworldEffect.position.y === y ? overworldEffect : null
                   const routeFootstep = routeFootsteps.find((footstep) => footstep.mapId === currentMapId && footstep.position.x === x && footstep.position.y === y)
                   const grassCueHere = grassEncounterCue?.position.x === x && grassEncounterCue.position.y === y ? grassEncounterCue : null
@@ -3741,9 +4098,9 @@ function App() {
                   return (
                     <div
                       key={`${x}-${y}`}
-                      className={`tile tile-${codeForRender === '.' ? 'path' : codeForRender} ${depthClasses} ${elevationClasses} ${neighborClasses} ${playerInGrass ? 'tile-player-in-grass' : ''} ${codeForRender === 'D' && trainerDefeated ? 'tile-gate-open' : ''} ${championTerminalRead ? 'tile-terminal-read' : ''} ${championTerminalAuthorized ? 'tile-terminal-authorized' : ''} ${championTerminalLocked ? 'tile-terminal-locked' : ''} ${gatehouseGuideFloor ? 'tile-guide-floor' : ''}`}
+                      className={`tile tile-${codeForRender === '.' ? 'path' : codeForRender} ${depthClasses} ${elevationClasses} ${neighborClasses} ${playerInGrass ? 'tile-player-in-grass' : ''} ${followerInGrass ? 'tile-follower-in-grass' : ''} ${codeForRender === 'D' && trainerDefeated ? 'tile-gate-open' : ''} ${championTerminalRead ? 'tile-terminal-read' : ''} ${championTerminalAuthorized ? 'tile-terminal-authorized' : ''} ${championTerminalLocked ? 'tile-terminal-locked' : ''} ${gatehouseGuideFloor ? 'tile-guide-floor' : ''}`}
                       title={TILE_LABELS[codeForRender]}
-                      style={{ zIndex: y * 2 + tileDepthBoost(currentMap, tilePosition, codeForRender) + (codeForRender === 'C' || playerHere || codeForRender === 'T' || visibleNpc ? 2 : 0) }}
+                      style={{ zIndex: y * 2 + tileDepthBoost(currentMap, tilePosition, codeForRender) + (codeForRender === 'C' || playerHere || followerHere || codeForRender === 'T' || visibleNpc ? 2 : 0) }}
                     >
                       <span className="tile-contact-shadow" aria-hidden="true" />
                       <span className="tile-height-face" aria-hidden="true" />
@@ -3830,6 +4187,24 @@ function App() {
                         </>
                       ) : null}
                       {codeForRender === 'D' ? <span className="gate">GYM</span> : null}
+                      {followerHere && starter ? (
+                        <>
+                          <PartnerFollower
+                            model={starter}
+                            facing={followerFacing}
+                            walking={followerWalking}
+                            stepNonce={stepNonce}
+                            inGrass={followerInGrass}
+                            hpPercent={partnerHpPercent}
+                          />
+                          {objectiveDistance === 0 || objectiveDistance === null || objectiveDistance <= 2 || partnerHpPercent <= 25 ? (
+                            <span className={`partner-route-bubble partner-bubble-${partnerRead.tone}`} aria-label={`${partnerRead.label}: ${partnerRead.detail}`}>
+                              <b>{partnerRead.tone === 'warning' ? '!' : partnerRead.tone === 'gatehouse' ? '*' : '?'}</b>
+                              <em>{partnerRead.label}</em>
+                            </span>
+                          ) : null}
+                        </>
+                      ) : null}
                       {playerHere ? <OverworldCharacter src={MAP_ASSETS.player} alt="Player" kind="player" facing={facing} stepNonce={stepNonce} walking={walkDirection} bumped={bumpDirection} active={Boolean(dialogue)} /> : null}
                     </div>
                   )
@@ -3876,11 +4251,17 @@ function App() {
                 <p>{landmarkToast.detail}</p>
               </div>
             ) : null}
+            <div className={`encounter-pressure-plaque pressure-${encounterPressure.tone}`} role="status" aria-live="polite">
+              <span>{encounterPressure.label}</span>
+              <strong>{encounterPressure.percent}%</strong>
+              <i aria-hidden="true" />
+            </div>
           </div>
           <div className="map-status-row">
             <span>Tile {position.x + 1}, {position.y + 1}</span>
             <span>{TILE_LABELS[effectiveTileAt(currentMap, position, collectedItemIds)]}</span>
             <span>{currentMapId === 'gatehouse' ? 'Gatehouse scouted' : trainerDefeated ? 'Scout cleared' : 'Scout ahead'}</span>
+            <span>{encounterPressure.label}</span>
             <span>Facing {facing}</span>
           </div>
           {routeClearance ? (
@@ -3903,6 +4284,19 @@ function App() {
               <span>{battleReturn.eyebrow}</span>
               <strong>{battleReturn.title}</strong>
               <p>{battleReturn.detail}</p>
+            </div>
+          ) : null}
+          {levelUpNotice ? (
+            <div key={levelUpNotice.nonce} className="level-up-card" role="status" aria-live="polite">
+              <span>Partner level up</span>
+              <strong>{levelUpNotice.partnerName} reached Lv. {levelUpNotice.toLevel}</strong>
+              <div className="level-up-statline">
+                <b>Lv. {levelUpNotice.fromLevel}</b>
+                <i aria-hidden="true" />
+                <b>Lv. {levelUpNotice.toLevel}</b>
+                <em>HP +{levelUpNotice.hpGain}</em>
+              </div>
+              {levelUpNotice.learnedMoveName ? <p>Learned {levelUpNotice.learnedMoveName}. Check the battle command list.</p> : <p>Stats rose. Your partner is ready for harder route pressure.</p>}
             </div>
           ) : null}
           {championLog ? (
@@ -3952,13 +4346,30 @@ function App() {
                   <strong>{displayedPartnerHp}/{partnerMaxHp}</strong>
                 </div>
                 <meter value={displayedPartnerHp} max={partnerMaxHp} />
-                <div className={`partner-condition condition-${partnerCondition.tone}`}>
-                  <span>{partnerCondition.label}</span>
-                  <strong>{partnerRouteRole}</strong>
-                  <p>{partnerCondition.detail}</p>
+                <div className="partner-growth">
+                  <div>
+                    <span>Level</span>
+                    <strong>Lv. {partnerLevel}</strong>
+                  </div>
+                  <i style={{ '--partner-xp': `${partnerXpPercent}%` } as CSSProperties} aria-hidden="true" />
+                  <p>{partnerLevel >= MAX_PARTNER_LEVEL ? 'Training cap reached for this route slice.' : `${partnerXp}/${partnerXpNeeded} XP to next level`}</p>
+                  <div className="partner-move-unlock">
+                    <span>{nextLearnedMove ? `Next move Lv. ${nextLearnedMove.level}` : 'Move kit complete'}</span>
+                    <strong>{nextLearnedMove ? nextLearnedMove.name : `${activeMoves[activeMoves.length - 1]?.name ?? 'Route command'} ready`}</strong>
+                  </div>
                 </div>
+              <div className={`partner-condition condition-${partnerCondition.tone}`}>
+                <span>{partnerCondition.label}</span>
+                <strong>{partnerRouteRole}</strong>
+                <p>{partnerCondition.detail}</p>
               </div>
-            ) : null}
+              <div className={`partner-route-read read-${partnerRead.tone}`}>
+                <span>{partnerRead.label}</span>
+                <strong>{objectiveDistance === null ? WORLD_MAPS[objectiveTarget.mapId].title : objectiveDistance === 0 ? 'At objective' : `${objectiveBearing} · ${objectiveDistance} tiles`}</strong>
+                <p>{partnerRead.detail}</p>
+              </div>
+            </div>
+          ) : null}
           </div>
           <div className="pixel-panel field-panel">
             <p className="eyebrow">Field log</p>
@@ -3984,6 +4395,15 @@ function App() {
               <strong>{objectiveTarget.label}</strong>
               <em>{objectiveDistance === null ? objectiveBearing : objectiveDistance === 0 ? 'You are here' : `${objectiveBearing} · ${objectiveDistance} tiles`}</em>
               <p>{objectiveTarget.detail}</p>
+            </div>
+            <div className={`encounter-pressure-card pressure-${encounterPressure.tone}`} aria-label="Wild encounter pressure">
+              <div>
+                <span>Encounter pressure</span>
+                <strong>{encounterPressure.label}</strong>
+                <em>{encounterPressure.percent}%</em>
+              </div>
+              <i style={{ '--encounter-pressure': `${encounterPressure.percent}%` } as CSSProperties} aria-hidden="true" />
+              <p>{encounterPressure.detail}</p>
             </div>
             <div className={`habitat-forecast ${currentMap.hasWildEncounters ? 'has-encounters' : 'no-encounters'}`} aria-label="Route habitat forecast">
               <div>
@@ -4191,7 +4611,9 @@ function App() {
                     <Sprite model={starter} small />
                     <div>
                       <strong>{starter.name}</strong>
-                      <span>{starter.type} · HP {displayedPartnerHp}/{partnerMaxHp}</span>
+                      <span>{starter.type} · Lv. {partnerLevel} · HP {displayedPartnerHp}/{partnerMaxHp}</span>
+                      <span>{partnerLevel >= MAX_PARTNER_LEVEL ? 'Training cap reached' : `${partnerXp}/${partnerXpNeeded} XP to next level`}</span>
+                      <span>{nextLearnedMove ? `Next move: ${nextLearnedMove.name} at Lv. ${nextLearnedMove.level}` : `${activeMoves[activeMoves.length - 1]?.name ?? 'Learned move'} unlocked`}</span>
                       <span>{starter.abilities.join(' / ')}</span>
                       <em className={`party-condition condition-${partnerCondition.tone}`}>{partnerCondition.label} · {partnerRouteRole}</em>
                     </div>
@@ -4310,12 +4732,17 @@ function App() {
     if (!battle || !starter) {
       return null
     }
-    const playerMax = maxHp(starter)
+    const playerMax = maxHp(starter, partnerLevel)
     const enemyMax = maxHp(battle.opponent)
     const momentumLines = battle.turn > 1 || battle.result ? battleMomentum(battle.log) : []
-    const resultSummary = battle.result ? battleResultSummary(battle, starter, discoveredIds) : null
+    const battleXpReward = battle.result === 'won' ? xpRewardFor(battle.opponent, battle.kind) : 0
+    const battleXpProjection = battle.result === 'won' ? applyPartnerXp(partnerLevel, partnerXp, battleXpReward) : null
+    const battleXpBeforePercent = xpPercentFor(partnerLevel, partnerXp)
+    const battleXpAfterPercent = battleXpProjection ? xpPercentFor(battleXpProjection.level, battleXpProjection.xp) : battleXpBeforePercent
+    const projectedLearnedMove = battleXpProjection ? unlockedMovesBetween(partnerLevel, battleXpProjection.level)[0] : undefined
+    const resultSummary = battle.result ? battleResultSummary(battle, starter, discoveredIds, battleXpProjection?.level ?? partnerLevel, battleXpReward, battleXpProjection?.leveledUp, projectedLearnedMove?.name) : null
     const dexRegistration = battle.result ? battleDexRegistration(battle, discoveredIds) : null
-    const performanceSummary = battle.result ? battlePerformanceSummary(battle, starter) : null
+    const performanceSummary = battle.result ? battlePerformanceSummary(battle, starter, partnerLevel) : null
     const guardActive = battle.guard < 1 && !battle.result
     const battlePatchLabel = hasLatencyPatch ? latencyPatchUsed ? 'Patch used' : 'Patch ready' : 'No patch'
     const commandTarget = battle.kind === 'trainer' ? battle.trainerName ?? battle.opponent.name : `Wild ${battle.opponent.name}`
@@ -4384,7 +4811,7 @@ function App() {
                 <strong>{starter.name}</strong>
               </div>
               <Sprite model={starter} />
-              <BattleHud label={starter.name} model={starter} hp={battle.playerHp} max={playerMax} />
+              <BattleHud label={starter.name} model={starter} hp={battle.playerHp} max={playerMax} level={partnerLevel} />
               {battleEffect?.enemyDamage ? <span key={`player-${battleEffect.nonce}`} className="damage-pop player-damage">-{battleEffect.enemyDamage}</span> : null}
             </div>
             {momentumLines.length ? (
@@ -4419,6 +4846,20 @@ function App() {
                       </div>
                     </div>
                   ) : null}
+                  {battleXpProjection ? (
+                    <div className={`battle-xp-panel ${battleXpProjection.leveledUp ? 'xp-leveled' : ''}`} aria-label="Battle XP reward">
+                      <div>
+                        <span>Partner XP</span>
+                        <strong>+{battleXpReward} XP</strong>
+                        <em>Lv. {partnerLevel} → Lv. {battleXpProjection.level}</em>
+                      </div>
+                      <div className="battle-xp-bars">
+                        <i style={{ '--xp-before': `${battleXpBeforePercent}%`, '--xp-after': `${battleXpAfterPercent}%` } as CSSProperties} aria-hidden="true" />
+                        <b>{battleXpProjection.level >= MAX_PARTNER_LEVEL ? 'Training cap reached' : `${battleXpProjection.xp}/${xpToNextLevel(battleXpProjection.level)} XP`}</b>
+                      </div>
+                      {projectedLearnedMove ? <p>Move unlock: {projectedLearnedMove.name}</p> : battleXpProjection.leveledUp ? <p>Level up! Max HP and battle tempo improved.</p> : <p>Training progress carried back to the route.</p>}
+                    </div>
+                  ) : null}
                   {dexRegistration ? (
                     <div className={`battle-dex-registration dex-${dexRegistration.status}`}>
                       <div className="battle-dex-sprite">
@@ -4444,7 +4885,7 @@ function App() {
                     <p>{guardActive ? 'Context Guard will soften the next incoming move.' : 'Pick a move, use your kit, or run from wild benchmarks.'}</p>
                   </div>
                   {activeMoves.map((move, index) => {
-                    const forecast = moveForecastFor(starter, battle, move)
+                    const forecast = moveForecastFor(starter, battle, move, partnerLevel)
                     return (
                     <button key={move.id} className={`move-button forecast-${forecast.tone}`} onClick={() => handleMove(move)}>
                       <span className="move-meta">
@@ -4465,9 +4906,28 @@ function App() {
                     </button>
                     )
                   })}
+                  {nextMovePreview ? (
+                    <button className="move-button locked-move-button" disabled aria-disabled="true">
+                      <span className="move-meta">
+                        <span className="battle-shortcut">{activeMoves.length + 1}</span>
+                        <TypeBadge type={nextMovePreview.type} />
+                        <em>LV. {nextMovePreview.level}</em>
+                      </span>
+                      <strong>{nextMovePreview.name}</strong>
+                      <span className="move-command-line">
+                        <b>Locked</b>
+                        <i>{nextMovePreview.type}</i>
+                      </span>
+                      <span className="move-forecast">
+                        <b>{nextMovePreview.power} PWR</b>
+                        <i>{Math.max(0, nextMovePreview.level - partnerLevel)} level away</i>
+                      </span>
+                      <span>Train your partner to unlock this command.</span>
+                    </button>
+                  ) : null}
                   <button className="move-button battle-item-button" onClick={applyLatencyPatchInBattle} disabled={!hasLatencyPatch || latencyPatchUsed || battle.playerHp >= playerMax}>
                     <span className="move-meta">
-                      <span className="battle-shortcut">5</span>
+                      <span className="battle-shortcut">6</span>
                       <em>ITEM</em>
                     </span>
                     <strong>Latency Patch</strong>
@@ -4620,13 +5080,14 @@ function App() {
   )
 }
 
-function BattleHud({ label, model, hp, max }: { label: string; model: LlmMon; hp: number; max: number }) {
+function BattleHud({ label, model, hp, max, level }: { label: string; model: LlmMon; hp: number; max: number; level?: number }) {
   const hpPercent = Math.max(0, Math.round((hp / max) * 100))
   const hpState = hp === 0 ? 'fainted' : hpPercent <= 25 ? 'danger' : hpPercent <= 50 ? 'warn' : 'healthy'
   return (
     <div className={`battle-hud hp-${hpState}`}>
       <div className="hud-title">
         <strong>{label}</strong>
+        {level ? <span className="hud-level">Lv. {level}</span> : null}
         <TypeBadge type={model.type} />
       </div>
       <div className="hp-track">
