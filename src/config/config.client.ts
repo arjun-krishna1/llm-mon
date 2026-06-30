@@ -2,7 +2,7 @@ import { provideClientGlobalConfig, provideClientModules, Presets } from '@rpgjs
 import { provideTiledMap } from '@rpgjs/tiledmap/client'
 import { provideMain } from '../modules/main'
 
-const tiledMapBasePath = import.meta.env.DEV ? 'map' : `${import.meta.env.BASE_URL}assets/data`
+const tiledMapBasePath = import.meta.env?.DEV ? 'map' : `${import.meta.env?.BASE_URL ?? './'}assets/data`
 
 export default {
   providers: [
