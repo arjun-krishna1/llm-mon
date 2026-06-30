@@ -198,6 +198,254 @@ button:active {
   font-weight: 900;
 }
 
+.intro-screen {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  gap: 14px;
+  overflow: hidden;
+  color: #fff4cf;
+  background:
+    radial-gradient(circle at 50% 26%, rgba(255, 227, 116, 0.3), transparent 18rem),
+    radial-gradient(circle at 50% 42%, rgba(255, 244, 207, 0.24), transparent 27rem),
+    linear-gradient(#11131c, #1d2530 56%, #4d2a22);
+}
+
+.intro-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(420px, 1.1fr);
+  gap: 24px;
+  align-items: end;
+  min-height: 0;
+}
+
+.intro-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px) 0 0 / 30px 30px,
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 7px);
+  mix-blend-mode: screen;
+}
+
+.intro-spotlight {
+  position: absolute;
+  left: 7%;
+  bottom: 0;
+  width: min(430px, 40vw);
+  height: 88%;
+  clip-path: polygon(39% 0, 61% 0, 100% 100%, 0 100%);
+  background: linear-gradient(rgba(255, 244, 207, 0.34), rgba(255, 227, 116, 0.07));
+  filter: blur(0.2px);
+}
+
+.intro-professor-card,
+.intro-silhouette,
+.intro-dialogue {
+  border: 5px solid #211109;
+  border-radius: 8px;
+  box-shadow: 0 9px 0 rgba(109, 43, 24, 0.76);
+}
+
+.intro-professor-card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  place-items: center;
+  min-height: min(560px, calc(100vh - 230px));
+  padding: 24px;
+  overflow: hidden;
+  color: #211109;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(255, 244, 207, 0.88), transparent 13rem),
+    linear-gradient(#ffe374, #b87346 62%, #211109);
+}
+
+.intro-professor-card img {
+  position: relative;
+  z-index: 1;
+  width: min(78%, 330px);
+  image-rendering: pixelated;
+  filter: drop-shadow(0 18px 0 rgba(33, 17, 9, 0.26));
+}
+
+.intro-professor-card > div:last-child {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  border: 4px solid #211109;
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 244, 207, 0.92);
+}
+
+.intro-professor-card h2 {
+  margin: 0;
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(1rem, 2.4vw, 1.45rem);
+  line-height: 1.4;
+}
+
+.promptdex-glow {
+  position: absolute;
+  top: 16%;
+  right: 16%;
+  display: grid;
+  place-items: center;
+  width: 112px;
+  aspect-ratio: 1;
+  border: 4px solid rgba(33, 17, 9, 0.42);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #fff4cf 0 18%, transparent 19%),
+    radial-gradient(circle, rgba(17, 167, 181, 0.95), transparent 68%);
+  box-shadow: 0 0 34px rgba(17, 167, 181, 0.75);
+}
+
+.promptdex-glow span {
+  display: block;
+  width: 54px;
+  height: 70px;
+  border: 4px solid #211109;
+  border-radius: 8px;
+  background:
+    linear-gradient(#e5ffff 0 32%, #211109 32% 38%, #11a7b5 38%),
+    #11a7b5;
+}
+
+.intro-silhouettes {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-self: center;
+}
+
+.intro-silhouette {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  place-items: center;
+  width: 100%;
+  min-height: 360px;
+  margin: 0;
+  padding: 18px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 22px 22px,
+    linear-gradient(#1a2533, #0f1118);
+}
+
+.intro-silhouette::before {
+  content: "?";
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 3px solid rgba(255, 244, 207, 0.5);
+  border-radius: 50%;
+  color: rgba(255, 244, 207, 0.82);
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.72rem;
+}
+
+.intro-silhouette.anthropic {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 128, 55, 0.36), transparent 10rem),
+    linear-gradient(#271719, #0f1118);
+}
+
+.intro-silhouette.openai {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(17, 167, 181, 0.34), transparent 10rem),
+    linear-gradient(#112333, #0f1118);
+}
+
+.intro-silhouette.glm {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(30, 159, 104, 0.34), transparent 10rem),
+    linear-gradient(#102820, #0f1118);
+}
+
+.intro-silhouette img {
+  width: min(88%, 210px);
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 46% 54% 44% 56% / 52% 44% 56% 48%;
+  clip-path: ellipse(42% 48% at 50% 50%);
+  filter: brightness(0.08) contrast(1.8) saturate(0) drop-shadow(0 0 18px rgba(255, 244, 207, 0.34));
+  opacity: 0.92;
+  transform: scale(1.18);
+}
+
+.intro-silhouette figcaption {
+  border: 3px solid rgba(255, 244, 207, 0.5);
+  border-radius: 999px;
+  padding: 8px 10px;
+  color: #fff4cf;
+  background: rgba(33, 17, 9, 0.54);
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.52rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.intro-dialogue {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 18px;
+  color: #211109;
+  background: #fff4cf;
+}
+
+.intro-dialogue strong,
+.intro-dialogue span {
+  display: block;
+}
+
+.intro-dialogue strong {
+  margin-bottom: 8px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.62rem;
+}
+
+.intro-dialogue span {
+  font-size: clamp(1rem, 1.8vw, 1.22rem);
+  font-weight: 900;
+  line-height: 1.55;
+}
+
+.intro-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.intro-progress span {
+  width: 48px;
+  height: 8px;
+  border: 2px solid rgba(255, 244, 207, 0.44);
+  border-radius: 999px;
+  background: rgba(33, 17, 9, 0.62);
+}
+
+.intro-progress .active {
+  border-color: #211109;
+  background: #ffe374;
+}
+
 .screen-header,
 .field-topbar {
   display: flex;
@@ -2111,6 +2359,8 @@ dd {
 @media (max-width: 980px) {
   .title-strip,
   .chapter-rail,
+  .intro-stage,
+  .intro-silhouettes,
   .story-grid,
   .starter-layout,
   .starter-hero,
@@ -2139,6 +2389,27 @@ dd {
     bottom: 12px;
   }
 
+  .intro-screen {
+    grid-template-rows: auto auto auto;
+  }
+
+  .intro-stage {
+    align-items: stretch;
+  }
+
+  .intro-professor-card {
+    min-height: 420px;
+  }
+
+  .intro-silhouette {
+    min-height: 180px;
+  }
+
+  .intro-silhouette img {
+    max-height: 150px;
+  }
+
+  .intro-screen,
   .story-screen,
   .starter-screen,
   .field-screen,
@@ -2325,6 +2596,71 @@ dd {
 
   .title-strip {
     display: none;
+  }
+
+  .intro-screen {
+    gap: 12px;
+  }
+
+  .intro-professor-card {
+    min-height: 380px;
+    padding: 18px;
+  }
+
+  .intro-professor-card img {
+    width: min(72%, 260px);
+  }
+
+  .promptdex-glow {
+    top: 11%;
+    right: 8%;
+    width: 82px;
+  }
+
+  .promptdex-glow span {
+    width: 40px;
+    height: 52px;
+  }
+
+  .intro-silhouettes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .intro-silhouette {
+    min-height: 132px;
+    padding: 10px 6px;
+  }
+
+  .intro-silhouette::before {
+    top: 8px;
+    left: 8px;
+    width: 28px;
+    height: 28px;
+    font-size: 0.52rem;
+  }
+
+  .intro-silhouette img {
+    width: 100%;
+    max-height: 82px;
+  }
+
+  .intro-silhouette figcaption {
+    padding: 6px 5px;
+    font-size: 0.42rem;
+  }
+
+  .intro-dialogue {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 14px;
+  }
+
+  .intro-dialogue span {
+    font-size: 0.95rem;
+  }
+
+  .intro-progress span {
+    width: 38px;
   }
 
   .battle-panel,

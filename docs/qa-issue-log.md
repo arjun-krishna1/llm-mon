@@ -60,6 +60,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: added a field Model Card action and selected-starter status screen with license, level, nature, stat bars, EXP, ability note, route lesson, and starting moves from the Chapter 1 starter spec. Browser-tested Claude Fable, GPT 5.5, and GLM desktop variants; fixed card-grid collapse, stat overflow, and note overflow found during visual QA. Mobile pass verifies stacked cards, readable move panels, back navigation, and no page-level horizontal overflow.
 
+- **[P2] Add Professor Karpathy intro sequence.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: inserted the Chapter 1 professor spotlight beat between title and storyboard, with PromptDex glow, three mystery starter signals, A-button dialogue progression, and storyboard handoff. Browser-tested desktop and mobile title-to-intro-to-storyboard-to-starter flow; fixed rectangular starter silhouettes and mobile figure-card squeeze found during visual QA. No page-level horizontal overflow or console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

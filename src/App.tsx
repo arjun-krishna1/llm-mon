@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
-type Screen = 'title' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge'
+type Screen = 'title' | 'intro' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge'
 type StarterId = 'claude' | 'gpt' | 'glm'
 type BattleCommand = 'prompt' | 'bag' | 'swap'
 type BagCategory = 'orbs' | 'medicine' | 'field' | 'gear'
@@ -141,6 +141,12 @@ const storyPanels: StoryPanel[] = [
     title: 'First Routes and PromptDex',
     detail: 'SoMa Node, Benchmark Pier, rival pressure, catching lessons, and the first locked Gym gate.',
   },
+]
+
+const introLines = [
+  'Welcome to the world of LLMMON.',
+  'These beings are not just programs. They are stories, tools, arguments, companions, and myths.',
+  'Three starter signals are waiting in the satchel: a myth guardian, an omni toolrunner, and a graph-minded tactician.',
 ]
 
 const dexEntries: DexEntry[] = [
@@ -571,6 +577,58 @@ function TitleScreen({ onStart }: { onStart: () => void }) {
         <span>Octavia 101</span>
         <span>SoMa Node</span>
         <span>Benchmark Pier</span>
+      </div>
+    </section>
+  )
+}
+
+function IntroScreen({ onNext }: { onNext: () => void }) {
+  const [lineIndex, setLineIndex] = useState(0)
+  const currentLine = introLines[lineIndex]
+  const isFinalLine = lineIndex === introLines.length - 1
+
+  function advanceIntro() {
+    if (isFinalLine) {
+      onNext()
+      return
+    }
+    setLineIndex((index) => index + 1)
+  }
+
+  return (
+    <section className="screen intro-screen">
+      <div className="intro-stage">
+        <div className="intro-spotlight" />
+        <div className="intro-professor-card">
+          <div className="promptdex-glow" aria-hidden="true">
+            <span />
+          </div>
+          <img src={asset('assets/llmmon/professor-karpathy.svg')} alt="" />
+          <div>
+            <p className="kicker">Professor Karpathy</p>
+            <h2>Welcome to LLMMON</h2>
+          </div>
+        </div>
+        <div className="intro-silhouettes" aria-label="Mystery starter silhouettes">
+          {starters.map((starter) => (
+            <figure className={`intro-silhouette ${starter.palette}`} key={starter.id}>
+              <img src={starter.image} alt="" />
+              <figcaption>{starter.types}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+      <div className="intro-dialogue">
+        <div>
+          <strong>PROF. KARPATHY</strong>
+          <span>{currentLine}</span>
+        </div>
+        <button className="icon-button" onClick={advanceIntro} aria-label={isFinalLine ? 'Continue to storyboard' : 'Advance professor dialogue'}>A</button>
+      </div>
+      <div className="intro-progress" aria-label="Intro dialogue progress">
+        {introLines.map((line, index) => (
+          <span className={index <= lineIndex ? 'active' : ''} key={line} />
+        ))}
       </div>
     </section>
   )
@@ -1104,7 +1162,8 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      {screen === 'title' && <TitleScreen onStart={() => setScreen('story')} />}
+      {screen === 'title' && <TitleScreen onStart={() => setScreen('intro')} />}
+      {screen === 'intro' && <IntroScreen onNext={() => setScreen('story')} />}
       {screen === 'story' && <StoryScreen onNext={() => setScreen('starter')} />}
       {screen === 'starter' && (
         <StarterScreen
