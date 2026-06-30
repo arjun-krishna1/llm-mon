@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 
-type Screen = 'title' | 'intro' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge' | 'services'
+type Screen = 'title' | 'intro' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge' | 'services' | 'pier'
 type StarterId = 'claude' | 'gpt' | 'glm'
 type BattleCommand = 'prompt' | 'bag' | 'swap'
 type BagCategory = 'orbs' | 'medicine' | 'field' | 'gear'
+type PierPhase = 'challenge' | 'battle' | 'rewards'
 
 interface Starter {
   id: StarterId
@@ -100,6 +101,12 @@ interface ServiceStop {
   id: string
   label: string
   status: string
+  detail: string
+}
+
+interface RewardUnlock {
+  name: string
+  source: string
   detail: string
 }
 
@@ -603,6 +610,30 @@ const serviceStops: ServiceStop[] = [
   },
 ]
 
+const rivalStarterByPlayer: Record<StarterId, StarterId> = {
+  claude: 'gpt',
+  gpt: 'glm',
+  glm: 'claude',
+}
+
+const pierRewards: RewardUnlock[] = [
+  {
+    name: 'PromptDex',
+    source: 'Karpathy Lab',
+    detail: 'Records seen and caught LLMMON after Iris logs the signal.',
+  },
+  {
+    name: 'Prompt Orbs x5',
+    source: 'Karpathy Lab',
+    detail: 'Catching unlock. Start with five calibrated orbs.',
+  },
+  {
+    name: 'Fast Inference Shoes',
+    source: 'Mom',
+    detail: 'Hold B outdoors to cross routes faster.',
+  },
+]
+
 const chapterSteps = [
   'Moving van arrival',
   'Karpathy lab search',
@@ -706,16 +737,36 @@ function TitleScreen({ onStart }: { onStart: () => void }) {
 
 function IntroScreen({ onNext }: { onNext: () => void }) {
   const [lineIndex, setLineIndex] = useState(0)
+  const advanceLockRef = useRef(0)
   const currentLine = introLines[lineIndex]
   const isFinalLine = lineIndex === introLines.length - 1
 
-  function advanceIntro() {
+  const advanceIntro = useCallback(() => {
     if (isFinalLine) {
       onNext()
       return
     }
     setLineIndex((index) => index + 1)
-  }
+  }, [isFinalLine, onNext])
+
+  const triggerAdvance = useCallback(() => {
+    const now = window.performance.now()
+    if (now - advanceLockRef.current < 180) return
+    advanceLockRef.current = now
+    advanceIntro()
+  }, [advanceIntro])
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Enter' || event.key.toLowerCase() === 'a') {
+        event.preventDefault()
+        triggerAdvance()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [triggerAdvance])
 
   return (
     <section className="screen intro-screen">
@@ -740,12 +791,12 @@ function IntroScreen({ onNext }: { onNext: () => void }) {
           ))}
         </div>
       </div>
-      <div className="intro-dialogue">
+      <div className="intro-dialogue" onMouseDownCapture={triggerAdvance} onPointerDownCapture={triggerAdvance}>
         <div>
           <strong>PROF. KARPATHY</strong>
           <span>{currentLine}</span>
         </div>
-        <button className="icon-button" onClick={advanceIntro} aria-label={isFinalLine ? 'Continue to storyboard' : 'Advance professor dialogue'}>A</button>
+        <button className="icon-button" type="button" onClick={triggerAdvance} onPointerUp={triggerAdvance} aria-label={isFinalLine ? 'Continue to storyboard' : 'Advance professor dialogue'}>A</button>
       </div>
       <div className="intro-progress" aria-label="Intro dialogue progress">
         {introLines.map((line, index) => (
@@ -837,6 +888,7 @@ function FieldScreen({
   onModel,
   onBadge,
   onServices,
+  onPier,
 }: {
   starter: Starter
   onBattle: () => void
@@ -846,6 +898,7 @@ function FieldScreen({
   onModel: () => void
   onBadge: () => void
   onServices: () => void
+  onPier: () => void
 }) {
   return (
     <section className="screen field-screen">
@@ -859,6 +912,7 @@ function FieldScreen({
           <button onClick={onBag}>Bag</button>
           <button onClick={onQuest}>QuestNav</button>
           <button onClick={onServices}>SoMa Services</button>
+          <button onClick={onPier}>Benchmark Pier</button>
           <button onClick={onModel}>Model Card</button>
           <button onClick={onBadge}>Badge Case</button>
           <button onClick={onBattle}>Battle</button>
@@ -885,6 +939,128 @@ function FieldScreen({
       <div className="dialogue-box">
         <strong>Professor Karpathy</strong>
         <span>Quick, choose a move from the starter card. The HalluciHound is hallucinating stack traces again.</span>
+      </div>
+    </section>
+  )
+}
+
+function PierScreen({ starter, onBack }: { starter: Starter; onBack: () => void }) {
+  const [phase, setPhase] = useState<PierPhase>('challenge')
+  const rivalStarter = starters.find((option) => option.id === rivalStarterByPlayer[starter.id]) ?? starters[1]
+  const playerProfile = modelProfiles[starter.id]
+  const rivalProfile = modelProfiles[rivalStarter.id]
+
+  const phaseCopy = {
+    challenge: {
+      eyebrow: 'Iris awaits',
+      title: 'Luck or Signal?',
+      line: 'Karpathy said you bonded with a starter. Let us see if it was luck or signal.',
+      action: 'Start Rival Test',
+    },
+    battle: {
+      eyebrow: 'Rival Battle 1',
+      title: `${starter.name} vs ${rivalStarter.name}`,
+      line: `${rivalStarter.name} mirrors your starter choice with a clean counter-read. Pick a prompt lane and keep tempo.`,
+      action: 'Log Clean Win',
+    },
+    rewards: {
+      eyebrow: 'Battle logged',
+      title: 'PromptDex Unlock',
+      line: 'Okay. That was cleaner than expected. Karpathy will want this logged.',
+      action: 'Review Rewards',
+    },
+  }[phase]
+
+  function advancePhase() {
+    if (phase === 'challenge') {
+      setPhase('battle')
+      return
+    }
+
+    if (phase === 'battle') {
+      setPhase('rewards')
+    }
+  }
+
+  return (
+    <section className="screen pier-screen">
+      <header className="screen-header">
+        <div>
+          <p className="kicker">Benchmark Pier</p>
+          <h2>Iris Rival Test</h2>
+        </div>
+        <button className="icon-button" onClick={onBack} aria-label="Return to field">B</button>
+      </header>
+      <div className="pier-shell">
+        <section className="pier-stage">
+          <img src={asset('assets/llmmon/mythos/generated/storyboard_3_first_quests_and_early_gameplay.png')} alt="" />
+          <div className="pier-water" aria-hidden="true" />
+          <div className="pier-machines" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="iris-trainer">
+            <span>Iris</span>
+          </div>
+          <div className={`pier-mon player ${starter.palette}`}>
+            <img src={starter.image} alt="" />
+          </div>
+          <div className={`pier-mon rival ${rivalStarter.palette}`}>
+            <img src={rivalStarter.image} alt="" />
+          </div>
+          <article className="iris-dialogue">
+            <p className="kicker">{phaseCopy.eyebrow}</p>
+            <h3>{phaseCopy.title}</h3>
+            <p>{phaseCopy.line}</p>
+            {phase !== 'rewards' && <button onClick={advancePhase}>{phaseCopy.action}</button>}
+          </article>
+        </section>
+        <aside className="rival-card">
+          <p className="kicker">Rival readout</p>
+          <h3>{rivalStarter.name}</h3>
+          <img src={rivalStarter.image} alt="" />
+          <dl>
+            <div><dt>Level</dt><dd>5</dd></div>
+            <div><dt>Type</dt><dd>{rivalStarter.types}</dd></div>
+            <div><dt>Ability</dt><dd>{rivalStarter.ability}</dd></div>
+            <div><dt>Counter</dt><dd>{starter.name}</dd></div>
+          </dl>
+        </aside>
+        <section className="pier-command-card">
+          <div>
+            <p className="kicker">Battle plan</p>
+            <h3>{playerProfile.nextLesson}</h3>
+          </div>
+          <div className="pier-match-bars">
+            <span style={{ '--value': `${playerProfile.xpProgress + 44}%` } as React.CSSProperties}>{starter.name}</span>
+            <span style={{ '--value': `${rivalProfile.xpProgress + 38}%` } as React.CSSProperties}>{rivalStarter.name}</span>
+          </div>
+          <div className="pier-command-grid">
+            {playerProfile.moves.map((move) => (
+              <button key={move.name}>
+                <strong>{move.name}</strong>
+                <small>{move.type}</small>
+              </button>
+            ))}
+            <button className="support-command">Cache Potion</button>
+          </div>
+        </section>
+        <section className="pier-rewards">
+          <div>
+            <p className="kicker">After the battle</p>
+            <h3>Core Tools Unlock</h3>
+          </div>
+          <div className="reward-list">
+            {pierRewards.map((reward) => (
+              <article className={phase === 'rewards' ? 'reward-card unlocked' : 'reward-card'} key={reward.name}>
+                <strong>{reward.name}</strong>
+                <span>{reward.detail}</span>
+                <small>{reward.source}</small>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
     </section>
   )
@@ -1407,12 +1583,13 @@ export default function App() {
           onConfirm={() => setScreen('field')}
         />
       )}
-      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onQuest={() => setScreen('quest')} onServices={() => setScreen('services')} onModel={() => setScreen('model')} onBadge={() => setScreen('badge')} />}
+      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onQuest={() => setScreen('quest')} onServices={() => setScreen('services')} onPier={() => setScreen('pier')} onModel={() => setScreen('model')} onBadge={() => setScreen('badge')} />}
       {screen === 'battle' && <BattleScreen starter={selectedStarter} onField={() => setScreen('field')} />}
       {screen === 'dex' && <DexScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'bag' && <BagScreen onBack={() => setScreen('field')} />}
       {screen === 'quest' && <QuestScreen onBack={() => setScreen('field')} />}
       {screen === 'services' && <ServicesScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
+      {screen === 'pier' && <PierScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'model' && <ModelCardScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'badge' && <BadgeScreen onBack={() => setScreen('field')} />}
     </main>

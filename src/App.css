@@ -486,6 +486,7 @@ button:active {
 .bag-screen,
 .quest-screen,
 .services-screen,
+.pier-screen,
 .model-screen,
 .badge-screen,
 .dex-screen {
@@ -701,6 +702,359 @@ dd {
 .field-actions button {
   min-width: 98px;
   padding-inline: 12px;
+}
+
+.pier-screen {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 28px 28px,
+    radial-gradient(circle at 76% 16%, rgba(255, 227, 116, 0.28), transparent 21rem),
+    linear-gradient(#214b68, #2a7886 45%, #d6a85f 45%, #59413a);
+}
+
+.pier-shell {
+  display: grid;
+  grid-template-columns: minmax(520px, 1.12fr) minmax(300px, 0.52fr);
+  grid-template-rows: minmax(210px, 0.58fr) minmax(185px, auto) minmax(250px, auto);
+  gap: 18px;
+  height: calc(100vh - 146px);
+}
+
+.pier-stage,
+.rival-card,
+.pier-command-card,
+.pier-rewards {
+  border: 5px solid #211109;
+  border-radius: 8px;
+  background: #fff4cf;
+  box-shadow: 0 9px 0 #6d2b18;
+}
+
+.pier-stage {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1 / -1;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, transparent 48%, rgba(255, 244, 207, 0.68) 48% 52%, transparent 52%),
+    linear-gradient(#276f90 0 35%, #b57a42 35% 66%, #2a7785 66%);
+}
+
+.pier-stage > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.18;
+  mix-blend-mode: soft-light;
+}
+
+.pier-water {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 244, 207, 0.18) 0 8px, transparent 8px 24px),
+    linear-gradient(90deg, #1e74a6 0 25%, transparent 25% 75%, #1e74a6 75%);
+}
+
+.pier-water::after {
+  content: "";
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  top: 0;
+  bottom: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(33, 17, 9, 0.18) 0 8px, transparent 8px 70px),
+    linear-gradient(#a6713e, #c99954 46%, #9e6739);
+  box-shadow: inset 0 0 0 8px rgba(255, 244, 207, 0.15);
+}
+
+.pier-machines {
+  position: absolute;
+  right: 7%;
+  top: 10%;
+  display: flex;
+  gap: 10px;
+}
+
+.pier-machines span {
+  width: 58px;
+  height: 74px;
+  border: 4px solid #211109;
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 50% 28%, #ffe374 0 8%, transparent 9%),
+    linear-gradient(#6e7580 0 32%, #2b4e65 32%);
+  box-shadow: 0 5px 0 rgba(33, 17, 9, 0.36);
+}
+
+.iris-trainer {
+  position: absolute;
+  right: 17%;
+  top: 38%;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 92px;
+  border: 4px solid #211109;
+  border-radius: 999px 999px 8px 8px;
+  color: #fff4cf;
+  background:
+    radial-gradient(circle at 50% 20%, #fff4cf 0 16%, transparent 17%),
+    linear-gradient(#1ba7b5 0 48%, #822d5a 48%);
+  box-shadow: 0 8px 0 rgba(33, 17, 9, 0.28);
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.5rem;
+  text-shadow: 1px 1px 0 #211109;
+}
+
+.pier-mon {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: min(220px, 28%);
+  aspect-ratio: 1;
+  border: 5px solid #211109;
+  border-radius: 50%;
+  background: rgba(255, 244, 207, 0.74);
+  box-shadow: 0 12px 0 rgba(33, 17, 9, 0.24);
+}
+
+.pier-mon img {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 0 rgba(33, 17, 9, 0.18));
+}
+
+.pier-mon.player {
+  left: 11%;
+  bottom: 16%;
+}
+
+.pier-mon.rival {
+  right: 12%;
+  bottom: 27%;
+}
+
+.pier-mon.anthropic {
+  background: radial-gradient(circle at 50% 34%, #ffe374, transparent 52%), #d97032;
+}
+
+.pier-mon.openai {
+  background: radial-gradient(circle at 50% 34%, #e5ffff, transparent 52%), #1ba7b5;
+}
+
+.pier-mon.glm {
+  background: radial-gradient(circle at 50% 34%, #e6ffd7, transparent 52%), #1e9f68;
+}
+
+.iris-dialogue {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 5%;
+  border: 4px solid #211109;
+  border-radius: 8px;
+  padding: 18px;
+  background: rgba(255, 244, 207, 0.95);
+  box-shadow: 0 7px 0 rgba(33, 17, 9, 0.38);
+}
+
+.pier-stage h3,
+.rival-card h3,
+.pier-command-card h3,
+.pier-rewards h3,
+.pier-command-grid strong,
+.reward-card strong {
+  font-family: "Press Start 2P", monospace;
+}
+
+.iris-dialogue h3,
+.rival-card h3,
+.pier-command-card h3,
+.pier-rewards h3 {
+  margin-bottom: 12px;
+  font-size: clamp(1rem, 2.1vw, 1.45rem);
+  line-height: 1.4;
+}
+
+.iris-dialogue p:not(.kicker) {
+  max-width: 760px;
+  line-height: 1.58;
+}
+
+.iris-dialogue button {
+  margin-top: 4px;
+}
+
+.rival-card {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 8px 14px;
+  align-content: stretch;
+  align-items: center;
+  padding: 13px 16px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(33, 17, 9, 0.08) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(#fff4cf, #eebf69);
+}
+
+.rival-card img {
+  grid-column: 1;
+  justify-self: center;
+  width: 112px;
+  max-height: 112px;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 0 rgba(33, 17, 9, 0.2));
+}
+
+.rival-card .kicker,
+.rival-card h3 {
+  grid-column: 1 / -1;
+}
+
+.rival-card dl {
+  grid-column: 2;
+  margin: 0;
+}
+
+.rival-card dl div {
+  padding: 5px 0;
+}
+
+.rival-card dt {
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.5rem;
+}
+
+.pier-command-card,
+.pier-rewards {
+  padding: 15px;
+}
+
+.pier-command-card {
+  display: grid;
+  grid-column: 2;
+  grid-row: 2;
+  gap: 12px;
+  background:
+    radial-gradient(circle at 84% 16%, rgba(255, 227, 116, 0.42), transparent 12rem),
+    #fff4cf;
+}
+
+.pier-match-bars {
+  display: grid;
+  gap: 8px;
+}
+
+.pier-match-bars span {
+  display: block;
+  overflow: hidden;
+  border: 3px solid #211109;
+  border-radius: 999px;
+  padding: 8px 10px;
+  color: #fff4cf;
+  background:
+    linear-gradient(90deg, #1e9f68 var(--value), #362016 var(--value)),
+    #362016;
+  font-weight: 900;
+}
+
+.pier-command-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pier-command-grid button {
+  display: grid;
+  gap: 5px;
+  min-height: 50px;
+  align-content: center;
+  text-align: left;
+}
+
+.pier-command-card h3 {
+  font-size: clamp(0.82rem, 1.45vw, 1.02rem);
+}
+
+.pier-rewards h3 {
+  margin-bottom: 4px;
+  font-size: clamp(0.82rem, 1.35vw, 0.98rem);
+}
+
+.pier-command-grid strong {
+  font-size: 0.52rem;
+  line-height: 1.35;
+}
+
+.pier-command-grid small {
+  font-weight: 900;
+}
+
+.pier-command-grid .support-command {
+  color: #fff4cf;
+  background: linear-gradient(#2b4e65, #18334d);
+}
+
+.pier-rewards {
+  grid-column: 2;
+  grid-row: 3;
+  display: grid;
+  gap: 7px;
+  color: #fff4cf;
+  background: linear-gradient(135deg, #211109, #2b4e65);
+}
+
+.pier-rewards .kicker {
+  color: #ffe374;
+}
+
+.reward-list {
+  display: grid;
+  gap: 6px;
+}
+
+.reward-card {
+  display: grid;
+  grid-template-columns: minmax(104px, 0.34fr) minmax(0, 1fr);
+  grid-template-areas:
+    "name detail"
+    "source detail";
+  gap: 2px 8px;
+  border: 3px solid rgba(255, 244, 207, 0.28);
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: rgba(255, 244, 207, 0.06);
+  filter: saturate(0.55);
+}
+
+.reward-card.unlocked {
+  color: #211109;
+  background: linear-gradient(#fff8cf, #ffe374);
+  filter: none;
+}
+
+.reward-card strong {
+  grid-area: name;
+  font-size: 0.48rem;
+  line-height: 1.35;
+}
+
+.reward-card span {
+  grid-area: detail;
+  font-size: 0.88rem;
+  line-height: 1.22;
+}
+
+.reward-card small {
+  grid-area: source;
+  font-weight: 900;
 }
 
 .services-screen {
@@ -2843,6 +3197,7 @@ dd {
   .bag-shell,
   .quest-shell,
   .services-shell,
+  .pier-shell,
   .model-shell,
   .badge-layout,
   .badge-grid,
@@ -2853,6 +3208,7 @@ dd {
   .bag-shell,
   .quest-shell,
   .services-shell,
+  .pier-shell,
   .model-shell,
   .dex-shell {
     grid-template-rows: auto auto auto auto;
@@ -2892,6 +3248,7 @@ dd {
   .bag-screen,
   .quest-screen,
   .services-screen,
+  .pier-screen,
   .model-screen,
   .badge-screen,
   .dex-screen {
@@ -2964,6 +3321,32 @@ dd {
   .sync-stack,
   .transit-grid {
     grid-template-columns: 1fr;
+  }
+
+  .pier-stage {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 620px;
+  }
+
+  .rival-card,
+  .pier-command-card,
+  .pier-rewards {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .pier-rewards {
+    grid-column: auto;
+  }
+
+  .pier-command-card,
+  .pier-rewards {
+    min-height: 300px;
+  }
+
+  .rival-card img {
+    max-height: 220px;
   }
 
   .model-pass {
@@ -3232,6 +3615,65 @@ dd {
 
   .demo-booth blockquote {
     font-size: 1rem;
+  }
+
+  .pier-stage {
+    min-height: 680px;
+  }
+
+  .pier-machines {
+    right: 4%;
+    top: 8%;
+    gap: 6px;
+  }
+
+  .pier-machines span {
+    width: 42px;
+    height: 58px;
+  }
+
+  .iris-trainer {
+    right: 10%;
+    top: 33%;
+    width: 62px;
+    height: 76px;
+  }
+
+  .pier-mon {
+    width: 124px;
+  }
+
+  .pier-mon.player {
+    left: 8%;
+    bottom: 34%;
+  }
+
+  .pier-mon.rival {
+    right: 7%;
+    bottom: 45%;
+  }
+
+  .iris-dialogue {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    padding: 14px;
+  }
+
+  .pier-command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reward-list {
+    grid-template-columns: 1fr;
+  }
+
+  .reward-card {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "name"
+      "detail"
+      "source";
   }
 
   .model-screen .screen-header h2 {

@@ -72,6 +72,14 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: added a SoMa Services field action and full service screen with a town service map, Model Center healing/sync panel, Token Mart shelf, Demo Booth Cache Potion gift, locked Transit Kiosk, and Benchmark Pier prep checklist. Browser-tested title-to-field-to-services flow, all four service tabs, return-to-field behavior, desktop fit, mobile two-column service tabs, mobile shop/dialogue wrapping, and no page-level horizontal overflow.
 
+- **[P2] Add Benchmark Pier Iris rival test UI.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: added a Benchmark Pier field action and Iris rival test screen with pier stage, starter-dependent rival matchup, battle phase, core tool rewards, and field return. Browser-tested desktop Claude Fable, GPT 5.5, and GLM starter mappings; mobile Claude flow; reward unlock state; return-to-field RPGJS canvas; no console errors; and no page-level horizontal overflow.
+
+- **[P1] Fix production-preview intro A-button advancement.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: production-preview browser smoke found normal activation could stall on Professor Karpathy's intro A-button. Added guarded pointer, mouse, click, and keyboard activation for the intro dialogue, then verified the built bundle advances through intro and storyboard into starter selection.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
