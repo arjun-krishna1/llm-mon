@@ -124,6 +124,11 @@ function RpgRuntime() {
   return (
     <div className="rpg-frame" aria-label="RPGJS field runtime">
       <div id="rpg" />
+      <div className="field-route-overlay" aria-hidden="true">
+        <span className="route-pin lab">Karpathy Lab</span>
+        <span className="route-pin road">Octavia 101</span>
+        <span className="route-pin rescue">Rescue Beat</span>
+      </div>
       <div className="rpg-status">{status}</div>
     </div>
   )
@@ -135,8 +140,8 @@ function TitleScreen({ onStart }: { onStart: () => void }) {
       <img className="title-art" src={asset('assets/llmmon/mythos/generated/title_screen_claude_orange_final.png')} alt="" />
       <div className="scanlines" />
       <div className="title-hud">
-        <p className="kicker">Chapter 1: The Foundation Badge</p>
-        <h1>LLMMON Mythos</h1>
+        <p className="kicker">LLMMON Mythos</p>
+        <h1>The Foundation Badge</h1>
         <p>Choose a starter, rescue Professor Karpathy, and take the first route toward Palo Alto.</p>
         <button className="primary-action" onClick={onStart}>Press Start</button>
       </div>
@@ -278,7 +283,18 @@ function BattleScreen({ starter, onField }: { starter: Starter; onField: () => v
           </div>
           <span className="hp-bar danger"><i /></span>
         </div>
-        <div className="enemy-sprite" />
+        <div className="enemy-sprite halluci-hound" aria-label="HalluciHound battle sprite">
+          <span className="hound-ear left" />
+          <span className="hound-ear right" />
+          <span className="hound-body" />
+          <span className="hound-mask" />
+          <span className="hound-eye left" />
+          <span className="hound-eye right" />
+          <span className="hound-tail" />
+          <span className="hound-glitch g1">?</span>
+          <span className="hound-glitch g2">!</span>
+          <span className="hound-glitch g3">#</span>
+        </div>
         <img className="partner-sprite" src={starter.image} alt="" />
         <div className="partner-card">
           <div>
