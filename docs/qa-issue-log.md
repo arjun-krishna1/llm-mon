@@ -48,6 +48,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: replaced the single-starter PromptDex card with a selectable Chapter 1 catalogue, sprite scanner, seen meter, route/status facts, and footer sync bar. Browser-tested field-to-PromptDex-to-field navigation, HalluciHound selection, desktop full-entry visibility, mobile horizontal entry rail, and no page-level horizontal overflow.
 
+- **[P2] Add full Trainer Bag route kit UI.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: added a field Bag action and full-screen Trainer Bag with Orbs, Medicine, Field, and Gear pockets, Chapter 1 item data, item-detail card, route prep note, and mobile tab rail. Browser-tested field-to-Bag-to-field navigation, category switching, item selection, desktop frame fit, mobile header wrapping, and no page-level horizontal overflow.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

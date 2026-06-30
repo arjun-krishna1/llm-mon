@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
-type Screen = 'title' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'badge'
+type Screen = 'title' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'badge'
 type StarterId = 'claude' | 'gpt' | 'glm'
 type BattleCommand = 'prompt' | 'bag' | 'swap'
+type BagCategory = 'orbs' | 'medicine' | 'field' | 'gear'
 
 interface Starter {
   id: StarterId
@@ -34,6 +35,17 @@ interface DexEntry {
   role: string
   image: string
   palette: string
+}
+
+interface BagItem {
+  id: string
+  name: string
+  category: BagCategory
+  quantity: string
+  effect: string
+  detail: string
+  route: string
+  tone: string
 }
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`
@@ -188,6 +200,106 @@ const dexEntries: DexEntry[] = [
     role: 'Intro wild threat. Spreads Hallucination and broken dialogue under pressure.',
     image: asset('assets/llmmon/mythos/generated/hallucihound_battle_sprite.png'),
     palette: 'drift',
+  },
+]
+
+const bagCategories: { id: BagCategory; label: string; summary: string }[] = [
+  { id: 'orbs', label: 'Orbs', summary: 'Catching and alignment tools' },
+  { id: 'medicine', label: 'Medicine', summary: 'HP and status recovery' },
+  { id: 'field', label: 'Field', summary: 'Route and exploration unlocks' },
+  { id: 'gear', label: 'Gear', summary: 'Held items, TMs, and key rewards' },
+]
+
+const bagItems: BagItem[] = [
+  {
+    id: 'prompt-orb',
+    name: 'Prompt Orb',
+    category: 'orbs',
+    quantity: 'x5',
+    effect: 'Catch wild LLMMON',
+    detail: 'A calibrated capture prompt that rewards lower HP, status pressure, and a clear alignment ask.',
+    route: 'Karpathy Lab starter kit',
+    tone: 'standard',
+  },
+  {
+    id: 'great-prompt-orb',
+    name: 'Great Prompt Orb',
+    category: 'orbs',
+    quantity: 'x1',
+    effect: 'Improved catch chance',
+    detail: 'A stronger orb for Redwood Cachewoods and late-route encounters that need more context.',
+    route: 'ModelWorks researcher reward',
+    tone: 'rare',
+  },
+  {
+    id: 'cache-potion',
+    name: 'Cache Potion',
+    category: 'medicine',
+    quantity: 'x3',
+    effect: 'Restore HP',
+    detail: 'A warm restore packet. The Token Mart promoter recommends keeping several before Benchmark Pier.',
+    route: 'SoMa Node Token Mart',
+    tone: 'standard',
+  },
+  {
+    id: 'debug-patch',
+    name: 'Debug Patch',
+    category: 'medicine',
+    quantity: 'x1',
+    effect: 'Cure poison or glitch status',
+    detail: 'Clears corrupted cache states before they snowball through longer trainer routes.',
+    route: 'Mission Context Lane pickup',
+    tone: 'support',
+  },
+  {
+    id: 'latency-heal',
+    name: 'Latency Heal',
+    category: 'medicine',
+    quantity: 'x1',
+    effect: 'Remove speed slowdown',
+    detail: 'Counters Token Tomb-style latency drops and keeps the active LLMMON from falling behind.',
+    route: 'Prompt School supply shelf',
+    tone: 'support',
+  },
+  {
+    id: 'spam-filter',
+    name: 'Spam Filter',
+    category: 'field',
+    quantity: 'x2',
+    effect: 'Reduce wild encounters',
+    detail: 'Quietly dampens noisy route chatter while still preserving rare encounter signals.',
+    route: 'Token Mart shelf',
+    tone: 'field',
+  },
+  {
+    id: 'hm-prune',
+    name: 'HM01: Prune',
+    category: 'field',
+    quantity: 'Key',
+    effect: 'Clear bramble-code obstacles',
+    detail: 'Cuts tangled syntax shrubs and dead routes after the Foundation Badge validates field use.',
+    route: 'Pruner House, Palo Alto',
+    tone: 'key',
+  },
+  {
+    id: 'low-latency-band',
+    name: 'Low-Latency Band',
+    category: 'gear',
+    quantity: 'Held',
+    effect: 'Sometimes moves first',
+    detail: 'A prompt-school charm for clutch turns, best on slower Foundation Gym matchups.',
+    route: 'Prompt School teacher',
+    tone: 'gear',
+  },
+  {
+    id: 'tm-token-tomb',
+    name: 'TM39: Token Tomb',
+    category: 'gear',
+    quantity: 'TM',
+    effect: 'Damage and speed drop',
+    detail: 'Dr. Petra awards this benchmark move after the Foundation Badge battle.',
+    route: 'Foundation Gym reward',
+    tone: 'rare',
   },
 ]
 
@@ -356,11 +468,13 @@ function FieldScreen({
   starter,
   onBattle,
   onDex,
+  onBag,
   onBadge,
 }: {
   starter: Starter
   onBattle: () => void
   onDex: () => void
+  onBag: () => void
   onBadge: () => void
 }) {
   return (
@@ -372,6 +486,7 @@ function FieldScreen({
         </div>
         <div className="field-actions">
           <button onClick={onDex}>PromptDex</button>
+          <button onClick={onBag}>Bag</button>
           <button onClick={onBadge}>Badge Case</button>
           <button onClick={onBattle}>Battle</button>
         </div>
@@ -397,6 +512,73 @@ function FieldScreen({
       <div className="dialogue-box">
         <strong>Professor Karpathy</strong>
         <span>Quick, choose a move from the starter card. The HalluciHound is hallucinating stack traces again.</span>
+      </div>
+    </section>
+  )
+}
+
+function BagScreen({ onBack }: { onBack: () => void }) {
+  const [category, setCategory] = useState<BagCategory>('orbs')
+  const [selectedItemId, setSelectedItemId] = useState('prompt-orb')
+  const filteredItems = bagItems.filter((item) => item.category === category)
+  const selectedItem = bagItems.find((item) => item.id === selectedItemId && item.category === category) ?? filteredItems[0]
+  const activeCategory = bagCategories.find((option) => option.id === category) ?? bagCategories[0]
+
+  function chooseCategory(nextCategory: BagCategory) {
+    setCategory(nextCategory)
+    setSelectedItemId(bagItems.find((item) => item.category === nextCategory)?.id ?? selectedItemId)
+  }
+
+  return (
+    <section className="screen bag-screen">
+      <header className="screen-header">
+        <div>
+          <p className="kicker">Trainer Bag</p>
+          <h2>Route Kit</h2>
+        </div>
+        <button className="icon-button" onClick={onBack} aria-label="Return to field">B</button>
+      </header>
+      <div className="bag-shell">
+        <nav className="bag-tabs" aria-label="Bag pockets">
+          {bagCategories.map((option) => (
+            <button className={option.id === category ? 'bag-tab active' : 'bag-tab'} key={option.id} onClick={() => chooseCategory(option.id)}>
+              <span>{option.label}</span>
+              <small>{option.summary}</small>
+            </button>
+          ))}
+        </nav>
+        <div className="bag-pocket">
+          <p className="kicker">{activeCategory.label} pocket</p>
+          <div className="bag-item-list" aria-label={`${activeCategory.label} items`}>
+            {filteredItems.map((item) => (
+              <button className={item.id === selectedItem.id ? 'bag-row active' : 'bag-row'} key={item.id} onClick={() => setSelectedItemId(item.id)}>
+                <span className={`bag-token ${item.tone}`} />
+                <strong>{item.name}</strong>
+                <small>{item.quantity}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+        <article className={`bag-detail ${selectedItem.tone}`}>
+          <div className="bag-item-orb">
+            <span />
+          </div>
+          <p className="kicker">{selectedItem.quantity}</p>
+          <h3>{selectedItem.name}</h3>
+          <p>{selectedItem.detail}</p>
+          <table>
+            <tbody>
+              <tr><th>Use</th><td>{selectedItem.effect}</td></tr>
+              <tr><th>Source</th><td>{selectedItem.route}</td></tr>
+              <tr><th>Pocket</th><td>{activeCategory.label}</td></tr>
+            </tbody>
+          </table>
+        </article>
+        <aside className="bag-route-note">
+          <p className="kicker">Next prep</p>
+          <strong>Octavia 101 to SoMa Node</strong>
+          <span>Carry Prompt Orbs and Cache Potions before the rival path opens at Benchmark Pier.</span>
+        </aside>
       </div>
     </section>
   )
@@ -600,9 +782,10 @@ export default function App() {
           onConfirm={() => setScreen('field')}
         />
       )}
-      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBadge={() => setScreen('badge')} />}
+      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onBadge={() => setScreen('badge')} />}
       {screen === 'battle' && <BattleScreen starter={selectedStarter} onField={() => setScreen('field')} />}
       {screen === 'dex' && <DexScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
+      {screen === 'bag' && <BagScreen onBack={() => setScreen('field')} />}
       {screen === 'badge' && <BadgeScreen onBack={() => setScreen('field')} />}
     </main>
   )
