@@ -44,6 +44,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: added a Badge Case field action and Foundation Badge screen with earned/locked slots, unlock details, reduced-motion shine fallback, and browser-tested field-to-badge-to-field navigation on desktop and mobile. Desktop fits the game frame with no horizontal or vertical overflow; mobile scrolls vertically with no horizontal overflow.
 
+- **[P2] Upgrade PromptDex into Chapter 1 model-card catalogue.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: replaced the single-starter PromptDex card with a selectable Chapter 1 catalogue, sprite scanner, seen meter, route/status facts, and footer sync bar. Browser-tested field-to-PromptDex-to-field navigation, HalluciHound selection, desktop full-entry visibility, mobile horizontal entry rail, and no page-level horizontal overflow.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

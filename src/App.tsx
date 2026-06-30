@@ -23,6 +23,19 @@ interface StoryPanel {
   detail: string
 }
 
+interface DexEntry {
+  id: string
+  number: string
+  name: string
+  types: string
+  ability: string
+  route: string
+  status: string
+  role: string
+  image: string
+  palette: string
+}
+
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`
 
 const starters: Starter[] = [
@@ -76,6 +89,105 @@ const storyPanels: StoryPanel[] = [
     eyebrow: 'Board C',
     title: 'First Routes and PromptDex',
     detail: 'SoMa Node, Benchmark Pier, rival pressure, catching lessons, and the first locked Gym gate.',
+  },
+]
+
+const dexEntries: DexEntry[] = [
+  {
+    id: 'claude',
+    number: '001',
+    name: 'Claude Fable',
+    types: 'Myth / Guard',
+    ability: 'Constitutional Guard',
+    route: 'Karpathy satchel',
+    status: 'Registered',
+    role: 'Starter partner. Reduces hallucination pressure and steadies early fights with Guardrail.',
+    image: asset('assets/llmmon/mythos/generated/starter_anthropic_claude_fable.png'),
+    palette: 'anthropic',
+  },
+  {
+    id: 'gpt',
+    number: '002',
+    name: 'GPT 5.5',
+    types: 'Omni / Tool',
+    ability: 'Toolformer',
+    route: 'Karpathy satchel',
+    status: 'Scouted',
+    role: 'Starter partner. Turns support prompts into tempo and teaches the tool-use battle lane.',
+    image: asset('assets/llmmon/mythos/generated/starter_openai_gpt_5_5.png'),
+    palette: 'openai',
+  },
+  {
+    id: 'glm',
+    number: '003',
+    name: 'GLM',
+    types: 'Graph / Logic',
+    ability: 'Graph Mind',
+    route: 'Karpathy satchel',
+    status: 'Scouted',
+    role: 'Starter partner. Reads repeated moves and answers with clean special pressure.',
+    image: asset('assets/llmmon/mythos/generated/starter_glm.png'),
+    palette: 'glm',
+  },
+  {
+    id: 'ragcoon',
+    number: '012',
+    name: 'RAGcoon',
+    types: 'Retrieve / Normal',
+    ability: 'Context Fetch',
+    route: 'Octavia 101',
+    status: 'Habitat found',
+    role: 'Common early-route utility LLMMON that digs up helpful items and route clues.',
+    image: asset('assets/llmmon/sprites-ai/command-a-plus.png'),
+    palette: 'retrieve',
+  },
+  {
+    id: 'gemma',
+    number: '014',
+    name: 'Gemma Bud',
+    types: 'Garden / Efficient',
+    ability: 'Careful Bloom',
+    route: 'Octavia 101',
+    status: 'Recommended catch',
+    role: 'Friendly first catch with efficient pressure that helps prepare for Foundation Gym.',
+    image: asset('assets/llmmon/sprites-ai/gemma-4-31b.png'),
+    palette: 'garden',
+  },
+  {
+    id: 'mistral',
+    number: '018',
+    name: 'Mistral Pup',
+    types: 'Wind / Speed',
+    ability: 'Tailwind Cache',
+    route: 'Mission Context Lane',
+    status: 'Rare speed option',
+    role: 'Fast attacker that rewards players who search the trainer routes patiently.',
+    image: asset('assets/llmmon/sprites-ai/mistral-medium-35.png'),
+    palette: 'wind',
+  },
+  {
+    id: 'token-moth',
+    number: '023',
+    name: 'Token Moth',
+    types: 'Bug / Token',
+    ability: 'Prompt Dust',
+    route: 'Redwood Cachewoods',
+    status: 'Unseen',
+    role: 'Early forest line that pressures attention and resource planning in longer routes.',
+    image: asset('assets/llmmon/sprites-ai/kimi-k26.png'),
+    palette: 'token',
+  },
+  {
+    id: 'hallucihound',
+    number: '030',
+    name: 'HalluciHound',
+    types: 'Drift / Myth',
+    ability: 'Broken Bubble',
+    route: 'Octavia 101 rescue',
+    status: 'Encountered',
+    role: 'Intro wild threat. Spreads Hallucination and broken dialogue under pressure.',
+    image: asset('assets/llmmon/mythos/generated/hallucihound_battle_sprite.png'),
+    palette: 'drift',
   },
 ]
 
@@ -420,27 +532,53 @@ function BattleScreen({ starter, onField }: { starter: Starter; onField: () => v
 }
 
 function DexScreen({ starter, onBack }: { starter: Starter; onBack: () => void }) {
+  const [selectedId, setSelectedId] = useState(starter.id)
+  const selectedEntry = dexEntries.find((entry) => entry.id === selectedId) ?? dexEntries[0]
+  const starterSeen = dexEntries.filter((entry) => entry.status !== 'Unseen').length
+
   return (
     <section className="screen dex-screen">
       <header className="screen-header">
-        <p className="kicker">PromptDex</p>
-        <h2>Model Card View</h2>
+        <div>
+          <p className="kicker">PromptDex</p>
+          <h2>Chapter 1 Model Cards</h2>
+        </div>
         <button className="icon-button" onClick={onBack} aria-label="Return to field">B</button>
       </header>
-      <div className="dex-layout">
-        <img src={starter.image} alt="" />
-        <div className="dex-card">
-          <p className="kicker">{starter.subtitle}</p>
-          <h3>{starter.name}</h3>
-          <p>{starter.detail}</p>
+      <div className="dex-shell">
+        <aside className="dex-index" aria-label="PromptDex entries">
+          {dexEntries.map((entry) => (
+            <button className={entry.id === selectedEntry.id ? 'dex-row active' : 'dex-row'} key={entry.id} onClick={() => setSelectedId(entry.id)}>
+              <span>{entry.number}</span>
+              <strong>{entry.name}</strong>
+              <small>{entry.status}</small>
+            </button>
+          ))}
+        </aside>
+        <div className={`dex-portrait ${selectedEntry.palette}`}>
+          <div className="dex-scan" />
+          <img src={selectedEntry.image} alt="" />
+          <div className="dex-capture-meter">
+            <span style={{ '--value': `${Math.round((starterSeen / dexEntries.length) * 100)}%` } as React.CSSProperties}>Seen {starterSeen}/{dexEntries.length}</span>
+          </div>
+        </div>
+        <article className="dex-card">
+          <p className="kicker">No. {selectedEntry.number}</p>
+          <h3>{selectedEntry.name}</h3>
+          <p>{selectedEntry.role}</p>
           <table>
             <tbody>
-              <tr><th>Type</th><td>{starter.types}</td></tr>
-              <tr><th>Ability</th><td>{starter.ability}</td></tr>
-              <tr><th>Region</th><td>Hayes Valley lab route</td></tr>
-              <tr><th>Status</th><td>Starter registered</td></tr>
+              <tr><th>Type</th><td>{selectedEntry.types}</td></tr>
+              <tr><th>Ability</th><td>{selectedEntry.ability}</td></tr>
+              <tr><th>Habitat</th><td>{selectedEntry.route}</td></tr>
+              <tr><th>Status</th><td>{selectedEntry.status}</td></tr>
             </tbody>
           </table>
+        </article>
+        <div className="dex-footer">
+          <span>Karpathy Lab sync</span>
+          <strong>{selectedEntry.name}</strong>
+          <span>{selectedEntry.status}</span>
         </div>
       </div>
     </section>
