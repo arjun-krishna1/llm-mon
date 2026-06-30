@@ -4,16 +4,16 @@
 
 Play online: https://theoneandarjun.com/
 
-A standalone React + TypeScript vertical slice inspired by Sapphire-era handheld RPG presentation, using original CSS pixel art and LLM-themed mechanics.
+A React + TypeScript and RPGJS vertical slice inspired by Sapphire-era handheld RPG presentation, using the LLMMON Mythos Chapter 1 storyboard package and generated creature/card assets.
 
 ## Playable slice
 
-- Intro sequence with Professor Karpathy
-- Starter choice: OpenAI, Anthropic, or Z AI/GLM
-- Route 01 map with lab, sign, tall benchmark grass, rare closed-source encounters, and a locked gym teaser
-- Turn-based battle system driven by strength, latency, output speed, and cost
-- Benchmark Scout Mira trainer battle
-- In-game LLMdex with citations for model stats
+- Orange Mythos title screen using the Chapter 1 title art
+- Storyboard-driven opening direction for Hayes Valley, Octavia 101, and SoMa Node
+- Starter choice: Claude Fable, GPT 5.5, or GLM
+- Embedded RPGJS map runtime with player and Professor Karpathy event scaffolding
+- First-battle UI for the HalluciHound rescue beat
+- PromptDex model-card view using generated starter art
 
 ## Stats and citations
 
@@ -52,7 +52,7 @@ The current version uses real image assets instead of CSS-only placeholders:
 - CC0 Kenney UI Pack font and button art
 - Original generated creature sprite PNGs for every real model in battles and model cards
 
-See `ATTRIBUTION.md` for license details.
+See `ATTRIBUTION.md` for license details. See `docs/qa-issue-log.md` for the queued visual QA issues that should be backfilled into Linear once the connector is available.
 
 All battle/UI model labels now use the real model names instead of fictional nicknames.
 
