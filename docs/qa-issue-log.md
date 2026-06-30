@@ -56,6 +56,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: added a field QuestNav action and chapter route screen with mainline progress, selectable objectives, current/locked states, route dialogue, rewards, and milestone strip. Browser-tested field-to-QuestNav-to-field navigation, locked objective selection, desktop frame fit, mobile route rail, mobile text wrapping, long quest-title wrapping, production-preview route selection, and no page-level horizontal overflow.
 
+- **[P2] Add starter Model Card status UI.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: added a field Model Card action and selected-starter status screen with license, level, nature, stat bars, EXP, ability note, route lesson, and starting moves from the Chapter 1 starter spec. Browser-tested Claude Fable, GPT 5.5, and GLM desktop variants; fixed card-grid collapse, stat overflow, and note overflow found during visual QA. Mobile pass verifies stacked cards, readable move panels, back navigation, and no page-level horizontal overflow.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

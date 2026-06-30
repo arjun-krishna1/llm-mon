@@ -227,6 +227,7 @@ button:active {
 .field-screen,
 .bag-screen,
 .quest-screen,
+.model-screen,
 .badge-screen,
 .dex-screen {
   background:
@@ -433,7 +434,14 @@ dd {
 
 .field-actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 10px;
+}
+
+.field-actions button {
+  min-width: 104px;
+  padding-inline: 12px;
 }
 
 .rpg-frame,
@@ -1295,6 +1303,340 @@ dd {
   background: #ffe374;
 }
 
+.model-screen {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 28px 28px,
+    radial-gradient(circle at 18% 20%, rgba(255, 227, 116, 0.28), transparent 21rem),
+    radial-gradient(circle at 86% 12%, rgba(17, 167, 181, 0.28), transparent 18rem),
+    linear-gradient(#273d55, #33706d 45%, #dfac62 45%, #73513d);
+}
+
+.model-shell {
+  display: grid;
+  grid-template-columns: minmax(290px, 0.82fr) minmax(320px, 0.9fr) minmax(380px, 1.12fr);
+  grid-template-rows: minmax(210px, 0.46fr) minmax(0, 1fr);
+  gap: 18px;
+  height: calc(100vh - 146px);
+}
+
+.model-pass,
+.model-stats-card,
+.model-moves-card,
+.model-notes-card {
+  border: 5px solid #211109;
+  border-radius: 8px;
+  background: #fff4cf;
+  box-shadow: 0 9px 0 #6d2b18;
+}
+
+.model-pass {
+  position: relative;
+  display: grid;
+  grid-row: 1 / 3;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: 14px;
+  padding: 18px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(33, 17, 9, 0.08) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(135deg, #fff4cf, #eebf69);
+}
+
+.model-pass::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border: 4px solid rgba(33, 17, 9, 0.16);
+  border-radius: 8px;
+}
+
+.model-pass.anthropic {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(255, 227, 116, 0.72), transparent 9rem),
+    linear-gradient(135deg, #542017, #e0702f 54%, #fff4cf);
+}
+
+.model-pass.openai {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(229, 255, 255, 0.68), transparent 9rem),
+    linear-gradient(135deg, #153b54, #18a8b4 54%, #fff4cf);
+}
+
+.model-pass.glm {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(236, 255, 216, 0.72), transparent 9rem),
+    linear-gradient(135deg, #143931, #27a868 54%, #fff4cf);
+}
+
+.model-pass > * {
+  position: relative;
+  z-index: 1;
+}
+
+.model-pass-top,
+.model-nameplate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.model-pass-top .kicker {
+  margin: 0;
+}
+
+.model-pass-top strong,
+.model-nameplate h3,
+.model-stats-card h3,
+.model-moves-card h3,
+.model-move strong,
+.model-notes-card h3,
+.model-stat span {
+  font-family: "Press Start 2P", monospace;
+}
+
+.model-pass-top strong {
+  border: 3px solid #211109;
+  border-radius: 999px;
+  padding: 8px 10px;
+  background: rgba(255, 244, 207, 0.78);
+  font-size: 0.58rem;
+}
+
+.model-portrait {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+
+.model-portrait img {
+  width: min(82%, 330px);
+  max-height: 42vh;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 0 rgba(33, 17, 9, 0.22));
+}
+
+.model-nameplate {
+  align-items: end;
+  flex-wrap: wrap;
+  border-top: 3px solid rgba(33, 17, 9, 0.2);
+  padding-top: 12px;
+}
+
+.model-nameplate span {
+  border: 3px solid #211109;
+  border-radius: 999px;
+  padding: 8px 10px;
+  color: #fff4cf;
+  background: #2b4e65;
+  font-weight: 900;
+}
+
+.model-nameplate h3 {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: clamp(1rem, 2.2vw, 1.45rem);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.model-nameplate small {
+  font-weight: 900;
+}
+
+.model-xp {
+  border: 3px solid #211109;
+  border-radius: 999px;
+  padding: 5px;
+  background: rgba(255, 244, 207, 0.9);
+}
+
+.model-xp span {
+  display: block;
+  width: var(--value);
+  min-width: 7rem;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #fff4cf;
+  background: linear-gradient(90deg, #2b4e65, #1e9f68);
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.54rem;
+  white-space: nowrap;
+}
+
+.model-stats-card,
+.model-moves-card,
+.model-notes-card {
+  padding: 20px;
+}
+
+.model-stats-card {
+  display: grid;
+  grid-column: 2;
+  grid-row: 1;
+  align-content: center;
+}
+
+.model-stats-card h3,
+.model-moves-card h3,
+.model-notes-card h3 {
+  margin-bottom: 12px;
+  font-size: clamp(0.98rem, 2vw, 1.3rem);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.model-stat-list {
+  display: grid;
+  gap: 8px;
+}
+
+.model-stat {
+  display: grid;
+  grid-template-columns: 86px 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.model-stat span {
+  font-size: 0.5rem;
+}
+
+.model-stat strong {
+  text-align: right;
+}
+
+.model-stat i {
+  display: block;
+  height: 17px;
+  border: 3px solid #211109;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(33, 17, 9, 0.16);
+}
+
+.model-stat i::before {
+  content: "";
+  display: block;
+  width: var(--value);
+  height: 100%;
+  background: linear-gradient(90deg, #f07d2d, #ffe374, #1e9f68);
+}
+
+.model-moves-card {
+  display: grid;
+  grid-column: 3;
+  grid-row: 1 / 3;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.model-move-list {
+  display: grid;
+  gap: 12px;
+  overflow: auto;
+}
+
+.model-move {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 14px;
+  border: 4px solid rgba(33, 17, 9, 0.26);
+  border-radius: 8px;
+  padding: 13px;
+  background:
+    linear-gradient(90deg, rgba(33, 17, 9, 0.06) 1px, transparent 1px) 0 0 / 18px 18px,
+    linear-gradient(#fff8cf, #f1d48b);
+}
+
+.model-move strong,
+.model-move span {
+  display: block;
+}
+
+.model-move strong {
+  margin-bottom: 6px;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.model-move span {
+  width: fit-content;
+  border: 2px solid #211109;
+  border-radius: 999px;
+  padding: 4px 7px;
+  color: #fff4cf;
+  background: #2b4e65;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.model-move dl {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 8px;
+  margin: 0;
+}
+
+.model-move dl div {
+  display: grid;
+  place-items: center;
+  min-width: 48px;
+  border: 2px solid #211109;
+  border-radius: 6px;
+  padding: 5px;
+  background: rgba(255, 244, 207, 0.8);
+}
+
+.model-move dt {
+  font-size: 0.58rem;
+  font-weight: 900;
+}
+
+.model-move dd {
+  margin: 0;
+  font-weight: 900;
+}
+
+.model-move p {
+  grid-column: 1 / -1;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.model-notes-card {
+  display: grid;
+  grid-column: 2;
+  grid-row: 2;
+  align-content: center;
+}
+
+.model-notes-card p:not(.kicker) {
+  line-height: 1.5;
+}
+
+.model-notes-card table {
+  width: 100%;
+  margin-top: 14px;
+  border-collapse: collapse;
+}
+
+.model-notes-card th,
+.model-notes-card td {
+  border-top: 2px solid rgba(67, 31, 16, 0.22);
+  padding: 9px 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.model-notes-card td {
+  padding-left: 12px;
+  text-align: left;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
 .dex-screen {
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 28px 28px,
@@ -1776,6 +2118,7 @@ dd {
   .battle-menu,
   .bag-shell,
   .quest-shell,
+  .model-shell,
   .badge-layout,
   .badge-grid,
   .dex-shell {
@@ -1784,6 +2127,7 @@ dd {
 
   .bag-shell,
   .quest-shell,
+  .model-shell,
   .dex-shell {
     grid-template-rows: auto auto auto auto;
     height: auto;
@@ -1800,6 +2144,7 @@ dd {
   .field-screen,
   .bag-screen,
   .quest-screen,
+  .model-screen,
   .badge-screen,
   .dex-screen {
     overflow: auto;
@@ -1846,6 +2191,28 @@ dd {
 
   .quest-strip {
     grid-template-columns: 1fr;
+  }
+
+  .model-pass {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 520px;
+  }
+
+  .model-stats-card,
+  .model-notes-card {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .model-moves-card {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 420px;
+  }
+
+  .model-stat {
+    grid-template-columns: 92px 38px minmax(0, 1fr);
   }
 
   .dex-index {
@@ -1982,6 +2349,42 @@ dd {
   .field-actions {
     grid-column: 1 / -1;
     width: 100%;
+  }
+
+  .field-actions button {
+    width: 100%;
+  }
+
+  .model-screen .screen-header h2 {
+    font-size: clamp(1rem, 5.2vw, 1.22rem);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .model-pass {
+    min-height: 460px;
+  }
+
+  .model-stats-card,
+  .model-moves-card,
+  .model-notes-card {
+    padding: 18px;
+  }
+
+  .model-stat {
+    grid-template-columns: 76px 34px minmax(0, 1fr);
+  }
+
+  .model-move {
+    grid-template-columns: 1fr;
+  }
+
+  .model-move dl {
+    grid-template-columns: repeat(2, minmax(0, 70px));
+  }
+
+  .model-notes-card td {
+    text-align: left;
   }
 
   .enemy-card,

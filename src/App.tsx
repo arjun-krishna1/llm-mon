@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 
-type Screen = 'title' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'badge'
+type Screen = 'title' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge'
 type StarterId = 'claude' | 'gpt' | 'glm'
 type BattleCommand = 'prompt' | 'bag' | 'swap'
 type BagCategory = 'orbs' | 'medicine' | 'field' | 'gear'
@@ -57,6 +57,34 @@ interface QuestStep {
   reward: string
   dialogue: string
   palette: string
+}
+
+interface ModelMove {
+  name: string
+  type: string
+  power: string
+  accuracy: string
+  effect: string
+}
+
+interface ModelStat {
+  label: string
+  value: number
+  cap: number
+}
+
+interface ModelProfile {
+  starterId: StarterId
+  license: string
+  level: number
+  nature: string
+  heldItem: string
+  trainerNote: string
+  abilityNote: string
+  nextLesson: string
+  xpProgress: number
+  stats: ModelStat[]
+  moves: ModelMove[]
 }
 
 const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`
@@ -387,6 +415,78 @@ const questSteps: QuestStep[] = [
   },
 ]
 
+const modelProfiles: Record<StarterId, ModelProfile> = {
+  claude: {
+    starterId: 'claude',
+    license: 'HV-001',
+    level: 5,
+    nature: 'Careful',
+    heldItem: 'Starter License',
+    trainerNote: 'Defensive anchor for drift and early status pressure.',
+    abilityNote: 'Constitutional Guard reduces hallucination and confusion pressure.',
+    nextLesson: 'Open Guardrail, then Warm Nudge into Tiny Myth.',
+    xpProgress: 34,
+    stats: [
+      { label: 'HP', value: 21, cap: 24 },
+      { label: 'Attack', value: 9, cap: 16 },
+      { label: 'Guard', value: 15, cap: 18 },
+      { label: 'Signal', value: 13, cap: 18 },
+      { label: 'Speed', value: 8, cap: 16 },
+    ],
+    moves: [
+      { name: 'Warm Nudge', type: 'Myth', power: '35', accuracy: '95', effect: 'Gentle damage; may lower enemy attack.' },
+      { name: 'Guardrail', type: 'Guard', power: '--', accuracy: '100', effect: 'Raises defense and softens the next hit.' },
+      { name: 'Tiny Myth', type: 'Myth', power: '40', accuracy: '95', effect: 'Stronger when Claude Fable is below half HP.' },
+    ],
+  },
+  gpt: {
+    starterId: 'gpt',
+    license: 'HV-002',
+    level: 5,
+    nature: 'Curious',
+    heldItem: 'Starter License',
+    trainerNote: 'Fast generalist for tempo and tool coverage.',
+    abilityNote: 'Toolformer gives the first support move after switching in increased priority.',
+    nextLesson: 'Claim speed, then pulse or tap around buffs.',
+    xpProgress: 38,
+    stats: [
+      { label: 'HP', value: 19, cap: 24 },
+      { label: 'Attack', value: 12, cap: 16 },
+      { label: 'Guard', value: 10, cap: 18 },
+      { label: 'Signal', value: 13, cap: 18 },
+      { label: 'Speed', value: 15, cap: 16 },
+    ],
+    moves: [
+      { name: 'Prompt Pulse', type: 'Omni', power: '40', accuracy: '100', effect: 'Reliable opener with stable tempo.' },
+      { name: 'Tool Tap', type: 'Tool', power: '30', accuracy: '100', effect: 'May reveal or bypass one enemy buff.' },
+      { name: 'Focus Token', type: 'Omni', power: '--', accuracy: '100', effect: 'Raises speed or accuracy for the next exchange.' },
+    ],
+  },
+  glm: {
+    starterId: 'glm',
+    license: 'HV-003',
+    level: 5,
+    nature: 'Tactical',
+    heldItem: 'Starter License',
+    trainerNote: 'Special reader for patterns and clean turns.',
+    abilityNote: 'Graph Mind grants a small special boost after the enemy repeats a known move.',
+    nextLesson: 'Probe with Graph Paw; guard repeated pressure.',
+    xpProgress: 31,
+    stats: [
+      { label: 'HP', value: 20, cap: 24 },
+      { label: 'Attack', value: 9, cap: 16 },
+      { label: 'Guard', value: 11, cap: 18 },
+      { label: 'Signal', value: 16, cap: 18 },
+      { label: 'Speed', value: 11, cap: 16 },
+    ],
+    moves: [
+      { name: 'Logic Spark', type: 'Logic', power: '40', accuracy: '100', effect: 'High-accuracy special attack.' },
+      { name: 'Graph Paw', type: 'Graph', power: '35', accuracy: '95', effect: 'May reveal the next enemy action.' },
+      { name: 'Pattern Guard', type: 'Logic', power: '--', accuracy: '100', effect: 'Reduces damage from repeated moves.' },
+    ],
+  },
+}
+
 const chapterSteps = [
   'Moving van arrival',
   'Karpathy lab search',
@@ -554,6 +654,7 @@ function FieldScreen({
   onDex,
   onBag,
   onQuest,
+  onModel,
   onBadge,
 }: {
   starter: Starter
@@ -561,6 +662,7 @@ function FieldScreen({
   onDex: () => void
   onBag: () => void
   onQuest: () => void
+  onModel: () => void
   onBadge: () => void
 }) {
   return (
@@ -574,6 +676,7 @@ function FieldScreen({
           <button onClick={onDex}>PromptDex</button>
           <button onClick={onBag}>Bag</button>
           <button onClick={onQuest}>QuestNav</button>
+          <button onClick={onModel}>Model Card</button>
           <button onClick={onBadge}>Badge Case</button>
           <button onClick={onBattle}>Battle</button>
         </div>
@@ -599,6 +702,87 @@ function FieldScreen({
       <div className="dialogue-box">
         <strong>Professor Karpathy</strong>
         <span>Quick, choose a move from the starter card. The HalluciHound is hallucinating stack traces again.</span>
+      </div>
+    </section>
+  )
+}
+
+function ModelCardScreen({ starter, onBack }: { starter: Starter; onBack: () => void }) {
+  const profile = modelProfiles[starter.id]
+
+  return (
+    <section className={`screen model-screen ${starter.palette}`}>
+      <header className="screen-header">
+        <div>
+          <p className="kicker">Model Card</p>
+          <h2>{starter.name}</h2>
+        </div>
+        <button className="icon-button" onClick={onBack} aria-label="Return to field">B</button>
+      </header>
+      <div className="model-shell">
+        <aside className={`model-pass ${starter.palette}`}>
+          <div className="model-pass-top">
+            <p className="kicker">Starter License</p>
+            <strong>{profile.license}</strong>
+          </div>
+          <div className="model-portrait">
+            <img src={starter.image} alt="" />
+          </div>
+          <div className="model-nameplate">
+            <span>Lv. {profile.level}</span>
+            <h3>{starter.name}</h3>
+            <small>{starter.types}</small>
+          </div>
+          <div className="model-xp">
+            <span style={{ '--value': `${profile.xpProgress}%` } as React.CSSProperties}>EXP {profile.xpProgress}%</span>
+          </div>
+        </aside>
+        <section className="model-stats-card">
+          <p className="kicker">Training readout</p>
+          <h3>{profile.nature} nature</h3>
+          <div className="model-stat-list">
+            {profile.stats.map((stat) => (
+              <div className="model-stat" key={stat.label}>
+                <span>{stat.label}</span>
+                <strong>{stat.value}</strong>
+                <i style={{ '--value': `${Math.round((stat.value / stat.cap) * 100)}%` } as React.CSSProperties} />
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="model-moves-card">
+          <div>
+            <p className="kicker">Starting moves</p>
+            <h3>Battle Kit</h3>
+          </div>
+          <div className="model-move-list">
+            {profile.moves.map((move) => (
+              <article className="model-move" key={move.name}>
+                <div>
+                  <strong>{move.name}</strong>
+                  <span>{move.type}</span>
+                </div>
+                <dl>
+                  <div><dt>PWR</dt><dd>{move.power}</dd></div>
+                  <div><dt>ACC</dt><dd>{move.accuracy}</dd></div>
+                </dl>
+                <p>{move.effect}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+        <aside className="model-notes-card">
+          <p className="kicker">Karpathy notes</p>
+          <h3>{starter.ability}</h3>
+          <p>{profile.abilityNote}</p>
+          <table>
+            <tbody>
+              <tr><th>Held</th><td>{profile.heldItem}</td></tr>
+              <tr><th>Role</th><td>{profile.trainerNote}</td></tr>
+              <tr><th>Lesson</th><td>{profile.nextLesson}</td></tr>
+            </tbody>
+          </table>
+        </aside>
       </div>
     </section>
   )
@@ -929,11 +1113,12 @@ export default function App() {
           onConfirm={() => setScreen('field')}
         />
       )}
-      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onQuest={() => setScreen('quest')} onBadge={() => setScreen('badge')} />}
+      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onQuest={() => setScreen('quest')} onModel={() => setScreen('model')} onBadge={() => setScreen('badge')} />}
       {screen === 'battle' && <BattleScreen starter={selectedStarter} onField={() => setScreen('field')} />}
       {screen === 'dex' && <DexScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'bag' && <BagScreen onBack={() => setScreen('field')} />}
       {screen === 'quest' && <QuestScreen onBack={() => setScreen('field')} />}
+      {screen === 'model' && <ModelCardScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'badge' && <BadgeScreen onBack={() => setScreen('field')} />}
     </main>
   )
