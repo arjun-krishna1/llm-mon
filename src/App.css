@@ -488,6 +488,7 @@ button:active {
 .services-screen,
 .pier-screen,
 .mission-screen,
+.menlo-screen,
 .model-screen,
 .badge-screen,
 .dex-screen {
@@ -1537,6 +1538,414 @@ dd {
 .mission-party-bars {
   display: grid;
   gap: 8px;
+}
+
+.menlo-screen {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 28px 28px,
+    radial-gradient(circle at 20% 14%, rgba(255, 227, 116, 0.3), transparent 22rem),
+    radial-gradient(circle at 78% 18%, rgba(113, 166, 109, 0.42), transparent 22rem),
+    linear-gradient(#2b4e65 0 34%, #638f69 34% 67%, #d6a05c 67%);
+}
+
+.menlo-shell {
+  display: grid;
+  grid-template-columns: minmax(520px, 1.05fr) minmax(260px, 0.42fr) minmax(420px, 0.72fr);
+  grid-template-rows: minmax(128px, auto) minmax(0, 1fr) minmax(220px, auto);
+  gap: 18px;
+  height: calc(100vh - 146px);
+}
+
+.menlo-stage,
+.menlo-stop-list,
+.menlo-stop-card,
+.willa-tutorial-card,
+.sand-hill-preview {
+  border: 5px solid #211109;
+  border-radius: 8px;
+  box-shadow: 0 9px 0 #6d2b18;
+}
+
+.menlo-stage {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1 / -1;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(255, 244, 207, 0.08) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(#24485f 0 22%, #5f9667 22% 72%, #c37a4c 72%);
+}
+
+.menlo-town-map {
+  position: absolute;
+  inset: 7%;
+  border: 4px solid rgba(33, 17, 9, 0.82);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 244, 207, 0.65), transparent 8rem),
+    linear-gradient(90deg, transparent 0 41%, rgba(255, 244, 207, 0.78) 41% 53%, transparent 53%),
+    linear-gradient(0deg, transparent 0 47%, rgba(255, 244, 207, 0.72) 47% 58%, transparent 58%),
+    linear-gradient(#669a6a 0 52%, #c7834d 52% 73%, #596d6d 73%);
+  box-shadow: inset 0 0 0 8px rgba(255, 244, 207, 0.18);
+}
+
+.menlo-town-map > span {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 3px solid #211109;
+  color: #211109;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.5rem;
+  line-height: 1.2;
+  text-align: center;
+  box-shadow: 0 6px 0 rgba(33, 17, 9, 0.22);
+}
+
+.menlo-building {
+  border-radius: 6px;
+}
+
+.menlo-building.gym {
+  left: 8%;
+  top: 8%;
+  width: 34%;
+  height: 24%;
+  color: #fff4cf;
+  background:
+    linear-gradient(90deg, transparent 44%, rgba(255, 244, 207, 0.4) 44% 56%, transparent 56%),
+    linear-gradient(#8e9286 0 32%, #38464c 32%);
+}
+
+.menlo-building.office {
+  right: 7%;
+  top: 12%;
+  width: 29%;
+  height: 21%;
+  background: linear-gradient(#bde8dd 0 35%, #fff4cf 35%);
+}
+
+.menlo-building.lab {
+  right: 9%;
+  bottom: 13%;
+  width: 32%;
+  height: 20%;
+  color: #fff4cf;
+  background: linear-gradient(#2b4e65 0 36%, #1e9f68 36%);
+}
+
+.menlo-grass {
+  left: 8%;
+  bottom: 10%;
+  width: 30%;
+  height: 23%;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(90deg, rgba(33, 17, 9, 0.14) 0 5px, transparent 5px 18px),
+    linear-gradient(#8ecc6d, #2f8e55);
+}
+
+.menlo-path.horizontal {
+  left: 0;
+  right: 0;
+  top: 48%;
+  height: 12%;
+  border: 0;
+  background: rgba(255, 244, 207, 0.74);
+  box-shadow: none;
+}
+
+.menlo-path.vertical {
+  top: 0;
+  bottom: 0;
+  left: 43%;
+  width: 12%;
+  border: 0;
+  background: rgba(255, 244, 207, 0.74);
+  box-shadow: none;
+}
+
+.menlo-person,
+.menlo-player {
+  width: 70px;
+  height: 76px;
+  border-radius: 999px 999px 8px 8px;
+  color: #fff4cf;
+  text-shadow: 1px 1px 0 #211109;
+}
+
+.menlo-person.norm {
+  left: 22%;
+  top: 34%;
+  background:
+    radial-gradient(circle at 50% 18%, #fff4cf 0 17%, transparent 18%),
+    linear-gradient(#38464c 0 50%, #7b2c56 50%);
+}
+
+.menlo-person.willa {
+  right: 28%;
+  bottom: 29%;
+  background:
+    radial-gradient(circle at 50% 18%, #fff4cf 0 17%, transparent 18%),
+    linear-gradient(#f07d2d 0 50%, #1ba7b5 50%);
+}
+
+.menlo-player {
+  left: 45%;
+  top: 58%;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #e96223;
+}
+
+.menlo-dialogue {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 5%;
+  z-index: 1;
+  border: 4px solid #211109;
+  border-radius: 8px;
+  padding: 18px;
+  background: rgba(255, 244, 207, 0.96);
+  box-shadow: 0 7px 0 rgba(33, 17, 9, 0.36);
+}
+
+.menlo-dialogue h3,
+.menlo-stop-list strong,
+.menlo-stop-card h3,
+.willa-tutorial-card h3,
+.tutorial-mon strong,
+.sand-hill-preview h3 {
+  font-family: "Press Start 2P", monospace;
+}
+
+.menlo-dialogue h3,
+.menlo-stop-card h3,
+.willa-tutorial-card h3,
+.sand-hill-preview h3 {
+  margin-bottom: 12px;
+  font-size: clamp(0.9rem, 1.8vw, 1.24rem);
+  line-height: 1.45;
+}
+
+.menlo-stop-list {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background: #fff4cf;
+}
+
+.menlo-stop-list button {
+  display: grid;
+  gap: 7px;
+  min-height: 80px;
+  align-content: center;
+  padding: 12px;
+  text-align: left;
+}
+
+.menlo-stop-list button.active {
+  color: #fff4cf;
+  background: linear-gradient(#2b4e65, #18334d);
+  outline: 4px solid #fff4cf;
+}
+
+.menlo-stop-list strong {
+  font-size: 0.55rem;
+  line-height: 1.35;
+}
+
+.menlo-stop-list span {
+  font-weight: 900;
+}
+
+.menlo-stop-card {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 78% 14%, rgba(255, 227, 116, 0.42), transparent 12rem),
+    #fff4cf;
+}
+
+.menlo-stop-card.sand-hill {
+  background:
+    radial-gradient(circle at 80% 18%, rgba(30, 159, 104, 0.26), transparent 12rem),
+    #fff4cf;
+}
+
+.menlo-stop-card p:not(.kicker) {
+  line-height: 1.5;
+}
+
+.menlo-lock-panel {
+  border: 4px solid #211109;
+  border-radius: 8px;
+  padding: 12px;
+  color: #fff4cf;
+  background: linear-gradient(135deg, #211109, #2b4e65);
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.willa-tutorial-card {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  display: grid;
+  grid-template-rows: auto minmax(220px, 0.88fr) auto;
+  gap: 12px;
+  padding: 16px;
+  overflow: auto;
+  background:
+    linear-gradient(90deg, rgba(33, 17, 9, 0.08) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(#fff4cf, #e9bf72);
+}
+
+.tutorial-battle {
+  position: relative;
+  min-height: 0;
+  border: 4px solid #211109;
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    linear-gradient(0deg, rgba(255, 244, 207, 0.74) 0 18%, transparent 18%),
+    linear-gradient(#79b974 0 58%, #d68a50 58%);
+}
+
+.tutorial-battle::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 44%;
+  height: 18%;
+  border-radius: 999px;
+  background: rgba(255, 244, 207, 0.58);
+}
+
+.tutorial-mon {
+  position: absolute;
+  display: grid;
+  gap: 6px;
+  width: min(190px, 43%);
+  padding: 10px;
+  border: 4px solid #211109;
+  border-radius: 8px;
+  background: rgba(255, 244, 207, 0.9);
+  box-shadow: 0 7px 0 rgba(33, 17, 9, 0.25);
+}
+
+.tutorial-mon.ragcoon {
+  left: 7%;
+  bottom: 10%;
+}
+
+.tutorial-mon.gemma {
+  right: 7%;
+  top: 10%;
+}
+
+.tutorial-mon.caught {
+  background: linear-gradient(#fff8cf, #ffe374);
+  outline: 4px solid #fff4cf;
+}
+
+.tutorial-mon img {
+  width: 100%;
+  height: 112px;
+  object-fit: contain;
+}
+
+.tutorial-mon strong {
+  font-size: 0.5rem;
+  line-height: 1.3;
+}
+
+.tutorial-mon span {
+  display: block;
+  overflow: hidden;
+  border: 3px solid #211109;
+  border-radius: 999px;
+  padding: 6px 8px;
+  color: #fff4cf;
+  background:
+    linear-gradient(90deg, #1e9f68 var(--value), #362016 var(--value)),
+    #362016;
+  font-weight: 900;
+}
+
+.tutorial-steps {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tutorial-steps li {
+  border: 3px solid #211109;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: rgba(255, 244, 207, 0.78);
+  font-weight: 900;
+  line-height: 1.28;
+}
+
+.tutorial-steps li.complete {
+  color: #fff4cf;
+  background: linear-gradient(#1e9f68, #17351e);
+}
+
+.sand-hill-preview {
+  grid-column: 2 / 4;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.34fr) minmax(0, 1fr) minmax(260px, 0.42fr);
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  color: #fff4cf;
+  background:
+    radial-gradient(circle at 18% 50%, rgba(255, 227, 116, 0.24), transparent 13rem),
+    linear-gradient(90deg, #211109, #2b4e65);
+}
+
+.sand-hill-preview .kicker {
+  color: #ffe374;
+}
+
+.sand-hill-preview h3,
+.sand-hill-preview p {
+  margin-bottom: 0;
+}
+
+.sand-hill-strips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sand-hill-strips span {
+  border: 3px solid rgba(255, 244, 207, 0.32);
+  border-radius: 6px;
+  padding: 10px;
+  background:
+    linear-gradient(90deg, transparent 42%, rgba(255, 244, 207, 0.48) 42% 58%, transparent 58%),
+    linear-gradient(#6b9672, #c9874f);
+  font-weight: 900;
+  line-height: 1.3;
 }
 
 .services-screen {
@@ -3681,6 +4090,7 @@ dd {
   .services-shell,
   .pier-shell,
   .mission-shell,
+  .menlo-shell,
   .model-shell,
   .badge-layout,
   .badge-grid,
@@ -3693,6 +4103,7 @@ dd {
   .services-shell,
   .pier-shell,
   .mission-shell,
+  .menlo-shell,
   .model-shell,
   .dex-shell {
     grid-template-rows: auto auto auto auto;
@@ -3734,6 +4145,7 @@ dd {
   .services-screen,
   .pier-screen,
   .mission-screen,
+  .menlo-screen,
   .model-screen,
   .badge-screen,
   .dex-screen {
@@ -3820,13 +4232,23 @@ dd {
     min-height: 620px;
   }
 
+  .menlo-stage {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 620px;
+  }
+
   .rival-card,
   .pier-command-card,
   .pier-rewards,
   .catch-panel,
   .mission-mode-tabs,
   .mission-detail-card,
-  .mission-party-card {
+  .mission-party-card,
+  .menlo-stop-list,
+  .menlo-stop-card,
+  .willa-tutorial-card,
+  .sand-hill-preview {
     grid-column: auto;
     grid-row: auto;
   }
@@ -3852,6 +4274,20 @@ dd {
 
   .mission-party-bars {
     grid-column: 1 / -1;
+  }
+
+  .menlo-stop-list {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(190px, 1fr);
+    overflow-x: auto;
+  }
+
+  .willa-tutorial-card {
+    min-height: 540px;
+  }
+
+  .sand-hill-preview {
+    grid-template-columns: 1fr;
   }
 
   .rival-card img {
@@ -4239,6 +4675,69 @@ dd {
   .mission-party-card img {
     justify-self: center;
     max-height: 180px;
+  }
+
+  .menlo-stage {
+    min-height: 680px;
+  }
+
+  .menlo-town-map {
+    inset: 5%;
+  }
+
+  .menlo-person {
+    width: 58px;
+    height: 66px;
+    font-size: 0.4rem;
+  }
+
+  .menlo-player {
+    width: 46px;
+    height: 46px;
+  }
+
+  .menlo-dialogue {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    padding: 14px;
+  }
+
+  .menlo-stop-list {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    overflow: visible;
+  }
+
+  .menlo-stop-list button {
+    min-height: 64px;
+  }
+
+  .willa-tutorial-card {
+    display: block;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .tutorial-battle {
+    min-height: 430px;
+    margin: 14px 0;
+  }
+
+  .tutorial-steps {
+    margin-top: 14px;
+  }
+
+  .tutorial-mon {
+    width: min(170px, 45%);
+  }
+
+  .tutorial-mon img {
+    height: 96px;
+  }
+
+  .sand-hill-strips {
+    grid-template-columns: 1fr;
   }
 
   .model-screen .screen-header h2 {

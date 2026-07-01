@@ -88,6 +88,14 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: browser QA found the selected Mistral Pup catch prompt was present but clipped inside the catch panel. Tightened the panel rows, enlarged/framed the encounter sprite stage, and verified desktop/mobile prompt text and sprites are visible.
 
+- **[P2] Add Menlo Park Alignment Gym gate and Willa tutorial UI.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: added a Menlo Park field action and full route screen with locked Alignment Gym, Director Norm gate dialogue, Willa catching tutorial phases, RAGcoon vs Gemma Bud tutorial battle, stop tabs, and Sand Hill Route preview. Browser-tested desktop/mobile Menlo entry, tutorial progression, locked-gym tab, Sand Hill tab, return-to-field RPGJS canvas, no console errors, and no page-level horizontal overflow.
+
+- **[P2] Fix Menlo mobile tutorial-step overlap.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: mobile browser QA showed tutorial completion steps tucked under the Willa battle panel. Switched the mobile tutorial card to natural block flow, added step separation, and verified all three steps render below the battle stage on desktop and mobile.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

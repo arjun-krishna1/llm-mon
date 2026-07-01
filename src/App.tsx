@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 
-type Screen = 'title' | 'intro' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge' | 'services' | 'pier' | 'mission'
+type Screen = 'title' | 'intro' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge' | 'services' | 'pier' | 'mission' | 'menlo'
 type StarterId = 'claude' | 'gpt' | 'glm'
 type BattleCommand = 'prompt' | 'bag' | 'swap'
 type BagCategory = 'orbs' | 'medicine' | 'field' | 'gear'
 type PierPhase = 'challenge' | 'battle' | 'rewards'
 type MissionMode = 'catch' | 'trainers' | 'items'
+type MenloPhase = 'gate' | 'weaken' | 'orb' | 'caught'
 
 interface Starter {
   id: StarterId
@@ -133,6 +134,13 @@ interface TrainerBeat {
 interface RoutePickup {
   name: string
   location: string
+  detail: string
+}
+
+interface MenloStop {
+  id: string
+  label: string
+  status: string
   detail: string
 }
 
@@ -735,6 +743,27 @@ const missionPickups: RoutePickup[] = [
   },
 ]
 
+const menloStops: MenloStop[] = [
+  {
+    id: 'gym',
+    label: 'Alignment Gym',
+    status: 'Badge gate',
+    detail: 'Director Norm will not battle until the Palo Alto Foundation Badge proves your judgment.',
+  },
+  {
+    id: 'willa',
+    label: 'Willa Lesson',
+    status: 'Tutorial',
+    detail: 'Willa borrows a RAGcoon and learns how to prompt a Gemma Bud into joining.',
+  },
+  {
+    id: 'sand-hill',
+    label: 'Sand Hill Gate',
+    status: 'Open west',
+    detail: 'Beach trainers, berry groves, and Brinley Garage wait beyond the quiet venture offices.',
+  },
+]
+
 const chapterSteps = [
   'Moving van arrival',
   'Karpathy lab search',
@@ -991,6 +1020,7 @@ function FieldScreen({
   onServices,
   onPier,
   onMission,
+  onMenlo,
 }: {
   starter: Starter
   onBattle: () => void
@@ -1002,6 +1032,7 @@ function FieldScreen({
   onServices: () => void
   onPier: () => void
   onMission: () => void
+  onMenlo: () => void
 }) {
   return (
     <section className="screen field-screen">
@@ -1017,6 +1048,7 @@ function FieldScreen({
           <button onClick={onServices}>SoMa Services</button>
           <button onClick={onPier}>Benchmark Pier</button>
           <button onClick={onMission}>Mission Context</button>
+          <button onClick={onMenlo}>Menlo Park</button>
           <button onClick={onModel}>Model Card</button>
           <button onClick={onBadge}>Badge Case</button>
           <button onClick={onBattle}>Battle</button>
@@ -1043,6 +1075,140 @@ function FieldScreen({
       <div className="dialogue-box">
         <strong>Professor Karpathy</strong>
         <span>Quick, choose a move from the starter card. The HalluciHound is hallucinating stack traces again.</span>
+      </div>
+    </section>
+  )
+}
+
+function MenloScreen({ starter, onBack }: { starter: Starter; onBack: () => void }) {
+  const [selectedStopId, setSelectedStopId] = useState('gym')
+  const [phase, setPhase] = useState<MenloPhase>('gate')
+  const selectedStop = menloStops.find((stop) => stop.id === selectedStopId) ?? menloStops[0]
+  const phaseIndex = ['gate', 'weaken', 'orb', 'caught'].indexOf(phase)
+
+  const phaseCopy = {
+    gate: {
+      label: 'Director Norm',
+      title: 'Earn Palo Alto first',
+      line: 'Power without judgment is just noise. Earn your first badge in Palo Alto. Then come back.',
+      action: 'Start Willa Lesson',
+    },
+    weaken: {
+      label: 'Willa',
+      title: 'Lower HP first',
+      line: 'I want to catch my first LLMMON, but I do not know what to say. RAGcoon, use Context Fetch.',
+      action: 'Throw Prompt Orb',
+    },
+    orb: {
+      label: 'Tutorial',
+      title: 'Prompt window open',
+      line: 'Lower a wild LLMMON HP, then use a Prompt Orb. Status effects and good alignment improve catch rate.',
+      action: 'Log Gemma Catch',
+    },
+    caught: {
+      label: 'Willa',
+      title: 'Gemma Bud joined',
+      line: 'It worked. The prompt landed. I am heading to Verdant Labs before I lose my nerve.',
+      action: 'Tutorial Complete',
+    },
+  }[phase]
+
+  function advancePhase() {
+    if (phase === 'gate') {
+      setSelectedStopId('willa')
+      setPhase('weaken')
+      return
+    }
+
+    if (phase === 'weaken') {
+      setPhase('orb')
+      return
+    }
+
+    if (phase === 'orb') {
+      setPhase('caught')
+      setSelectedStopId('sand-hill')
+    }
+  }
+
+  return (
+    <section className="screen menlo-screen">
+      <header className="screen-header">
+        <div>
+          <p className="kicker">Menlo Park</p>
+          <h2>Alignment Gym Gate</h2>
+        </div>
+        <button className="icon-button" onClick={onBack} aria-label="Return to field">B</button>
+      </header>
+      <div className="menlo-shell">
+        <section className="menlo-stage">
+          <div className="menlo-town-map" aria-hidden="true">
+            <span className="menlo-building gym">GYM</span>
+            <span className="menlo-building office">VC</span>
+            <span className="menlo-building lab">LAB</span>
+            <span className="menlo-grass" />
+            <span className="menlo-path horizontal" />
+            <span className="menlo-path vertical" />
+            <span className="menlo-person norm">Norm</span>
+            <span className="menlo-person willa">Willa</span>
+            <span className="menlo-player">▲</span>
+          </div>
+          <article className="menlo-dialogue">
+            <p className="kicker">{phaseCopy.label}</p>
+            <h3>{phaseCopy.title}</h3>
+            <p>{phaseCopy.line}</p>
+            {phase !== 'caught' && <button onClick={advancePhase}>{phaseCopy.action}</button>}
+          </article>
+        </section>
+        <nav className="menlo-stop-list" aria-label="Menlo Park stops">
+          {menloStops.map((stop) => (
+            <button className={stop.id === selectedStop.id ? 'active' : ''} key={stop.id} onClick={() => setSelectedStopId(stop.id)}>
+              <strong>{stop.label}</strong>
+              <span>{stop.status}</span>
+            </button>
+          ))}
+        </nav>
+        <aside className={`menlo-stop-card ${selectedStop.id}`}>
+          <p className="kicker">{selectedStop.status}</p>
+          <h3>{selectedStop.label}</h3>
+          <p>{selectedStop.detail}</p>
+          <div className="menlo-lock-panel">
+            <span>{selectedStop.id === 'gym' ? 'Locked until Foundation Badge' : selectedStop.id === 'willa' ? 'Tutorial available now' : 'Next route preview'}</span>
+          </div>
+        </aside>
+        <section className="willa-tutorial-card">
+          <div>
+            <p className="kicker">Catching tutorial</p>
+            <h3>RAGcoon vs Gemma Bud</h3>
+          </div>
+          <div className="tutorial-battle">
+            <article className="tutorial-mon ragcoon">
+              <img src={asset('assets/llmmon/sprites-ai/command-a-plus.png')} alt="" />
+              <strong>Borrowed RAGcoon</strong>
+              <span style={{ '--value': '78%' } as React.CSSProperties}>HP</span>
+            </article>
+            <article className={phase === 'caught' ? 'tutorial-mon gemma caught' : 'tutorial-mon gemma'}>
+              <img src={asset('assets/llmmon/sprites-ai/gemma-4-31b.png')} alt="" />
+              <strong>Wild Gemma Bud</strong>
+              <span style={{ '--value': phaseIndex > 0 ? '22%' : '86%' } as React.CSSProperties}>HP</span>
+            </article>
+          </div>
+          <ol className="tutorial-steps">
+            <li className={phaseIndex >= 1 ? 'complete' : ''}>Weaken with Context Fetch.</li>
+            <li className={phaseIndex >= 2 ? 'complete' : ''}>Throw a Prompt Orb inside the green window.</li>
+            <li className={phaseIndex >= 3 ? 'complete' : ''}>Gemma Bud joins Willa.</li>
+          </ol>
+        </section>
+        <aside className="sand-hill-preview">
+          <p className="kicker">Route opens west</p>
+          <h3>Sand Hill Route</h3>
+          <div className="sand-hill-strips" aria-hidden="true">
+            <span>Beach trainers</span>
+            <span>Berry grove</span>
+            <span>Brinley Garage</span>
+          </div>
+          <p>{starter.name} should be level 7-9 before Redwood Cachewoods. Bring Cache Potions and watch for hidden berries.</p>
+        </aside>
       </div>
     </section>
   )
@@ -1809,7 +1975,7 @@ export default function App() {
           onConfirm={() => setScreen('field')}
         />
       )}
-      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onQuest={() => setScreen('quest')} onServices={() => setScreen('services')} onPier={() => setScreen('pier')} onMission={() => setScreen('mission')} onModel={() => setScreen('model')} onBadge={() => setScreen('badge')} />}
+      {screen === 'field' && <FieldScreen starter={selectedStarter} onBattle={() => setScreen('battle')} onDex={() => setScreen('dex')} onBag={() => setScreen('bag')} onQuest={() => setScreen('quest')} onServices={() => setScreen('services')} onPier={() => setScreen('pier')} onMission={() => setScreen('mission')} onMenlo={() => setScreen('menlo')} onModel={() => setScreen('model')} onBadge={() => setScreen('badge')} />}
       {screen === 'battle' && <BattleScreen starter={selectedStarter} onField={() => setScreen('field')} />}
       {screen === 'dex' && <DexScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'bag' && <BagScreen onBack={() => setScreen('field')} />}
@@ -1817,6 +1983,7 @@ export default function App() {
       {screen === 'services' && <ServicesScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'pier' && <PierScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'mission' && <MissionScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
+      {screen === 'menlo' && <MenloScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'model' && <ModelCardScreen starter={selectedStarter} onBack={() => setScreen('field')} />}
       {screen === 'badge' && <BadgeScreen onBack={() => setScreen('field')} />}
     </main>
