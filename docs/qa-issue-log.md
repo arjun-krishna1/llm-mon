@@ -120,6 +120,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass found the opening still exposed standalone circular command buttons that read as custom web UI instead of a Pokemon-style dialogue prompt. Replaced intro, rescue, and starter command buttons with compact in-box dialogue cues. Desktop browser smoke verified professor -> rescue -> starter -> GLM -> RPGJS field with no console errors; mobile DOM smoke verified the cue is visible in intro/rescue/starter and no horizontal overflow.
 
+- **[P2] Remove web-card chrome from opening game viewport.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass still showed bordered, shadowed outer frames around the title/professor/rescue/starter sequence. Removed the web-card border/shadow treatment, tightened the 4:3 frame to height-constrained black letterboxing, converted the title version badge to native title text, and added a click-through starter-stage label. Browser-tested desktop title/professor/rescue/starter and mobile `390x844` rescue/starter with no horizontal overflow, no console errors, and starter selection controls still tappable.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
