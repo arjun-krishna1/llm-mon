@@ -17,6 +17,7 @@ interface Starter {
   ability: string
   detail: string
   image: string
+  portrait: string
   palette: string
 }
 
@@ -172,6 +173,7 @@ const starters: Starter[] = [
     ability: 'Constitutional Guard',
     detail: 'A black fox-kirin cub with a cream flame mane, gold spirals, and watchful orange eyes.',
     image: asset('assets/llmmon/mythos/generated/starter_anthropic_claude_fable.png'),
+    portrait: asset('assets/llmmon/mythos/generated/starter_anthropic_claude_fable_portrait.png'),
     palette: 'anthropic',
   },
   {
@@ -182,6 +184,7 @@ const starters: Starter[] = [
     ability: 'Toolformer',
     detail: 'A teal-white fox-dragon that reads the field quickly and turns tools into momentum.',
     image: asset('assets/llmmon/mythos/generated/starter_openai_gpt_5_5.png'),
+    portrait: asset('assets/llmmon/mythos/generated/starter_openai_gpt_5_5_portrait.png'),
     palette: 'openai',
   },
   {
@@ -192,6 +195,7 @@ const starters: Starter[] = [
     ability: 'Graph Mind',
     detail: 'A jade graph-cat kirin with constellation markings and a calm tactical read on patterns.',
     image: asset('assets/llmmon/mythos/generated/starter_glm.png'),
+    portrait: asset('assets/llmmon/mythos/generated/starter_glm_portrait.png'),
     palette: 'glm',
   },
 ]
@@ -1098,6 +1102,10 @@ function StarterScreen({
                 <small>{starter.name}</small>
               </button>
             ))}
+          </div>
+          <div className={`starter-creature-preview ${selected.palette}`} aria-hidden="true">
+            <span className="starter-creature-platform" />
+            <img src={selected.portrait} alt="" />
           </div>
           <div className={`starter-preview-mon ${selected.palette}`}>
             <span className="starter-preview-name">{selected.name}</span>

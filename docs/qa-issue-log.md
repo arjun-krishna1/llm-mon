@@ -168,6 +168,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass found the opening dialogue copy still rendered with a bold browser font inside otherwise Ruby-style text boxes. Loaded the bundled Kenney pixel UI font and applied it to title command menu text, professor/rescue/starter dialogue body copy, and starter confirmation choices while keeping tiny labels/logos on Press Start 2P. Browser-tested desktop title -> NEW GAME -> professor -> rescue -> starter -> confirmation -> RPGJS field and mobile `390x844` title/professor/rescue/starter/confirmation/field with no horizontal overflow, no console errors, and one RPGJS canvas after confirmation.
 
+- **[P2] Reveal selected starter creature during satchel choice.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass against `storyboard_2_professors_call_and_starter_choice.png` showed the Ruby-style starter satchel scene still exposed only prompt orbs and text, so the choice lacked an actual LLMMON reveal. Cropped the bundled starter art into game-scale portrait assets, added a selected-creature aura/platform preview behind the active orb, and moved the scene label into a compact top-left "STARTER SATCHEL" tag. Browser-tested desktop Claude/GPT/GLM switching and mobile `390x844` Claude -> GLM -> confirmation -> RPGJS field with no horizontal overflow, no console errors, and one RPGJS canvas after confirmation.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
