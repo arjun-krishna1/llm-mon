@@ -136,6 +136,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass against the Ruby title reference showed the title silhouette was too flat and the version text read as plain title copy. Added a compact white version badge, stronger shadow treatment, and purple energy veins through the title legendary silhouette while preserving the 4:3 handheld frame. Browser-tested desktop and mobile title frames, then full desktop title -> professor -> rescue -> starter -> RPGJS field and mobile `390x844` title -> starter with no horizontal overflow or console errors.
 
+- **[P2] Replace cropped professor intro sprite with full-body pixel professor.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass against the Ruby professor intro reference showed Professor Karpathy still read like a cropped bust instead of a full-body sprite standing on the spotlight. Redrew `professor-karpathy.svg` with visible coat, legs, shoes, and raised hand while keeping the same asset path. Browser-tested desktop professor intro, desktop title -> professor -> rescue -> starter -> RPGJS field, and mobile `390x844` professor/starter flow with no horizontal overflow or console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
