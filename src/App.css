@@ -211,11 +211,12 @@ button:active {
 
 .title-gba-frame,
 .intro-gba-frame,
+.arrival-gba-frame,
 .rescue-gba-frame,
 .starter-gba-frame {
   position: relative;
   z-index: 1;
-  width: min(960px, calc(100vw - 24px), calc((100vh - 24px) * 4 / 3));
+  width: min(960px, calc(100vw - 48px), calc((100vh - 68px) * 4 / 3));
   aspect-ratio: 4 / 3;
   margin: auto;
   border: 0;
@@ -960,6 +961,7 @@ button:active {
 }
 
 .rescue-screen,
+.arrival-screen,
 .starter-screen {
   display: grid;
   place-items: center;
@@ -967,12 +969,452 @@ button:active {
   background: #101418;
 }
 
+.arrival-gba-frame,
 .rescue-gba-frame,
 .starter-gba-frame {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   color: #211109;
   background: #93c56a;
+}
+
+.arrival-stage {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: #eca653;
+}
+
+.arrival-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.055) 0 2px, transparent 2px 6px),
+    radial-gradient(ellipse at 50% 47%, rgba(255, 244, 207, 0.24), transparent 60%);
+  mix-blend-mode: soft-light;
+}
+
+.arrival-town,
+.arrival-room {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transition:
+    opacity 220ms steps(3, end),
+    transform 220ms steps(3, end);
+}
+
+.arrival-town {
+  background:
+    linear-gradient(#f3b75f 0 42%, #78b65f 42% 63%, #5b9b55 63%);
+}
+
+.arrival-stage[data-scene="room"] .arrival-town {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+.arrival-room {
+  opacity: 0;
+  transform: translateX(8px);
+  background:
+    linear-gradient(#bfc3c9 0 6%, #f2d06d 6% 46%, #c58a54 46%);
+}
+
+.arrival-stage[data-scene="room"] .arrival-room {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.arrival-skyline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 18%;
+  height: 34%;
+  background:
+    linear-gradient(transparent 0 60%, rgba(80, 132, 72, 0.82) 60%);
+}
+
+.arrival-home,
+.arrival-lab {
+  position: absolute;
+  bottom: 13%;
+  display: block;
+  border: 4px solid #343643;
+  background: #fffaf0;
+  box-shadow:
+    inset 0 -8px 0 rgba(36, 22, 16, 0.14),
+    5px 5px 0 rgba(36, 22, 16, 0.24);
+}
+
+.arrival-home::before,
+.arrival-lab::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  bottom: 100%;
+  height: 34%;
+  border: 4px solid #343643;
+  border-bottom: 0;
+  background: #d5472c;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.arrival-home::after,
+.arrival-lab::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  bottom: 0;
+  width: 18%;
+  height: 42%;
+  border: 3px solid #343643;
+  background: #7c5339;
+}
+
+.arrival-home.house-a {
+  left: 11%;
+  width: 16%;
+  height: 42%;
+}
+
+.arrival-home.house-b {
+  right: 19%;
+  width: 15%;
+  height: 38%;
+}
+
+.arrival-lab {
+  left: 39%;
+  width: 22%;
+  height: 48%;
+  background:
+    linear-gradient(90deg, transparent 0 39%, #343643 39% 43%, transparent 43%),
+    #dfe7ef;
+}
+
+.arrival-lab::before {
+  background: #4f87bc;
+}
+
+.arrival-lab::after {
+  left: 43%;
+  width: 16%;
+  background: #5f6e84;
+}
+
+.arrival-road {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: 10%;
+  height: 34%;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 244, 207, 0.36) 0 26px, transparent 26px 72px) 0 54% / 100% 4px no-repeat,
+    linear-gradient(#cfa15a, #a87741);
+  transform: skewY(-2deg);
+  box-shadow:
+    inset 0 5px 0 rgba(255, 250, 240, 0.18),
+    inset 0 -5px 0 rgba(36, 22, 16, 0.16);
+}
+
+.arrival-van {
+  position: absolute;
+  left: 12%;
+  bottom: 20%;
+  z-index: 3;
+  width: min(210px, 24%);
+  aspect-ratio: 1.85;
+  border: 5px solid #343643;
+  background:
+    linear-gradient(90deg, #d8dfe7 0 62%, #b8c2cc 62%),
+    #d8dfe7;
+  box-shadow:
+    inset 0 -10px 0 rgba(36, 22, 16, 0.14),
+    6px 6px 0 rgba(36, 22, 16, 0.28);
+}
+
+.arrival-stage[data-scene="home"] .arrival-van {
+  transform: translateX(-18px);
+  filter: brightness(0.82);
+}
+
+.arrival-van::before,
+.arrival-van::after,
+.arrival-van span::before,
+.arrival-van span::after {
+  content: "";
+  position: absolute;
+  border: 4px solid #343643;
+}
+
+.arrival-van::before {
+  left: 14%;
+  top: 18%;
+  width: 22%;
+  height: 24%;
+  background: #79b8d9;
+}
+
+.arrival-van::after {
+  right: 14%;
+  top: 18%;
+  width: 18%;
+  height: 24%;
+  background: #79b8d9;
+}
+
+.arrival-van span::before,
+.arrival-van span::after {
+  bottom: -18%;
+  width: 24%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #262a36;
+}
+
+.arrival-van span::before {
+  left: 14%;
+}
+
+.arrival-van span::after {
+  right: 14%;
+}
+
+.arrival-player,
+.arrival-room-player {
+  position: absolute;
+  z-index: 4;
+  width: min(64px, 7.5%);
+  image-rendering: pixelated;
+  filter: drop-shadow(0 5px 0 rgba(36, 22, 16, 0.22));
+}
+
+.arrival-player {
+  left: 39%;
+  bottom: 19%;
+}
+
+.arrival-mom {
+  position: absolute;
+  left: 49%;
+  bottom: 19%;
+  z-index: 4;
+  width: min(54px, 6.5%);
+  aspect-ratio: 0.72;
+  filter: drop-shadow(0 5px 0 rgba(36, 22, 16, 0.22));
+}
+
+.arrival-mom::before {
+  content: "";
+  position: absolute;
+  left: 30%;
+  top: 0;
+  width: 40%;
+  aspect-ratio: 1;
+  border: 3px solid #343643;
+  border-radius: 50%;
+  background: #f3c18e;
+}
+
+.arrival-mom::after {
+  content: "";
+  position: absolute;
+  left: 17%;
+  top: 28%;
+  width: 66%;
+  height: 54%;
+  border: 3px solid #343643;
+  border-radius: 9px 9px 4px 4px;
+  background:
+    linear-gradient(#f07d2d 0 48%, #fffaf0 48%);
+}
+
+.arrival-mom span {
+  position: absolute;
+  left: 23%;
+  right: 23%;
+  bottom: 0;
+  height: 24%;
+  background:
+    linear-gradient(90deg, #343643 0 30%, transparent 30% 70%, #343643 70%);
+}
+
+.arrival-stage[data-scene="van"] .arrival-player,
+.arrival-stage[data-scene="van"] .arrival-mom {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.arrival-town-sign {
+  position: absolute;
+  right: 7%;
+  bottom: 33%;
+  z-index: 4;
+  border: 3px solid #343643;
+  padding: 6px 8px;
+  color: #211109;
+  background: #d8c777;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 250, 240, 0.28),
+    3px 3px 0 rgba(36, 22, 16, 0.26);
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(0.42rem, 1vw, 0.58rem);
+  line-height: 1.2;
+}
+
+.arrival-room-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 54%;
+  background:
+    linear-gradient(90deg, rgba(36, 22, 16, 0.13) 1px, transparent 1px) 0 0 / 34px 100%,
+    linear-gradient(0deg, rgba(36, 22, 16, 0.14) 1px, transparent 1px) 0 0 / 100% 34px,
+    #c58a54;
+}
+
+.arrival-rug {
+  position: absolute;
+  left: 38%;
+  bottom: 21%;
+  z-index: 1;
+  width: 24%;
+  height: 21%;
+  border: 4px solid #343643;
+  background:
+    linear-gradient(90deg, transparent 0 12%, rgba(255, 250, 240, 0.24) 12% 20%, transparent 20% 80%, rgba(255, 250, 240, 0.24) 80% 88%, transparent 88%),
+    linear-gradient(#4f87bc 0 50%, #2e617f 50%);
+  box-shadow:
+    inset 0 0 0 4px rgba(255, 250, 240, 0.18),
+    4px 4px 0 rgba(36, 22, 16, 0.18);
+}
+
+.arrival-bed,
+.arrival-desk,
+.arrival-pc,
+.arrival-tv,
+.arrival-window,
+.arrival-books {
+  position: absolute;
+  z-index: 2;
+  border: 4px solid #343643;
+  box-shadow: 4px 4px 0 rgba(36, 22, 16, 0.24);
+}
+
+.arrival-bed {
+  left: 9%;
+  top: 17%;
+  width: 24%;
+  height: 28%;
+  background:
+    linear-gradient(#fffaf0 0 32%, #d5472c 32%);
+}
+
+.arrival-desk {
+  right: 10%;
+  top: 23%;
+  width: 22%;
+  height: 20%;
+  background: #a86a43;
+}
+
+.arrival-pc {
+  right: 16%;
+  top: 12%;
+  width: 10%;
+  height: 13%;
+  background:
+    radial-gradient(circle at 50% 55%, #e5ffff 0 22%, transparent 23%),
+    #7f8794;
+}
+
+.arrival-tv {
+  left: 42%;
+  top: 20%;
+  width: 17%;
+  height: 16%;
+  background:
+    linear-gradient(#343643 0 18%, transparent 18%),
+    #5eb6c3;
+}
+
+.arrival-tv span {
+  position: absolute;
+  left: 50%;
+  top: -34%;
+  width: 54%;
+  height: 34%;
+  border-left: 3px solid #343643;
+  border-right: 3px solid #343643;
+  transform: translateX(-50%);
+}
+
+.arrival-window {
+  right: 39%;
+  top: 8%;
+  width: 14%;
+  height: 15%;
+  background:
+    linear-gradient(90deg, transparent 0 45%, #343643 45% 55%, transparent 55%),
+    linear-gradient(0deg, transparent 0 45%, #343643 45% 55%, transparent 55%),
+    #7bc5de;
+}
+
+.arrival-books {
+  right: 33%;
+  top: 28%;
+  width: 7%;
+  height: 12%;
+  background:
+    linear-gradient(90deg, #d5472c 0 28%, #fffaf0 28% 42%, #4f87bc 42% 70%, #d8c777 70%);
+}
+
+.arrival-room-player {
+  left: 47%;
+  bottom: 27%;
+  width: min(86px, 10%);
+}
+
+.arrival-dialogue {
+  position: relative;
+  z-index: 9;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 10px;
+  align-items: center;
+  border: 4px solid #343643;
+  border-radius: 0;
+  margin: 10px 18px 18px;
+  padding: 14px 16px;
+  background: #fffaf0;
+  box-shadow:
+    inset 0 0 0 2px #d2d5df,
+    0 0 0 3px #181a24;
+}
+
+.arrival-dialogue strong,
+.arrival-dialogue span {
+  display: block;
+}
+
+.arrival-dialogue strong {
+  margin-bottom: 8px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.62rem;
+}
+
+.arrival-dialogue span {
+  font-family: var(--game-text);
+  font-size: clamp(1.32rem, 2.5vw, 1.62rem);
+  font-weight: 400;
+  line-height: 1.12;
 }
 
 .rescue-stage,
@@ -5692,6 +6134,7 @@ dd {
 
   .title-gba-frame,
   .intro-gba-frame,
+  .arrival-gba-frame,
   .rescue-gba-frame,
   .starter-gba-frame {
     width: min(100%, calc(100vw - 16px));
@@ -5868,6 +6311,135 @@ dd {
 
   .intro-progress span {
     width: 38px;
+  }
+
+  .arrival-home.house-a {
+    left: 7%;
+    width: 20%;
+  }
+
+  .arrival-home.house-b {
+    right: 8%;
+    width: 19%;
+  }
+
+  .arrival-lab {
+    left: 36%;
+    width: 26%;
+  }
+
+  .arrival-road {
+    bottom: 13%;
+    height: 32%;
+  }
+
+  .arrival-van {
+    left: 7%;
+    bottom: 22%;
+    width: min(150px, 38%);
+    border-width: 4px;
+  }
+
+  .arrival-player,
+  .arrival-room-player {
+    width: min(52px, 13%);
+  }
+
+  .arrival-player {
+    left: 42%;
+    bottom: 22%;
+  }
+
+  .arrival-mom {
+    left: 55%;
+    bottom: 22%;
+    width: min(45px, 11%);
+  }
+
+  .arrival-town-sign {
+    right: 4%;
+    bottom: 38%;
+    border-width: 2px;
+    padding: 5px 6px;
+    font-size: 0.34rem;
+  }
+
+  .arrival-bed {
+    left: 7%;
+    top: 18%;
+    width: 27%;
+    height: 25%;
+    border-width: 3px;
+  }
+
+  .arrival-rug {
+    left: 34%;
+    bottom: 20%;
+    width: 32%;
+    height: 19%;
+    border-width: 3px;
+  }
+
+  .arrival-desk {
+    right: 6%;
+    top: 27%;
+    width: 25%;
+    height: 17%;
+    border-width: 3px;
+  }
+
+  .arrival-pc {
+    right: 13%;
+    top: 16%;
+    width: 13%;
+    height: 11%;
+    border-width: 3px;
+  }
+
+  .arrival-tv {
+    left: 42%;
+    top: 22%;
+    width: 19%;
+    height: 14%;
+    border-width: 3px;
+  }
+
+  .arrival-window {
+    right: 38%;
+    top: 9%;
+    width: 17%;
+    height: 13%;
+    border-width: 3px;
+  }
+
+  .arrival-books {
+    right: 33%;
+    top: 30%;
+    width: 9%;
+    height: 8%;
+    border-width: 3px;
+  }
+
+  .arrival-room-player {
+    left: 47%;
+    bottom: 29%;
+    width: min(64px, 16%);
+  }
+
+  .arrival-dialogue {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    border-top-width: 4px;
+    padding: 12px;
+  }
+
+  .arrival-dialogue strong {
+    font-size: 0.5rem;
+  }
+
+  .arrival-dialogue span {
+    font-size: 1.18rem;
+    line-height: 1.08;
   }
 
   .rescue-satchel {

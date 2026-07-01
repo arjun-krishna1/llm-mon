@@ -180,6 +180,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass against `storyboard_1_arrival_and_setup.png` panel 2 showed the professor intro still used abstract starter signal labels instead of the three LLMMON silhouettes called for in the storyboard. Replaced that beat with the finished Claude Fable, GPT 5.5, and GLM portrait assets on pixel-stage platforms, shifted Karpathy and the spotlight left during the reveal lines, and added mobile-specific sizing so the lineup remains inside the handheld frame. `npm run lint`, `npm run build`, and `git diff --check` passed. In-app browser QA was attempted twice on `http://127.0.0.1:5173/`, but the browser automation timed out before returning page state; standalone Playwright/Puppeteer packages are not installed, so this release is queued for a follow-up visual browser pass when tooling is available.
 
+- **[P2] Add Ruby-style Hayes Valley arrival setup before the rescue beat.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: opening-flow audit against `storyboard_1_arrival_and_setup.png` showed the game still jumped from Professor Karpathy's intro directly to the Octavia 101 rescue, skipping the moving van, Mom greeting, player room, and TV report beats that make the pre-starter flow feel like Pokemon Ruby. Added a playable arrival screen between intro and rescue with van/town, Hayes Valley sign, Mom/player reveal, room/TV/PC furniture, and A/Enter dialogue progression. Also fixed the opening 4:3 frame vertical overflow at `1280x720` and added keyboard A/Enter support to the rescue handoff. Verified with `npm run lint`, `npm run build`, `git diff --check`, and a temporary Playwright browser pass through title -> intro -> arrival van/home/room -> rescue -> starter on desktop `1280x720` and mobile `390x844`; both had no horizontal or vertical overflow and no console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

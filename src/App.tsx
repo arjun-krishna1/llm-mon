@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 
-type Screen = 'title' | 'intro' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge' | 'services' | 'pier' | 'mission' | 'menlo'
+type Screen = 'title' | 'intro' | 'arrival' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge' | 'services' | 'pier' | 'mission' | 'menlo'
 type StarterId = 'claude' | 'gpt' | 'glm'
 type BattleCommand = 'prompt' | 'bag' | 'swap'
 type BagCategory = 'orbs' | 'medicine' | 'field' | 'gear'
@@ -205,6 +205,24 @@ const introLines = [
   'These beings are not just programs. They are stories, tools, arguments, companions, and myths.',
   'Three starter signals are waiting in the satchel: a myth guardian, an omni toolrunner, and a graph-minded tactician.',
 ]
+
+const arrivalScenes = [
+  {
+    id: 'van',
+    speaker: 'MOM',
+    line: "We're here, honey! This is Hayes Valley.",
+  },
+  {
+    id: 'home',
+    speaker: 'MOM',
+    line: 'Your room is upstairs. Settle in, then say hello to the neighbors.',
+  },
+  {
+    id: 'room',
+    speaker: 'TV',
+    line: 'Director Norm is preparing a public demo at Menlo Park Alignment Gym.',
+  },
+] as const
 
 const dexEntries: DexEntry[] = [
   {
@@ -953,6 +971,85 @@ function IntroScreen({ onNext }: { onNext: () => void }) {
   )
 }
 
+function ArrivalScreen({ onNext }: { onNext: () => void }) {
+  const [sceneIndex, setSceneIndex] = useState(0)
+  const advanceLockRef = useRef(0)
+  const currentScene = arrivalScenes[sceneIndex]
+  const isFinalScene = sceneIndex === arrivalScenes.length - 1
+
+  const advanceArrival = useCallback(() => {
+    if (isFinalScene) {
+      onNext()
+      return
+    }
+    setSceneIndex((index) => index + 1)
+  }, [isFinalScene, onNext])
+
+  const triggerAdvance = useCallback(() => {
+    const now = window.performance.now()
+    if (now - advanceLockRef.current < 180) return
+    advanceLockRef.current = now
+    advanceArrival()
+  }, [advanceArrival])
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Enter' || event.key.toLowerCase() === 'a') {
+        event.preventDefault()
+        triggerAdvance()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [triggerAdvance])
+
+  return (
+    <section className="screen arrival-screen">
+      <div className="arrival-gba-frame">
+        <div className="arrival-stage" data-scene={currentScene.id}>
+          <div className="arrival-town" aria-hidden="true">
+            <div className="arrival-skyline">
+              <span className="arrival-home house-a" />
+              <span className="arrival-home house-b" />
+              <span className="arrival-lab" />
+            </div>
+            <div className="arrival-road" />
+            <div className="arrival-van">
+              <span />
+            </div>
+            <img className="arrival-player" src={asset('assets/kenney/chars/trainer.png')} alt="" />
+            <div className="arrival-mom">
+              <span />
+            </div>
+            <div className="arrival-town-sign">HAYES VALLEY</div>
+          </div>
+          <div className="arrival-room" aria-hidden="true">
+            <div className="arrival-room-floor" />
+            <div className="arrival-rug" />
+            <div className="arrival-bed" />
+            <div className="arrival-desk" />
+            <div className="arrival-pc" />
+            <div className="arrival-tv">
+              <span />
+            </div>
+            <img className="arrival-room-player" src={asset('assets/kenney/chars/trainer.png')} alt="" />
+            <div className="arrival-window" />
+            <div className="arrival-books" />
+          </div>
+        </div>
+        <div className="arrival-dialogue" onMouseDownCapture={triggerAdvance} onPointerDownCapture={triggerAdvance}>
+          <div>
+            <strong>{currentScene.speaker}</strong>
+            <span>{currentScene.line}</span>
+          </div>
+          <button className="dialogue-cue" type="button" onClick={triggerAdvance} onPointerUp={triggerAdvance} aria-label={isFinalScene ? 'Continue to Octavia 101 rescue' : 'Advance arrival scene'}>A</button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function StoryScreen({ onNext }: { onNext: () => void }) {
   const [canAdvance, setCanAdvance] = useState(false)
 
@@ -965,6 +1062,18 @@ function StoryScreen({ onNext }: { onNext: () => void }) {
     if (!canAdvance) return
     onNext()
   }, [canAdvance, onNext])
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Enter' || event.key.toLowerCase() === 'a') {
+        event.preventDefault()
+        handleNext()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleNext])
 
   return (
     <section className="screen story-screen rescue-screen">
@@ -2090,7 +2199,8 @@ export default function App() {
   return (
     <main className="app-shell">
       {screen === 'title' && <TitleScreen onStart={() => setScreen('intro')} />}
-      {screen === 'intro' && <IntroScreen onNext={() => setScreen('story')} />}
+      {screen === 'intro' && <IntroScreen onNext={() => setScreen('arrival')} />}
+      {screen === 'arrival' && <ArrivalScreen onNext={() => setScreen('story')} />}
       {screen === 'story' && <StoryScreen onNext={() => setScreen('starter')} />}
       {screen === 'starter' && (
         <StarterScreen
