@@ -132,6 +132,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass against the Ruby starter-bag reference showed the satchel still read as an oversized custom tray. Reduced and angled the bag, arranged prompt orbs around it, removed the redundant clipped active-orb name tag, kept the selected starter plaque as the label surface, and added a short rescue-scene entry guard so rapid input does not skip the rescue beat. Browser-tested desktop title -> professor -> rescue -> starter -> RPGJS field and mobile `390x844` starter selection with no horizontal overflow, no console errors, and selectable starter orbs still clickable.
 
+- **[P2] Add Ruby-style title badge and legendary energy veins.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass against the Ruby title reference showed the title silhouette was too flat and the version text read as plain title copy. Added a compact white version badge, stronger shadow treatment, and purple energy veins through the title legendary silhouette while preserving the 4:3 handheld frame. Browser-tested desktop and mobile title frames, then full desktop title -> professor -> rescue -> starter -> RPGJS field and mobile `390x844` title -> starter with no horizontal overflow or console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
