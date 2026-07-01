@@ -972,6 +972,58 @@ button:active {
     0 0 0 3px #181a24;
 }
 
+.starter-confirm-menu {
+  position: absolute;
+  right: 32px;
+  bottom: 110px;
+  z-index: 7;
+  display: grid;
+  gap: 8px;
+  min-width: 128px;
+  border: 4px solid #343643;
+  padding: 12px 14px;
+  background: #fffaf0;
+  box-shadow:
+    inset 0 0 0 2px #d2d5df,
+    0 0 0 3px #181a24,
+    0 8px 0 rgba(36, 22, 16, 0.25);
+}
+
+.starter-confirm-menu button {
+  position: relative;
+  display: block;
+  min-height: 0;
+  border: 0;
+  padding: 0 0 0 22px;
+  color: #211109;
+  background: transparent;
+  box-shadow: none;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.62rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.starter-confirm-menu button.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 10px solid #d5472c;
+  filter: drop-shadow(2px 2px 0 #241610);
+  transform: translateY(-50%);
+}
+
+.starter-confirm-menu button:hover,
+.starter-confirm-menu button:active {
+  box-shadow: none;
+  transform: none;
+}
+
 .rescue-dialogue strong,
 .rescue-dialogue span,
 .starter-dialogue strong,
@@ -5244,6 +5296,19 @@ dd {
     gap: 12px;
     border-top-width: 4px;
     padding: 12px;
+  }
+
+  .starter-confirm-menu {
+    right: 24px;
+    bottom: 106px;
+    min-width: 104px;
+    border-width: 3px;
+    padding: 10px 12px;
+  }
+
+  .starter-confirm-menu button {
+    padding-left: 19px;
+    font-size: 0.5rem;
   }
 
   .rescue-dialogue strong,

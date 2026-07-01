@@ -947,6 +947,21 @@ function StarterScreen({
   onSelect: (starter: Starter) => void
   onConfirm: () => void
 }) {
+  const [isConfirming, setIsConfirming] = useState(false)
+
+  const handleSelect = useCallback((starter: Starter) => {
+    setIsConfirming(false)
+    onSelect(starter)
+  }, [onSelect])
+
+  const handleConfirmCue = useCallback(() => {
+    setIsConfirming(true)
+  }, [])
+
+  const handleCancelConfirm = useCallback(() => {
+    setIsConfirming(false)
+  }, [])
+
   return (
     <section className="screen starter-screen">
       <div className="starter-gba-frame">
@@ -957,7 +972,7 @@ function StarterScreen({
           </div>
           <div className="starter-orb-ring starter-orb-tray" aria-label="Starter options">
             {starters.map((starter) => (
-              <button className={starter.id === selected.id ? `starter-orb-option active ${starter.palette}` : `starter-orb-option ${starter.palette}`} key={starter.id} onClick={() => onSelect(starter)} aria-label={`${starter.name} ${starter.types}`}>
+              <button className={starter.id === selected.id ? `starter-orb-option active ${starter.palette}` : `starter-orb-option ${starter.palette}`} key={starter.id} onClick={() => handleSelect(starter)} aria-label={`${starter.name} ${starter.types}`}>
                 <span className="prompt-orb" />
                 <small>{starter.name}</small>
               </button>
@@ -971,10 +986,16 @@ function StarterScreen({
         <div className="starter-dialogue">
           <div>
             <strong>{selected.name}</strong>
-            <span>{selected.types}. {selected.ability}. {selected.detail}</span>
+            <span>{isConfirming ? `Choose ${selected.name}?` : `${selected.types}. ${selected.ability}. ${selected.detail}`}</span>
           </div>
-          <button className="dialogue-cue" onClick={onConfirm} aria-label="Confirm starter">A</button>
+          <button className="dialogue-cue" onClick={handleConfirmCue} aria-label="Open starter confirmation">A</button>
         </div>
+        {isConfirming ? (
+          <div className="starter-confirm-menu" aria-label={`Confirm ${selected.name}`}>
+            <button className="active" type="button" onClick={onConfirm} aria-label={`Choose ${selected.name}`}>YES</button>
+            <button type="button" onClick={handleCancelConfirm} aria-label="Return to starter selection">NO</button>
+          </div>
+        ) : null}
       </div>
     </section>
   )

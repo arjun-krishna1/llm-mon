@@ -140,6 +140,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass against the Ruby professor intro reference showed Professor Karpathy still read like a cropped bust instead of a full-body sprite standing on the spotlight. Redrew `professor-karpathy.svg` with visible coat, legs, shoes, and raised hand while keeping the same asset path. Browser-tested desktop professor intro, desktop title -> professor -> rescue -> starter -> RPGJS field, and mobile `390x844` professor/starter flow with no horizontal overflow or console errors.
 
+- **[P2] Add classic starter choice confirmation menu.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: gameplay pass found the starter A cue immediately entered the field instead of showing a Ruby-style "Choose this?" confirmation beat. Added a local starter confirmation state with a gray-edged YES/NO menu, updated the dialogue prompt to ask for confirmation, made NO return to browsing, and reset the prompt when selecting another starter. Browser-tested desktop GPT -> NO -> GLM -> YES -> RPGJS field and mobile `390x844` YES/NO flow with no horizontal overflow or console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
