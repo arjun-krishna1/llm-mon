@@ -1278,9 +1278,10 @@ button:active {
   bottom: 0;
   height: 54%;
   background:
+    repeating-linear-gradient(0deg, rgba(255, 250, 240, 0.08) 0 2px, transparent 2px 8px),
     linear-gradient(90deg, rgba(36, 22, 16, 0.13) 1px, transparent 1px) 0 0 / 34px 100%,
     linear-gradient(0deg, rgba(36, 22, 16, 0.14) 1px, transparent 1px) 0 0 / 100% 34px,
-    #c58a54;
+    repeating-linear-gradient(0deg, #bd844e 0 17px, #c99258 17px 34px);
 }
 
 .arrival-rug {
@@ -1304,7 +1305,10 @@ button:active {
 .arrival-pc,
 .arrival-tv,
 .arrival-window,
-.arrival-books {
+.arrival-books,
+.arrival-room-shelf,
+.arrival-clock,
+.arrival-plant {
   position: absolute;
   z-index: 2;
   border: 4px solid #343643;
@@ -1312,39 +1316,65 @@ button:active {
 }
 
 .arrival-bed {
-  left: 9%;
-  top: 17%;
-  width: 24%;
+  left: 60%;
+  top: 18%;
+  width: 19%;
   height: 28%;
   background:
-    linear-gradient(#fffaf0 0 32%, #d5472c 32%);
+    linear-gradient(90deg, #fffaf0 0 28%, transparent 28%),
+    linear-gradient(#fffaf0 0 30%, #93b778 30% 82%, #6b9258 82%);
+}
+
+.arrival-bed::before {
+  content: "";
+  position: absolute;
+  right: 7%;
+  top: 8%;
+  width: 38%;
+  height: 26%;
+  border: 3px solid #343643;
+  background: #fffaf0;
 }
 
 .arrival-desk {
-  right: 10%;
-  top: 23%;
-  width: 22%;
-  height: 20%;
-  background: #a86a43;
+  left: 16%;
+  top: 24%;
+  width: 26%;
+  height: 18%;
+  background:
+    linear-gradient(90deg, transparent 0 32%, rgba(255, 250, 240, 0.16) 32% 38%, transparent 38%),
+    linear-gradient(#b87745 0 76%, #7d4c31 76%);
+}
+
+.arrival-desk::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -22%;
+  height: 22%;
+  background:
+    linear-gradient(90deg, #343643 0 10%, transparent 10% 90%, #343643 90%);
 }
 
 .arrival-pc {
-  right: 16%;
-  top: 12%;
-  width: 10%;
+  left: 22%;
+  top: 13%;
+  width: 12%;
   height: 13%;
   background:
     radial-gradient(circle at 50% 55%, #e5ffff 0 22%, transparent 23%),
-    #7f8794;
+    linear-gradient(#7f8794 0 72%, #59616f 72%);
 }
 
 .arrival-tv {
-  left: 42%;
+  left: 45%;
   top: 20%;
-  width: 17%;
+  width: 18%;
   height: 16%;
   background:
     linear-gradient(#343643 0 18%, transparent 18%),
+    linear-gradient(90deg, rgba(255, 250, 240, 0.72) 0 18%, transparent 18%),
     #5eb6c3;
 }
 
@@ -1360,10 +1390,10 @@ button:active {
 }
 
 .arrival-window {
-  right: 39%;
+  left: 47%;
   top: 8%;
-  width: 14%;
-  height: 15%;
+  width: 15%;
+  height: 14%;
   background:
     linear-gradient(90deg, transparent 0 45%, #343643 45% 55%, transparent 55%),
     linear-gradient(0deg, transparent 0 45%, #343643 45% 55%, transparent 55%),
@@ -1371,12 +1401,48 @@ button:active {
 }
 
 .arrival-books {
-  right: 33%;
-  top: 28%;
-  width: 7%;
-  height: 12%;
+  left: 35%;
+  top: 23%;
+  width: 8%;
+  height: 14%;
   background:
     linear-gradient(90deg, #d5472c 0 28%, #fffaf0 28% 42%, #4f87bc 42% 70%, #d8c777 70%);
+}
+
+.arrival-room-shelf {
+  left: 4%;
+  top: 13%;
+  width: 12%;
+  height: 32%;
+  background:
+    repeating-linear-gradient(0deg, #343643 0 4px, transparent 4px 28%),
+    repeating-linear-gradient(90deg, #8b5838 0 18%, #d8c777 18% 27%, #4f87bc 27% 41%, #9b5a61 41% 53%),
+    #6d432c;
+}
+
+.arrival-clock {
+  left: 43%;
+  top: 8%;
+  width: 5.5%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    linear-gradient(90deg, transparent 0 48%, #343643 48% 54%, transparent 54%),
+    linear-gradient(35deg, transparent 0 49%, #343643 49% 55%, transparent 55%),
+    #fffaf0;
+}
+
+.arrival-plant {
+  right: 7%;
+  top: 31%;
+  width: 6%;
+  height: 17%;
+  border-width: 3px;
+  background:
+    radial-gradient(circle at 28% 24%, #4f8d48 0 18%, transparent 19%),
+    radial-gradient(circle at 60% 18%, #5fa457 0 18%, transparent 19%),
+    radial-gradient(circle at 70% 40%, #36743a 0 18%, transparent 19%),
+    linear-gradient(#d8c777 48%, #9c6945 48%);
 }
 
 .arrival-room-player {
@@ -1451,7 +1517,7 @@ button:active {
 
 .approach-lab {
   background:
-    linear-gradient(#dce5ef 0 12%, #f2d06d 12% 48%, #9ec0d8 48%);
+    linear-gradient(#dce5ef 0 10%, #d7c59a 10% 48%, #9ec0d8 48%);
 }
 
 .approach-stage[data-scene="octavia"] .approach-lab {
@@ -1478,26 +1544,52 @@ button:active {
   bottom: 0;
   height: 52%;
   background:
+    radial-gradient(circle at 17px 17px, rgba(255, 250, 240, 0.12) 0 2px, transparent 3px) 0 0 / 34px 34px,
     linear-gradient(90deg, rgba(36, 22, 16, 0.12) 1px, transparent 1px) 0 0 / 34px 100%,
     linear-gradient(0deg, rgba(36, 22, 16, 0.12) 1px, transparent 1px) 0 0 / 100% 34px,
-    #a7c7df;
+    #b8cdd8;
 }
 
 .approach-whiteboard,
 .approach-gpu-rack,
 .approach-orb-table,
-.approach-lab-sign {
+.approach-lab-sign,
+.approach-lab-counter,
+.approach-lab-books,
+.approach-orb-machine,
+.approach-storage-crates {
   position: absolute;
   z-index: 2;
   border: 4px solid #343643;
   box-shadow: 4px 4px 0 rgba(36, 22, 16, 0.24);
 }
 
-.approach-whiteboard {
-  left: 9%;
+.approach-lab-counter {
+  left: 30%;
+  top: 13%;
+  width: 27%;
+  height: 15%;
+  background:
+    linear-gradient(90deg, #7f8794 0 18%, #fffaf0 18% 36%, #7f8794 36% 50%, #d8c777 50% 66%, #fffaf0 66% 82%, #7f8794 82%),
+    linear-gradient(#b98356 0 76%, #7d4c31 76%);
+}
+
+.approach-lab-books {
+  left: 8%;
   top: 14%;
-  width: 28%;
-  height: 22%;
+  width: 17%;
+  height: 32%;
+  background:
+    repeating-linear-gradient(0deg, #343643 0 4px, transparent 4px 30%),
+    repeating-linear-gradient(90deg, #4f5d70 0 20%, #d8c777 20% 30%, #5eb6c3 30% 44%, #7d4c31 44% 62%, #fffaf0 62% 72%),
+    #6f7f91;
+}
+
+.approach-whiteboard {
+  left: 39%;
+  top: 8%;
+  width: 18%;
+  height: 12%;
   background:
     linear-gradient(18deg, transparent 0 44%, rgba(17, 167, 181, 0.52) 44% 47%, transparent 47%),
     linear-gradient(-16deg, transparent 0 54%, rgba(213, 71, 44, 0.46) 54% 57%, transparent 57%),
@@ -1505,18 +1597,18 @@ button:active {
 }
 
 .approach-gpu-rack {
-  right: 11%;
-  top: 15%;
-  width: 20%;
-  height: 31%;
+  left: 61%;
+  top: 14%;
+  width: 17%;
+  height: 30%;
   background:
     repeating-linear-gradient(0deg, #343643 0 5px, transparent 5px 21px),
     repeating-linear-gradient(90deg, #6f7f91 0 20px, #4f5d70 20px 40px);
 }
 
 .approach-orb-table {
-  left: 38%;
-  top: 30%;
+  left: 41%;
+  top: 31%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1532,14 +1624,37 @@ button:active {
 }
 
 .approach-lab-sign {
-  left: 40%;
-  top: 11%;
+  left: 34%;
+  top: 29%;
   padding: 7px 10px;
   color: #211109;
   background: #fffaf0;
   font-family: "Press Start 2P", monospace;
   font-size: clamp(0.42rem, 1vw, 0.58rem);
   line-height: 1.2;
+}
+
+.approach-orb-machine {
+  right: 6%;
+  top: 15%;
+  width: 12%;
+  height: 30%;
+  border-radius: 3px;
+  background:
+    radial-gradient(circle at 50% 20%, #d5472c 0 18%, #fffaf0 19% 28%, #343643 29% 32%, transparent 33%),
+    linear-gradient(90deg, transparent 0 20%, rgba(255, 250, 240, 0.32) 20% 30%, transparent 30%),
+    linear-gradient(#8ca0ad 0 38%, #d2d5df 38% 56%, #7f8794 56%);
+}
+
+.approach-storage-crates {
+  right: 23%;
+  top: 8%;
+  width: 9%;
+  height: 13%;
+  background:
+    linear-gradient(90deg, transparent 0 48%, #8d623c 48% 54%, transparent 54%),
+    linear-gradient(0deg, transparent 0 48%, #8d623c 48% 54%, transparent 54%),
+    #d8c777;
 }
 
 .approach-player,
@@ -6786,7 +6901,7 @@ dd {
   }
 
   .arrival-bed {
-    left: 7%;
+    left: 61%;
     top: 18%;
     width: 27%;
     height: 25%;
@@ -6802,15 +6917,15 @@ dd {
   }
 
   .arrival-desk {
-    right: 6%;
+    left: 14%;
     top: 27%;
-    width: 25%;
+    width: 28%;
     height: 17%;
     border-width: 3px;
   }
 
   .arrival-pc {
-    right: 13%;
+    left: 23%;
     top: 16%;
     width: 13%;
     height: 11%;
@@ -6826,7 +6941,7 @@ dd {
   }
 
   .arrival-window {
-    right: 38%;
+    left: 47%;
     top: 9%;
     width: 17%;
     height: 13%;
@@ -6834,11 +6949,33 @@ dd {
   }
 
   .arrival-books {
-    right: 33%;
+    left: 36%;
     top: 30%;
     width: 9%;
     height: 8%;
     border-width: 3px;
+  }
+
+  .arrival-room-shelf {
+    left: 4%;
+    top: 16%;
+    width: 16%;
+    height: 28%;
+    border-width: 3px;
+  }
+
+  .arrival-clock {
+    left: 43%;
+    top: 9%;
+    width: 7%;
+    border-width: 3px;
+  }
+
+  .arrival-plant {
+    right: 5%;
+    top: 31%;
+    width: 7%;
+    height: 15%;
   }
 
   .arrival-room-player {
@@ -6859,28 +6996,33 @@ dd {
   }
 
   .arrival-dialogue span {
-    font-size: 1.18rem;
-    line-height: 1.08;
+    font-size: 0.96rem;
+    line-height: 1.1;
+  }
+
+  .approach-dialogue span {
+    font-size: 0.96rem;
+    line-height: 1.1;
   }
 
   .approach-whiteboard {
-    left: 6%;
-    top: 15%;
-    width: 30%;
-    height: 19%;
+    left: 38%;
+    top: 8%;
+    width: 21%;
+    height: 12%;
     border-width: 3px;
   }
 
   .approach-gpu-rack {
-    right: 6%;
-    top: 16%;
-    width: 22%;
+    left: 61%;
+    top: 15%;
+    width: 18%;
     height: 27%;
     border-width: 3px;
   }
 
   .approach-orb-table {
-    left: 39%;
+    left: 40%;
     top: 32%;
     width: 25%;
     height: 15%;
@@ -6894,8 +7036,8 @@ dd {
   }
 
   .approach-lab-sign {
-    left: 39%;
-    top: 12%;
+    left: 34%;
+    top: 28%;
     border-width: 2px;
     padding: 5px 6px;
     font-size: 0.34rem;

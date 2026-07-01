@@ -192,6 +192,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: starter-choice visual pass against `storyboard_2_professors_call_and_starter_choice.png` showed the satchel scene still relied on a side preview/custom plaque instead of a true in-world three-starter choice. Added visible Claude Fable, GPT 5.5, and GLM creature portraits above their prompt orbs, widened the satchel orbit, added persistent name tags with a red active cursor, removed the redundant large side preview, and tightened mobile dialogue sizing. Verified with `npm run lint`, `npm run build`, `git diff --check`, and a temporary Playwright browser pass through title -> intro -> arrival -> lab -> Octavia -> rescue -> starter on desktop `1280x720` and mobile `390x844`; starter switching, YES/NO confirmation, NO cancel, and confirmation reopen all passed with no horizontal or vertical overflow on the starter screen and no console errors.
 
+- **[P2] Add dense Ruby-style map detail to room and lab setup scenes.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass against `storyboard_1_arrival_and_setup.png`, `storyboard_2_professors_call_and_starter_choice.png`, `player_room_reference.png`, and `professor_lab_reference.png` showed the new room and lab beats still read as flat diagrams instead of top-down RPG maps. Added room shelf, clock, plant, repositioned bed/desk/PC/TV/window props, denser wood floor tiles, lab counters, bookshelves, whiteboard, storage crates, and a red orb machine, then tuned mobile overrides and dialogue sizing. Verified with `npm run lint`, `npm run build`, `git diff --check`, and a temporary Playwright browser pass through title -> intro -> arrival room -> lab -> Octavia -> rescue -> starter confirmation on desktop `1280x720` and mobile `390x844`; both passed with no horizontal or vertical overflow, no console errors, and working GLM confirmation.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

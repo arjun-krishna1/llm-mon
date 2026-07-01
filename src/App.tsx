@@ -1046,6 +1046,9 @@ function ArrivalScreen({ onNext }: { onNext: () => void }) {
             <div className="arrival-tv">
               <span />
             </div>
+            <div className="arrival-room-shelf" />
+            <div className="arrival-clock" />
+            <div className="arrival-plant" />
             <img className="arrival-room-player" src={asset('assets/kenney/chars/trainer.png')} alt="" />
             <div className="arrival-window" />
             <div className="arrival-books" />
@@ -1102,6 +1105,8 @@ function ApproachScreen({ onNext }: { onNext: () => void }) {
         <div className="approach-stage" data-scene={currentScene.id}>
           <div className="approach-lab" aria-hidden="true">
             <div className="approach-lab-floor" />
+            <div className="approach-lab-counter" />
+            <div className="approach-lab-books" />
             <div className="approach-whiteboard" />
             <div className="approach-gpu-rack" />
             <div className="approach-orb-table">
@@ -1109,6 +1114,8 @@ function ApproachScreen({ onNext }: { onNext: () => void }) {
                 <span className={`prompt-orb ${starter.palette}`} key={starter.id} />
               ))}
             </div>
+            <div className="approach-orb-machine" />
+            <div className="approach-storage-crates" />
             <img className="approach-player" src={asset('assets/kenney/chars/trainer.png')} alt="" />
             <div className="approach-aide">
               <span />
