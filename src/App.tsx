@@ -952,24 +952,82 @@ function StarterScreen({
   onConfirm: () => void
 }) {
   const [isConfirming, setIsConfirming] = useState(false)
+  const [confirmChoice, setConfirmChoice] = useState<'yes' | 'no'>('yes')
 
   const handleSelect = useCallback((starter: Starter) => {
     setIsConfirming(false)
+    setConfirmChoice('yes')
     onSelect(starter)
   }, [onSelect])
 
   const handleConfirmCue = useCallback(() => {
+    setConfirmChoice('yes')
     setIsConfirming(true)
   }, [])
 
   const handleCancelConfirm = useCallback(() => {
     setIsConfirming(false)
+    setConfirmChoice('yes')
   }, [])
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const key = event.key.toLowerCase()
+      const selectedIndex = starters.findIndex((starter) => starter.id === selected.id)
+
+      if (isConfirming) {
+        if (key === 'arrowup' || key === 'arrowdown' || key === 'w' || key === 's') {
+          event.preventDefault()
+          setConfirmChoice((choice) => (choice === 'yes' ? 'no' : 'yes'))
+          return
+        }
+
+        if (key === 'enter' || key === 'a') {
+          event.preventDefault()
+          if (confirmChoice === 'yes') {
+            onConfirm()
+            return
+          }
+          handleCancelConfirm()
+          return
+        }
+
+        if (key === 'escape' || key === 'b' || key === 'backspace') {
+          event.preventDefault()
+          handleCancelConfirm()
+        }
+
+        return
+      }
+
+      if (key === 'arrowleft' || key === 'arrowup' || key === 'w') {
+        event.preventDefault()
+        const nextIndex = (selectedIndex + starters.length - 1) % starters.length
+        handleSelect(starters[nextIndex])
+        return
+      }
+
+      if (key === 'arrowright' || key === 'arrowdown' || key === 'd' || key === 's') {
+        event.preventDefault()
+        const nextIndex = (selectedIndex + 1) % starters.length
+        handleSelect(starters[nextIndex])
+        return
+      }
+
+      if (key === 'enter' || key === 'a') {
+        event.preventDefault()
+        handleConfirmCue()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [confirmChoice, handleCancelConfirm, handleConfirmCue, handleSelect, isConfirming, onConfirm, selected.id])
 
   return (
     <section className="screen starter-screen">
       <div className="starter-gba-frame">
-        <div className="starter-stage">
+        <div className={`starter-stage starter-selected-${selected.id}`}>
           <div className="starter-satchel" aria-hidden="true">
             <span className="bag-flap" />
             <span className="bag-strap" />
@@ -996,8 +1054,8 @@ function StarterScreen({
         </div>
         {isConfirming ? (
           <div className="starter-confirm-menu" aria-label={`Confirm ${selected.name}`}>
-            <button className="active" type="button" onClick={onConfirm} aria-label={`Choose ${selected.name}`}>YES</button>
-            <button type="button" onClick={handleCancelConfirm} aria-label="Return to starter selection">NO</button>
+            <button className={confirmChoice === 'yes' ? 'active' : ''} type="button" onMouseEnter={() => setConfirmChoice('yes')} onClick={onConfirm} aria-label={`Choose ${selected.name}`}>YES</button>
+            <button className={confirmChoice === 'no' ? 'active' : ''} type="button" onMouseEnter={() => setConfirmChoice('no')} onClick={handleCancelConfirm} aria-label="Return to starter selection">NO</button>
           </div>
         ) : null}
       </div>

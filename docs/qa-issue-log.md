@@ -148,6 +148,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass against the Ruby professor intro reference showed the professor stage still felt too empty and unanchored after the sprite redraw. Added a layered olive top band, floor shadow, brighter oval spotlight, and a compact pixel nameplate that appears after the greeting so Professor Karpathy reads as a finished GBA-scale intro scene. Browser-tested desktop title -> professor line 1/2 -> rescue -> starter confirmation -> RPGJS field and mobile `390x844` professor -> starter flow with no horizontal overflow or console errors.
 
+- **[P2] Make starter selection feel like in-world orb picking instead of web buttons.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass found the starter orbs still behaved like browser buttons, with selection feedback depending on button scale rather than a Pokemon-style cursor. Converted the active starter state to use a red in-world cursor and orb halo, restyled the starter plaque as a gray-edged RPG label, and added keyboard browsing/confirmation so arrows/WASD move between orbs while A/Enter opens the YES/NO confirmation. Browser-tested desktop title -> professor -> rescue -> starter, keyboard GLM selection, A -> YES/NO menu, NO cancel, A -> YES -> RPGJS field, plus mobile `390x844` starter cursor/plaque with no horizontal overflow or console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
