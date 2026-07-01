@@ -200,6 +200,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass against `storyboard_2_professors_call_and_starter_choice.png` panel 3 and `professor_rescue_starter_bag_reference.png` showed the rescue beat still had an abstract striped field and empty edges rather than a Ruby-style grass-route encounter. Added a winding dirt path, upper/lower treeline, dirt patches, extra tall-grass walls, and retuned player/professor/hound/satchel positions so the scene reads as player-left, Professor Karpathy in danger, HalluciHound right, and starter satchel nearby. Verified with `npm run lint`, `npm run build`, `git diff --check`, and a temporary Playwright browser pass through Octavia -> rescue -> starter confirmation on desktop `1280x720` and mobile `390x844`; both passed with no horizontal or vertical overflow, no console errors, route props present, and working GLM confirmation.
 
+- **[P2] Add Ruby-style town detail to the Hayes Valley moving-truck arrival.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass against `storyboard_1_arrival_and_setup.png` panel 3 showed the first town arrival still read as sparse road and simple blocks, with Mom/player hidden until the next line. Added visible Mom/player on the moving-truck beat, branded the truck as `MYTHOS MOVERS`, enriched house/lab facades, and added tree clusters, flower beds, and a white fence to make the scene read like a Ruby town map. Verified with `npm run lint`, `npm run build`, `git diff --check`, and a temporary Playwright browser pass through title -> intro -> Hayes Valley arrival -> starter confirmation on desktop `1280x720` and mobile `390x844`; both passed with no horizontal or vertical overflow, no console errors, arrival props present, visible Mom/player, and working GLM confirmation.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

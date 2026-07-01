@@ -1027,8 +1027,13 @@ function ArrivalScreen({ onNext }: { onNext: () => void }) {
               <span className="arrival-home house-b" />
               <span className="arrival-lab" />
             </div>
+            <div className="arrival-town-trees" />
+            <span className="arrival-flower-bed bed-a" />
+            <span className="arrival-flower-bed bed-b" />
+            <div className="arrival-fence" />
             <div className="arrival-road" />
             <div className="arrival-van">
+              <strong>MYTHOS <br />MOVERS</strong>
               <span />
             </div>
             <img className="arrival-player" src={asset('assets/kenney/chars/trainer.png')} alt="" />

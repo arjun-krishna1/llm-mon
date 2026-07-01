@@ -1039,7 +1039,8 @@ button:active {
   top: 18%;
   height: 34%;
   background:
-    linear-gradient(transparent 0 60%, rgba(80, 132, 72, 0.82) 60%);
+    repeating-linear-gradient(90deg, rgba(255, 250, 240, 0.06) 0 2px, transparent 2px 7px),
+    linear-gradient(transparent 0 55%, rgba(80, 132, 72, 0.82) 55%);
 }
 
 .arrival-home,
@@ -1052,6 +1053,13 @@ button:active {
   box-shadow:
     inset 0 -8px 0 rgba(36, 22, 16, 0.14),
     5px 5px 0 rgba(36, 22, 16, 0.24);
+}
+
+.arrival-home {
+  background:
+    linear-gradient(90deg, transparent 0 67%, rgba(79, 135, 188, 0.72) 67% 88%, transparent 88%),
+    linear-gradient(0deg, rgba(36, 22, 16, 0.1) 0 12%, transparent 12%),
+    #fffaf0;
 }
 
 .arrival-home::before,
@@ -1080,6 +1088,11 @@ button:active {
   background: #7c5339;
 }
 
+.arrival-home span,
+.arrival-lab span {
+  display: none;
+}
+
 .arrival-home.house-a {
   left: 11%;
   width: 16%;
@@ -1097,7 +1110,8 @@ button:active {
   width: 22%;
   height: 48%;
   background:
-    linear-gradient(90deg, transparent 0 39%, #343643 39% 43%, transparent 43%),
+    linear-gradient(90deg, transparent 0 18%, #9bcce3 18% 34%, transparent 34% 39%, #343643 39% 43%, transparent 43% 67%, #9bcce3 67% 84%, transparent 84%),
+    linear-gradient(0deg, rgba(36, 22, 16, 0.1) 0 12%, transparent 12%),
     #dfe7ef;
 }
 
@@ -1126,20 +1140,95 @@ button:active {
     inset 0 -5px 0 rgba(36, 22, 16, 0.16);
 }
 
+.arrival-town-trees {
+  position: absolute;
+  inset: 11% 1% auto;
+  z-index: 2;
+  height: 24%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 4% 66%, #35783b 0 4.5%, transparent 4.9%),
+    radial-gradient(circle at 9% 47%, #5aa153 0 5.2%, transparent 5.6%),
+    radial-gradient(circle at 94% 66%, #35783b 0 4.5%, transparent 4.9%),
+    radial-gradient(circle at 88% 47%, #5aa153 0 5.2%, transparent 5.6%),
+    radial-gradient(circle at 71% 42%, #3f8742 0 4.6%, transparent 5%),
+    radial-gradient(circle at 30% 43%, #3f8742 0 4.6%, transparent 5%);
+  filter: drop-shadow(0 5px 0 rgba(36, 22, 16, 0.14));
+}
+
+.arrival-flower-bed {
+  position: absolute;
+  z-index: 3;
+  width: 11%;
+  height: 7%;
+  background:
+    radial-gradient(circle at 12% 70%, #fffaf0 0 5%, transparent 6%),
+    radial-gradient(circle at 28% 47%, #d5472c 0 6%, transparent 7%),
+    radial-gradient(circle at 48% 64%, #fffaf0 0 5%, transparent 6%),
+    radial-gradient(circle at 68% 41%, #d5472c 0 6%, transparent 7%),
+    radial-gradient(circle at 84% 66%, #fffaf0 0 5%, transparent 6%),
+    repeating-linear-gradient(106deg, transparent 0 5px, rgba(46, 120, 62, 0.76) 5px 8px, transparent 8px 15px);
+  clip-path: polygon(0 100%, 8% 35%, 17% 100%, 27% 23%, 38% 100%, 51% 20%, 63% 100%, 78% 30%, 90% 100%, 100% 44%, 100% 100%);
+}
+
+.arrival-flower-bed.bed-a {
+  left: 6%;
+  top: 47%;
+}
+
+.arrival-flower-bed.bed-b {
+  right: 8%;
+  top: 45%;
+  transform: scaleX(-1);
+}
+
+.arrival-fence {
+  position: absolute;
+  left: 5%;
+  bottom: 42%;
+  z-index: 3;
+  width: 22%;
+  height: 8%;
+  background:
+    repeating-linear-gradient(90deg, #fffaf0 0 5px, transparent 5px 18px),
+    linear-gradient(0deg, transparent 0 38%, #fffaf0 38% 52%, transparent 52%);
+  filter: drop-shadow(2px 3px 0 rgba(36, 22, 16, 0.22));
+}
+
 .arrival-van {
   position: absolute;
-  left: 12%;
-  bottom: 20%;
+  left: 10%;
+  bottom: 22%;
   z-index: 3;
-  width: min(210px, 24%);
+  width: min(246px, 28%);
   aspect-ratio: 1.85;
   border: 5px solid #343643;
   background:
-    linear-gradient(90deg, #d8dfe7 0 62%, #b8c2cc 62%),
+    linear-gradient(90deg, transparent 0 37%, #1d3554 37% 94%, transparent 94%),
+    linear-gradient(90deg, #d8dfe7 0 37%, #1d3554 37% 94%, #b8c2cc 94%),
     #d8dfe7;
   box-shadow:
     inset 0 -10px 0 rgba(36, 22, 16, 0.14),
     6px 6px 0 rgba(36, 22, 16, 0.28);
+}
+
+.arrival-van strong {
+  position: absolute;
+  left: 45%;
+  top: 25%;
+  z-index: 2;
+  width: 42%;
+  color: #f2d06d;
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(0.34rem, 0.9vw, 0.48rem);
+  line-height: 1.45;
+  text-align: center;
+  text-shadow: 2px 2px 0 rgba(36, 22, 16, 0.42);
+}
+
+.arrival-van span {
+  position: absolute;
+  inset: 0;
 }
 
 .arrival-stage[data-scene="home"] .arrival-van {
@@ -1159,17 +1248,20 @@ button:active {
 .arrival-van::before {
   left: 14%;
   top: 18%;
-  width: 22%;
+  width: 18%;
   height: 24%;
   background: #79b8d9;
 }
 
 .arrival-van::after {
-  right: 14%;
-  top: 18%;
-  width: 18%;
-  height: 24%;
-  background: #79b8d9;
+  left: 40%;
+  top: 26%;
+  width: 11%;
+  height: 32%;
+  border: 0;
+  background:
+    linear-gradient(45deg, transparent 0 43%, #f2d06d 43% 57%, transparent 57%),
+    linear-gradient(-45deg, transparent 0 43%, #f2d06d 43% 57%, transparent 57%);
 }
 
 .arrival-van span::before,
@@ -1250,8 +1342,8 @@ button:active {
 
 .arrival-stage[data-scene="van"] .arrival-player,
 .arrival-stage[data-scene="van"] .arrival-mom {
-  opacity: 0;
-  transform: translateY(8px);
+  opacity: 1;
+  transform: none;
 }
 
 .arrival-town-sign {
