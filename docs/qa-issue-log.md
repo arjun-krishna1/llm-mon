@@ -96,6 +96,18 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: mobile browser QA showed tutorial completion steps tucked under the Willa battle panel. Switched the mobile tutorial card to natural block flow, added step separation, and verified all three steps render below the battle stage on desktop and mobile.
 
+- **[P2] Rework opening intro into Ruby-style game sequence.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: rebuilt title, professor intro, rescue satchel, and starter-selection screens around framed handheld RPG compositions using the Chapter 1 Ruby/professor/satchel references. Browser-tested Press Start -> professor dialogue -> rescue -> starter choice -> RPGJS field, verified GLM selection updates the starter state, and confirmed no browser console errors.
+
+- **[P2] Remove concept-card art from gameplay-scale starter previews.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual QA found generated starter card art was unsuitable as an in-game sprite and could crop into a vertical artifact in the opening sequence. Replaced title/starter preview usage with CSS silhouette/orb treatments and replaced the rescue hound image with a compact silhouette for readable staging.
+
+- **[P3] Track in-app screenshot compositing artifact during intro QA.**
+  - Status: Open, pending Linear backfill.
+  - Evidence: the in-app browser DOM and interaction checks showed correct intro/starter element bounds and no console errors, but its screenshot capture repeatedly displayed a stale vertical artifact after the image usage was removed. Continue to use DOM checks plus an independent browser capture path when visual proof is required.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

@@ -20,13 +20,6 @@ interface Starter {
   palette: string
 }
 
-interface StoryPanel {
-  image: string
-  eyebrow: string
-  title: string
-  detail: string
-}
-
 interface DexEntry {
   id: string
   number: string
@@ -200,27 +193,6 @@ const starters: Starter[] = [
     detail: 'A jade graph-cat kirin with constellation markings and a calm tactical read on patterns.',
     image: asset('assets/llmmon/mythos/generated/starter_glm.png'),
     palette: 'glm',
-  },
-]
-
-const storyPanels: StoryPanel[] = [
-  {
-    image: asset('assets/llmmon/mythos/generated/storyboard_1_arrival_and_setup.png'),
-    eyebrow: 'Board A',
-    title: 'Arrival in Hayes Valley',
-    detail: 'Karpathy introduces the PromptDex, the moving van rolls in, and the player room frames the lab outside.',
-  },
-  {
-    image: asset('assets/llmmon/mythos/generated/storyboard_2_professors_call_and_starter_choice.png'),
-    eyebrow: 'Board B',
-    title: 'Octavia 101 Rescue',
-    detail: 'A HalluciHound corners the professor. Three Prompt Orbs glow inside the emergency satchel.',
-  },
-  {
-    image: asset('assets/llmmon/mythos/generated/storyboard_3_first_quests_and_early_gameplay.png'),
-    eyebrow: 'Board C',
-    title: 'First Routes and PromptDex',
-    detail: 'SoMa Node, Benchmark Pier, rival pressure, catching lessons, and the first locked Gym gate.',
   },
 ]
 
@@ -764,15 +736,6 @@ const menloStops: MenloStop[] = [
   },
 ]
 
-const chapterSteps = [
-  'Moving van arrival',
-  'Karpathy lab search',
-  'Starter rescue',
-  'PromptDex unlock',
-  'Benchmark Pier rival',
-  'Foundation Badge route',
-]
-
 const mapTiles = [
   'water', 'water', 'dock', 'grass', 'tree', 'tree', 'grass', 'grass',
   'water', 'dock', 'path', 'path', 'path', 'sign', 'grass', 'rescue',
@@ -847,19 +810,16 @@ function RpgRuntime() {
 function TitleScreen({ onStart }: { onStart: () => void }) {
   return (
     <section className="screen title-screen">
-      <img className="title-art" src={asset('assets/llmmon/mythos/generated/title_screen_claude_orange_final.png')} alt="" />
       <div className="scanlines" />
-      <div className="title-hud">
-        <p className="kicker">LLMMON Mythos</p>
-        <h1>The Foundation Badge</h1>
-        <p>Choose a starter, rescue Professor Karpathy, and take the first route toward Palo Alto.</p>
+      <div className="title-gba-frame">
+        <div className="title-logo-lockup">
+          <span className="title-logo-main">LLMMON</span>
+          <span className="title-logo-sub">MYTHOS</span>
+          <span className="title-version">Foundation Badge</span>
+        </div>
+        <div className="title-legendary-shadow" aria-hidden="true" />
         <button className="primary-action" onClick={onStart}>Press Start</button>
-      </div>
-      <div className="title-strip">
-        <span>Hayes Valley</span>
-        <span>Octavia 101</span>
-        <span>SoMa Node</span>
-        <span>Benchmark Pier</span>
+        <p className="title-copyright">© 2026 Karpathy Lab / LLMMON Mythos</p>
       </div>
     </section>
   )
@@ -900,38 +860,38 @@ function IntroScreen({ onNext }: { onNext: () => void }) {
 
   return (
     <section className="screen intro-screen">
-      <div className="intro-stage">
-        <div className="intro-spotlight" />
-        <div className="intro-professor-card">
-          <div className="promptdex-glow" aria-hidden="true">
-            <span />
+      <div className="intro-gba-frame">
+        <div className="intro-stage">
+          <div className="intro-curtain" aria-hidden="true" />
+          <div className="intro-spotlight" />
+          <div className="intro-professor-card">
+            <div className="promptdex-glow" aria-hidden="true">
+              <span />
+            </div>
+            <img src={asset('assets/kenney/chars/professor.png')} alt="" />
+            <div>
+              <p className="kicker">Professor Karpathy</p>
+              <h2>Welcome to LLMMON</h2>
+            </div>
           </div>
-          <img src={asset('assets/llmmon/professor-karpathy.svg')} alt="" />
-          <div>
-            <p className="kicker">Professor Karpathy</p>
-            <h2>Welcome to LLMMON</h2>
+          <div className="intro-signal-orbs" aria-label="Mystery starter signals">
+            {starters.map((starter) => (
+              <span className={`intro-signal-orb ${starter.palette}`} key={starter.id}>{starter.types}</span>
+            ))}
           </div>
         </div>
-        <div className="intro-silhouettes" aria-label="Mystery starter silhouettes">
-          {starters.map((starter) => (
-            <figure className={`intro-silhouette ${starter.palette}`} key={starter.id}>
-              <img src={starter.image} alt="" />
-              <figcaption>{starter.types}</figcaption>
-            </figure>
+        <div className="intro-dialogue" onMouseDownCapture={triggerAdvance} onPointerDownCapture={triggerAdvance}>
+          <div>
+            <strong>PROF. KARPATHY</strong>
+            <span>{currentLine}</span>
+          </div>
+          <button className="icon-button" type="button" onClick={triggerAdvance} onPointerUp={triggerAdvance} aria-label={isFinalLine ? 'Continue to storyboard' : 'Advance professor dialogue'}>A</button>
+        </div>
+        <div className="intro-progress" aria-label="Intro dialogue progress">
+          {introLines.map((line, index) => (
+            <span className={index <= lineIndex ? 'active' : ''} key={line} />
           ))}
         </div>
-      </div>
-      <div className="intro-dialogue" onMouseDownCapture={triggerAdvance} onPointerDownCapture={triggerAdvance}>
-        <div>
-          <strong>PROF. KARPATHY</strong>
-          <span>{currentLine}</span>
-        </div>
-        <button className="icon-button" type="button" onClick={triggerAdvance} onPointerUp={triggerAdvance} aria-label={isFinalLine ? 'Continue to storyboard' : 'Advance professor dialogue'}>A</button>
-      </div>
-      <div className="intro-progress" aria-label="Intro dialogue progress">
-        {introLines.map((line, index) => (
-          <span className={index <= lineIndex ? 'active' : ''} key={line} />
-        ))}
       </div>
     </section>
   )
@@ -939,29 +899,27 @@ function IntroScreen({ onNext }: { onNext: () => void }) {
 
 function StoryScreen({ onNext }: { onNext: () => void }) {
   return (
-    <section className="screen story-screen">
-      <header className="screen-header">
-        <p className="kicker">Storyboard lock</p>
-        <h2>Opening Slice Direction</h2>
-        <button className="icon-button" onClick={onNext} aria-label="Continue to starter selection">A</button>
-      </header>
-      <div className="story-grid">
-        {storyPanels.map((panel) => (
-          <article className="story-card" key={panel.title}>
-            <img src={panel.image} alt="" />
-            <div>
-              <p className="kicker">{panel.eyebrow}</p>
-              <h3>{panel.title}</h3>
-              <p>{panel.detail}</p>
-            </div>
-          </article>
-        ))}
+    <section className="screen story-screen rescue-screen">
+      <div className="rescue-gba-frame">
+        <div className="rescue-stage">
+          <div className="rescue-grass" aria-hidden="true" />
+          <div className="rescue-satchel" aria-hidden="true">
+            <span className="bag-flap" />
+            <span className="bag-strap" />
+          </div>
+          <div className="rescue-orbs" aria-label="Prompt Orbs in the emergency satchel">
+            {starters.map((starter) => (
+              <span className={`prompt-orb ${starter.palette}`} key={starter.id} />
+            ))}
+          </div>
+          <div className="rescue-hound" aria-hidden="true" />
+        </div>
+        <div className="rescue-dialogue">
+          <strong>PROF. KARPATHY</strong>
+          <span>Help! Grab a LLMMON from my satchel!</span>
+          <button className="icon-button" onClick={onNext} aria-label="Continue to starter selection">A</button>
+        </div>
       </div>
-      <ol className="chapter-rail">
-        {chapterSteps.map((step, index) => (
-          <li className={index < 3 ? 'complete' : index === 3 ? 'current' : ''} key={step}>{step}</li>
-        ))}
-      </ol>
     </section>
   )
 }
@@ -977,32 +935,32 @@ function StarterScreen({
 }) {
   return (
     <section className="screen starter-screen">
-      <header className="screen-header">
-        <p className="kicker">Karpathy's emergency satchel</p>
-        <h2>Choose Your Prompt Orb</h2>
-        <button className="icon-button" onClick={onConfirm} aria-label="Confirm starter">A</button>
-      </header>
-      <div className="starter-layout">
-        <div className={`starter-hero ${selected.palette}`}>
-          <img src={selected.image} alt="" />
-          <div className="starter-readout">
-            <p className="kicker">{selected.subtitle}</p>
-            <h3>{selected.name}</h3>
-            <dl>
-              <div><dt>Type</dt><dd>{selected.types}</dd></div>
-              <div><dt>Ability</dt><dd>{selected.ability}</dd></div>
-            </dl>
-            <p>{selected.detail}</p>
+      <div className="starter-gba-frame">
+        <div className="starter-stage">
+          <div className="starter-satchel" aria-hidden="true">
+            <span className="bag-flap" />
+            <span className="bag-strap" />
+          </div>
+          <div className="starter-orb-ring" aria-label="Starter options">
+            {starters.map((starter) => (
+              <button className={starter.id === selected.id ? `starter-orb-option active ${starter.palette}` : `starter-orb-option ${starter.palette}`} key={starter.id} onClick={() => onSelect(starter)} aria-label={`${starter.name} ${starter.types}`}>
+                <span className="prompt-orb" />
+                <small>{starter.name}</small>
+              </button>
+            ))}
+          </div>
+          <div className={`starter-preview-mon ${selected.palette}`}>
+            <span className={`starter-preview-orb prompt-orb ${selected.palette}`} aria-hidden="true" />
+            <span className="starter-preview-name">{selected.name}</span>
+            <span className="starter-preview-type">{selected.types}</span>
           </div>
         </div>
-        <div className="starter-list" aria-label="Starter options">
-          {starters.map((starter) => (
-            <button className={starter.id === selected.id ? 'starter-option active' : 'starter-option'} key={starter.id} onClick={() => onSelect(starter)}>
-              <img src={starter.image} alt="" />
-              <span>{starter.name}</span>
-              <small>{starter.types}</small>
-            </button>
-          ))}
+        <div className="starter-dialogue">
+          <div>
+            <strong>{selected.name}</strong>
+            <span>{selected.types}. {selected.ability}. {selected.detail}</span>
+          </div>
+          <button className="icon-button" onClick={onConfirm} aria-label="Confirm starter">A</button>
         </div>
       </div>
     </section>
