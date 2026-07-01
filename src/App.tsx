@@ -919,6 +919,15 @@ function StoryScreen({ onNext }: { onNext: () => void }) {
       <div className="rescue-gba-frame">
         <div className="rescue-stage">
           <div className="rescue-grass" aria-hidden="true" />
+          <div className="rescue-field-clearing" aria-hidden="true" />
+          <span className="rescue-tall-grass patch-a" aria-hidden="true" />
+          <span className="rescue-tall-grass patch-b" aria-hidden="true" />
+          <span className="rescue-tall-grass patch-c" aria-hidden="true" />
+          <img className="rescue-player-sprite" src={asset('assets/kenney/chars/trainer.png')} alt="" aria-hidden="true" />
+          <div className="rescue-professor-sprite" aria-hidden="true">
+            <img src={asset('assets/llmmon/professor-karpathy.svg')} alt="" />
+            <span className="rescue-alert-bubble" />
+          </div>
           <div className="rescue-satchel" aria-hidden="true">
             <span className="bag-flap" />
             <span className="bag-strap" />

@@ -152,6 +152,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass found the starter orbs still behaved like browser buttons, with selection feedback depending on button scale rather than a Pokemon-style cursor. Converted the active starter state to use a red in-world cursor and orb halo, restyled the starter plaque as a gray-edged RPG label, and added keyboard browsing/confirmation so arrows/WASD move between orbs while A/Enter opens the YES/NO confirmation. Browser-tested desktop title -> professor -> rescue -> starter, keyboard GLM selection, A -> YES/NO menu, NO cancel, A -> YES -> RPGJS field, plus mobile `390x844` starter cursor/plaque with no horizontal overflow or console errors.
 
+- **[P2] Reframe rescue beat as an in-field encounter.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass found the rescue beat still looked like a floating starter-bag illustration rather than the Ruby-style professor-in-trouble route moment. Added a route clearing, tall-grass patches, player sprite, Professor Karpathy field sprite, and an exclamation bubble around the existing satchel and HalluciHound staging so the scene reads as an actual encounter before starter choice. Browser-tested desktop title -> professor -> rescue -> starter confirmation -> RPGJS field and mobile `390x844` rescue -> starter flow with no horizontal overflow or console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
