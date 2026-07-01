@@ -204,6 +204,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass against `storyboard_1_arrival_and_setup.png` panel 3 showed the first town arrival still read as sparse road and simple blocks, with Mom/player hidden until the next line. Added visible Mom/player on the moving-truck beat, branded the truck as `MYTHOS MOVERS`, enriched house/lab facades, and added tree clusters, flower beds, and a white fence to make the scene read like a Ruby town map. Verified with `npm run lint`, `npm run build`, `git diff --check`, and a temporary Playwright browser pass through title -> intro -> Hayes Valley arrival -> starter confirmation on desktop `1280x720` and mobile `390x844`; both passed with no horizontal or vertical overflow, no console errors, arrival props present, visible Mom/player, and working GLM confirmation.
 
+- **[P2] Add the missing stepping-outside neighbor beat before Karpathy Lab.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass against `storyboard_1_arrival_and_setup.png` panel 6 showed the flow still jumped from the room/TV directly to Karpathy Lab, skipping the Ruby-style outside handoff where an NPC points the player toward the professor. Added a fourth arrival scene with the player back outside, a green-shirt neighbor NPC, exclamation bubble, truck dimming, and dialogue that directs the player to Octavia 101. Verified with `npm run lint`, `npm run build`, `git diff --check`, and a temporary Playwright browser pass through title -> intro -> van/home/room/outside -> lab -> starter confirmation on desktop `1280x720` and mobile `390x844`; both passed with no horizontal or vertical overflow, no console errors, visible neighbor/bubble state, and working GLM confirmation.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

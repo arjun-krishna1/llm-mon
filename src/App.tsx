@@ -222,6 +222,11 @@ const arrivalScenes = [
     speaker: 'TV',
     line: 'Director Norm is preparing a public demo at Menlo Park Alignment Gym.',
   },
+  {
+    id: 'outside',
+    speaker: 'NEIGHBOR',
+    line: 'Professor Karpathy is looking for you near Octavia 101!',
+  },
 ] as const
 
 const approachScenes = [
@@ -1040,6 +1045,10 @@ function ArrivalScreen({ onNext }: { onNext: () => void }) {
             <div className="arrival-mom">
               <span />
             </div>
+            <div className="arrival-neighbor">
+              <span />
+            </div>
+            <div className="arrival-warning-bubble">!</div>
             <div className="arrival-town-sign">HAYES VALLEY</div>
           </div>
           <div className="arrival-room" aria-hidden="true">

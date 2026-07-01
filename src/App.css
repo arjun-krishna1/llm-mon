@@ -1295,7 +1295,8 @@ button:active {
   bottom: 19%;
 }
 
-.arrival-mom {
+.arrival-mom,
+.arrival-neighbor {
   position: absolute;
   left: 49%;
   bottom: 19%;
@@ -1305,7 +1306,8 @@ button:active {
   filter: drop-shadow(0 5px 0 rgba(36, 22, 16, 0.22));
 }
 
-.arrival-mom::before {
+.arrival-mom::before,
+.arrival-neighbor::before {
   content: "";
   position: absolute;
   left: 30%;
@@ -1317,7 +1319,8 @@ button:active {
   background: #f3c18e;
 }
 
-.arrival-mom::after {
+.arrival-mom::after,
+.arrival-neighbor::after {
   content: "";
   position: absolute;
   left: 17%;
@@ -1330,7 +1333,20 @@ button:active {
     linear-gradient(#f07d2d 0 48%, #fffaf0 48%);
 }
 
-.arrival-mom span {
+.arrival-neighbor {
+  left: 60%;
+  bottom: 22%;
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.arrival-neighbor::after {
+  background:
+    linear-gradient(#2f8a55 0 48%, #343643 48%);
+}
+
+.arrival-mom span,
+.arrival-neighbor span {
   position: absolute;
   left: 23%;
   right: 23%;
@@ -1342,6 +1358,49 @@ button:active {
 
 .arrival-stage[data-scene="van"] .arrival-player,
 .arrival-stage[data-scene="van"] .arrival-mom {
+  opacity: 1;
+  transform: none;
+}
+
+.arrival-warning-bubble {
+  position: absolute;
+  left: 61.7%;
+  bottom: 37%;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 27px;
+  border: 3px solid #343643;
+  border-radius: 50%;
+  color: #d5472c;
+  background: #fffaf0;
+  box-shadow:
+    inset 0 0 0 2px #d2d5df,
+    2px 3px 0 rgba(36, 22, 16, 0.3);
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.72rem;
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.arrival-stage[data-scene="outside"] .arrival-van {
+  transform: translateX(-36px);
+  filter: brightness(0.72) saturate(0.82);
+}
+
+.arrival-stage[data-scene="outside"] .arrival-player {
+  left: 45%;
+  bottom: 22%;
+}
+
+.arrival-stage[data-scene="outside"] .arrival-mom {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.arrival-stage[data-scene="outside"] .arrival-neighbor,
+.arrival-stage[data-scene="outside"] .arrival-warning-bubble {
   opacity: 1;
   transform: none;
 }
@@ -7094,6 +7153,30 @@ dd {
     left: 55%;
     bottom: 22%;
     width: min(45px, 11%);
+  }
+
+  .arrival-neighbor {
+    left: 60%;
+    bottom: 25%;
+    width: min(43px, 11%);
+  }
+
+  .arrival-warning-bubble {
+    left: 63%;
+    bottom: 40%;
+    width: 26px;
+    height: 22px;
+    border-width: 2px;
+    font-size: 0.56rem;
+  }
+
+  .arrival-stage[data-scene="outside"] .arrival-van {
+    transform: translateX(-22px);
+  }
+
+  .arrival-stage[data-scene="outside"] .arrival-player {
+    left: 42%;
+    bottom: 25%;
   }
 
   .arrival-town-sign {
