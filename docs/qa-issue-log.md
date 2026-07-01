@@ -108,6 +108,14 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Open, pending Linear backfill.
   - Evidence: the in-app browser DOM and interaction checks showed correct intro/starter element bounds and no console errors, but its screenshot capture repeatedly displayed a stale vertical artifact after the image usage was removed. Continue to use DOM checks plus an independent browser capture path when visual proof is required.
 
+- **[P2] Tighten opening sequence against Pokemon Ruby intro references.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual audit against the local Ruby title, professor intro, and starter-bag references still showed modern card-like UI. Reworked the title frame, professor stage scale, rescue bag/orb layout, starter bag selection, and selected starter plaque to use flatter pixel-era staging. Desktop browser smoke verified Press Start -> professor -> rescue -> GPT starter -> RPGJS field with no console errors.
+
+- **[P2] Preserve bag-and-orb starter composition on mobile.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: after removing the side-menu starter layout, mobile overrides still targeted the old list/card composition. Updated the mobile breakpoint for professor scale, rescue bag/orbs, hound silhouette, starter orb tray, starter plaque, and dialogue box. Mobile browser DOM smoke verified title/professor/rescue/starter frames fit `390x844`, critical elements are visible, there is no horizontal overflow, and no console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

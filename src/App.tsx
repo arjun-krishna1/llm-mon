@@ -868,7 +868,7 @@ function IntroScreen({ onNext }: { onNext: () => void }) {
             <div className="promptdex-glow" aria-hidden="true">
               <span />
             </div>
-            <img src={asset('assets/kenney/chars/professor.png')} alt="" />
+            <img src={asset('assets/llmmon/professor-karpathy.svg')} alt="" />
             <div>
               <p className="kicker">Professor Karpathy</p>
               <h2>Welcome to LLMMON</h2>
@@ -941,7 +941,7 @@ function StarterScreen({
             <span className="bag-flap" />
             <span className="bag-strap" />
           </div>
-          <div className="starter-orb-ring" aria-label="Starter options">
+          <div className="starter-orb-ring starter-orb-tray" aria-label="Starter options">
             {starters.map((starter) => (
               <button className={starter.id === selected.id ? `starter-orb-option active ${starter.palette}` : `starter-orb-option ${starter.palette}`} key={starter.id} onClick={() => onSelect(starter)} aria-label={`${starter.name} ${starter.types}`}>
                 <span className="prompt-orb" />
@@ -950,7 +950,6 @@ function StarterScreen({
             ))}
           </div>
           <div className={`starter-preview-mon ${selected.palette}`}>
-            <span className={`starter-preview-orb prompt-orb ${selected.palette}`} aria-hidden="true" />
             <span className="starter-preview-name">{selected.name}</span>
             <span className="starter-preview-type">{selected.types}</span>
           </div>
