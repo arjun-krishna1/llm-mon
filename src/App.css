@@ -406,7 +406,8 @@ button:active {
   min-height: 0;
   overflow: hidden;
   background:
-    linear-gradient(#b4b45a 0 9%, #5f5c32 9% 13%, #050606 13%);
+    linear-gradient(#d3d06d 0 2%, #aaa74e 2% 8%, #625f31 8% 12%, #050606 12%),
+    #050606;
 }
 
 .intro-stage::before {
@@ -415,8 +416,22 @@ button:active {
   inset: 0;
   pointer-events: none;
   background:
+    radial-gradient(ellipse at 50% 73%, rgba(255, 244, 207, 0.08), transparent 21%),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.055) 0 2px, transparent 2px 5px);
   mix-blend-mode: screen;
+}
+
+.intro-stage::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 11%;
+  width: 36%;
+  height: 7%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.62);
+  transform: translateX(-50%);
+  filter: blur(0.4px);
 }
 
 .intro-curtain {
@@ -427,17 +442,36 @@ button:active {
   height: 13%;
   background:
     repeating-linear-gradient(0deg, rgba(255, 244, 207, 0.12) 0 2px, transparent 2px 5px),
-    linear-gradient(#c8c869, #6f6b36);
+    linear-gradient(#d9d779 0 16%, #b5b158 16% 54%, #746f38 54%);
+  box-shadow:
+    inset 0 -3px 0 rgba(36, 22, 16, 0.42),
+    0 4px 0 rgba(0, 0, 0, 0.58);
+}
+
+.intro-floor-ring {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  z-index: 1;
+  width: 35%;
+  height: 15%;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse, rgba(255, 244, 207, 0.78) 0 38%, rgba(218, 213, 108, 0.58) 39% 66%, transparent 67%);
+  transform: translateX(-50%);
+  filter: blur(0.25px);
 }
 
 .intro-spotlight {
   position: absolute;
   left: 50%;
-  bottom: 6%;
+  bottom: 10%;
+  z-index: 1;
   width: 31%;
-  height: 13%;
+  height: 12%;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(255, 244, 207, 0.88), rgba(209, 203, 101, 0.58) 64%, transparent 66%);
+  background:
+    radial-gradient(ellipse, rgba(255, 251, 201, 0.98) 0 42%, rgba(210, 205, 100, 0.72) 43% 63%, transparent 64%);
   transform: translateX(-50%);
   filter: blur(0.3px);
 }
@@ -453,11 +487,11 @@ button:active {
 .intro-professor-card {
   position: absolute;
   left: 50%;
-  bottom: 16%;
+  bottom: 16.5%;
   z-index: 2;
   display: grid;
   place-items: center;
-  width: min(104px, 12.5%);
+  width: min(116px, 13.5%);
   aspect-ratio: 1;
   padding: 0;
   color: #fff4cf;
@@ -467,17 +501,49 @@ button:active {
 
 .intro-professor-card img {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: 100%;
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
   image-rendering: pixelated;
-  filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.35));
+  filter:
+    drop-shadow(0 5px 0 rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 5px rgba(255, 244, 207, 0.12));
 }
 
 .intro-professor-card > div:last-child {
   display: none;
+}
+
+.intro-professor-nameplate {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 4px);
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  min-width: 164px;
+  border: 3px solid #343643;
+  padding: 5px 8px;
+  color: #343643;
+  background: #fffaf0;
+  box-shadow:
+    inset 0 0 0 2px #d2d5df,
+    3px 3px 0 rgba(0, 0, 0, 0.48);
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(0.42rem, 1vw, 0.58rem);
+  line-height: 1.25;
+  text-align: center;
+  transform: translateX(-50%);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.intro-stage[data-line="1"] .intro-professor-nameplate,
+.intro-stage[data-line="2"] .intro-professor-nameplate {
+  opacity: 1;
+  visibility: visible;
 }
 
 .intro-professor-card h2 {
@@ -5179,13 +5245,33 @@ dd {
 
   .intro-professor-card {
     bottom: 13%;
-    width: min(92px, 25%);
+    width: min(96px, 25%);
     min-height: 0;
     padding: 0;
   }
 
   .intro-professor-card img {
     width: 100%;
+  }
+
+  .intro-floor-ring {
+    bottom: 7%;
+    width: 56%;
+    height: 12%;
+  }
+
+  .intro-spotlight {
+    bottom: 9%;
+    width: 50%;
+    height: 10%;
+  }
+
+  .intro-professor-nameplate {
+    top: calc(100% + 2px);
+    min-width: min(150px, 68vw);
+    border-width: 2px;
+    padding: 4px 6px;
+    font-size: 0.4rem;
   }
 
   .promptdex-glow {

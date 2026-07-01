@@ -861,14 +861,18 @@ function IntroScreen({ onNext }: { onNext: () => void }) {
   return (
     <section className="screen intro-screen">
       <div className="intro-gba-frame">
-        <div className="intro-stage">
+        <div className="intro-stage" data-line={lineIndex}>
           <div className="intro-curtain" aria-hidden="true" />
-          <div className="intro-spotlight" />
+          <div className="intro-floor-ring" aria-hidden="true" />
+          <div className="intro-spotlight" aria-hidden="true" />
           <div className="intro-professor-card">
             <div className="promptdex-glow" aria-hidden="true">
               <span />
             </div>
             <img src={asset('assets/llmmon/professor-karpathy.svg')} alt="" />
+            <div className="intro-professor-nameplate" aria-hidden="true">
+              <span>PROF. KARPATHY</span>
+            </div>
             <div>
               <p className="kicker">Professor Karpathy</p>
               <h2>Welcome to LLMMON</h2>
