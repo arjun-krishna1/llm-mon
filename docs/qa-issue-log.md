@@ -160,6 +160,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: opening pass found Press Start still behaved like a web CTA that jumped directly into the professor intro. Added a Ruby-style NEW GAME / CONTINUE / OPTION command panel, keyboard A/Enter/Space start handling, B/Escape cancel, and a short stepped fade into the professor scene. Browser-tested desktop Press Start -> menu, Escape cancel, A reopen, Enter -> professor intro -> rescue -> starter confirmation -> RPGJS field, plus mobile `390x844` title menu -> professor handoff with no horizontal overflow or console errors.
 
+- **[P2] Add route-ground continuity to starter selection.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass found the rescue beat now reads like a route encounter, but the starter selection still flattened back into a display-like bag scene. Added a subtle route clearing, grass tufts, and pixel sparkles behind the satchel/orbs so the choice screen feels continuous with the professor rescue moment. Browser-tested desktop NEW GAME -> professor -> rescue -> starter -> confirmation -> RPGJS field and mobile `390x844` starter scene with no horizontal overflow or console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

@@ -921,6 +921,88 @@ button:active {
   pointer-events: none;
 }
 
+.starter-field-clearing {
+  position: absolute;
+  left: 14%;
+  right: 12%;
+  top: 18%;
+  bottom: 13%;
+  z-index: 1;
+  border-radius: 40% 46% 42% 44% / 44% 50% 45% 50%;
+  background:
+    radial-gradient(ellipse at 43% 35%, rgba(255, 244, 207, 0.34), transparent 42%),
+    linear-gradient(142deg, rgba(206, 185, 105, 0.34), rgba(74, 140, 75, 0.1) 70%);
+  box-shadow:
+    inset 0 0 0 2px rgba(73, 112, 58, 0.14),
+    0 5px 0 rgba(36, 22, 16, 0.08);
+  transform: rotate(-1.5deg);
+}
+
+.starter-tall-grass {
+  position: absolute;
+  z-index: 2;
+  width: 12%;
+  height: 8%;
+  background:
+    repeating-linear-gradient(106deg, transparent 0 5px, rgba(46, 120, 62, 0.62) 5px 8px, transparent 8px 15px),
+    repeating-linear-gradient(74deg, transparent 0 6px, rgba(104, 169, 84, 0.58) 6px 9px, transparent 9px 17px);
+  clip-path: polygon(0 100%, 6% 35%, 14% 100%, 22% 22%, 31% 100%, 42% 28%, 51% 100%, 62% 18%, 71% 100%, 82% 34%, 92% 100%, 100% 42%, 100% 100%);
+  opacity: 0.66;
+}
+
+.starter-tall-grass.patch-a {
+  left: 10%;
+  top: 24%;
+}
+
+.starter-tall-grass.patch-b {
+  right: 11%;
+  top: 22%;
+  transform: scaleX(-1);
+}
+
+.starter-sparkle {
+  position: absolute;
+  z-index: 5;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.starter-sparkle::before,
+.starter-sparkle::after {
+  content: "";
+  position: absolute;
+  background: #fffaf0;
+  box-shadow: 2px 2px 0 rgba(36, 22, 16, 0.22);
+}
+
+.starter-sparkle::before {
+  left: 8px;
+  top: 0;
+  width: 3px;
+  height: 18px;
+}
+
+.starter-sparkle::after {
+  left: 0;
+  top: 8px;
+  width: 18px;
+  height: 3px;
+}
+
+.starter-sparkle.sparkle-a {
+  left: 24%;
+  top: 33%;
+}
+
+.starter-sparkle.sparkle-b {
+  right: 24%;
+  top: 35%;
+  transform: scale(0.78);
+  opacity: 0.82;
+}
+
 .rescue-stage::before,
 .starter-stage::before {
   content: "";
@@ -5629,6 +5711,50 @@ dd {
     top: 42%;
     font-size: 0.38rem;
     transform: none;
+  }
+
+  .starter-field-clearing {
+    left: 4%;
+    right: 4%;
+    top: 18%;
+    bottom: 18%;
+  }
+
+  .starter-tall-grass.patch-a {
+    left: 4%;
+    top: 23%;
+  }
+
+  .starter-tall-grass.patch-b {
+    right: 3%;
+    top: 22%;
+  }
+
+  .starter-sparkle {
+    width: 14px;
+    height: 14px;
+  }
+
+  .starter-sparkle::before {
+    left: 6px;
+    height: 14px;
+    width: 2px;
+  }
+
+  .starter-sparkle::after {
+    top: 6px;
+    width: 14px;
+    height: 2px;
+  }
+
+  .starter-sparkle.sparkle-a {
+    left: 19%;
+    top: 31%;
+  }
+
+  .starter-sparkle.sparkle-b {
+    right: 18%;
+    top: 33%;
   }
 
   .rescue-orbs {

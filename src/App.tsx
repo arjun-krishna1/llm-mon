@@ -1082,6 +1082,11 @@ function StarterScreen({
     <section className="screen starter-screen">
       <div className="starter-gba-frame">
         <div className={`starter-stage starter-selected-${selected.id}`}>
+          <div className="starter-field-clearing" aria-hidden="true" />
+          <span className="starter-tall-grass patch-a" aria-hidden="true" />
+          <span className="starter-tall-grass patch-b" aria-hidden="true" />
+          <span className="starter-sparkle sparkle-a" aria-hidden="true" />
+          <span className="starter-sparkle sparkle-b" aria-hidden="true" />
           <div className="starter-satchel" aria-hidden="true">
             <span className="bag-flap" />
             <span className="bag-strap" />
