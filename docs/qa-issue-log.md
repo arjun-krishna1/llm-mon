@@ -124,6 +124,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass still showed bordered, shadowed outer frames around the title/professor/rescue/starter sequence. Removed the web-card border/shadow treatment, tightened the 4:3 frame to height-constrained black letterboxing, converted the title version badge to native title text, and added a click-through starter-stage label. Browser-tested desktop title/professor/rescue/starter and mobile `390x844` rescue/starter with no horizontal overflow, no console errors, and starter selection controls still tappable.
 
+- **[P2] Replace remaining opening dialogue chrome with Ruby-style text boxes.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass against the Ruby professor/starter references found the opening still had a visible round A-button cue, professor progress meter, and a lingering card-era professor sprite constraint. Replaced the cue with a blinking red dialogue cursor, switched intro/rescue/starter dialogue boxes to gray-edged RPG text boxes, hid the professor progress meter, removed the old `420px` professor-card minimum height, and verified the professor sprite sits on the spotlight. Browser-tested desktop title -> professor -> starter -> RPGJS field and mobile `390x844` title/professor/starter with no horizontal overflow and no console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

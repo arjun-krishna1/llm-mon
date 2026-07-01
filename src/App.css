@@ -387,7 +387,7 @@ button:active {
 
 .intro-gba-frame {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto 18px;
+  grid-template-rows: minmax(0, 1fr) auto;
   padding: 0;
 }
 
@@ -397,7 +397,7 @@ button:active {
   min-height: 0;
   overflow: hidden;
   background:
-    linear-gradient(#b4b45a 0 11%, #1f1b15 11% 18%, #020303 18%);
+    linear-gradient(#b4b45a 0 9%, #5f5c32 9% 13%, #050606 13%);
 }
 
 .intro-stage::before {
@@ -415,7 +415,7 @@ button:active {
   left: 0;
   right: 0;
   top: 0;
-  height: 18%;
+  height: 13%;
   background:
     repeating-linear-gradient(0deg, rgba(255, 244, 207, 0.12) 0 2px, transparent 2px 5px),
     linear-gradient(#c8c869, #6f6b36);
@@ -424,9 +424,9 @@ button:active {
 .intro-spotlight {
   position: absolute;
   left: 50%;
-  bottom: 8%;
-  width: 28%;
-  height: 12%;
+  bottom: 6%;
+  width: 31%;
+  height: 13%;
   border-radius: 50%;
   background: radial-gradient(ellipse, rgba(255, 244, 207, 0.88), rgba(209, 203, 101, 0.58) 64%, transparent 66%);
   transform: translateX(-50%);
@@ -444,11 +444,12 @@ button:active {
 .intro-professor-card {
   position: absolute;
   left: 50%;
-  bottom: 12%;
+  bottom: 16%;
   z-index: 2;
   display: grid;
   place-items: center;
-  width: min(118px, 14%);
+  width: min(104px, 12.5%);
+  aspect-ratio: 1;
   padding: 0;
   color: #fff4cf;
   background: transparent;
@@ -459,6 +460,9 @@ button:active {
   position: relative;
   z-index: 1;
   width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
   image-rendering: pixelated;
   filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.35));
 }
@@ -475,19 +479,7 @@ button:active {
 }
 
 .promptdex-glow {
-  position: absolute;
-  top: 18%;
-  right: -14%;
-  display: grid;
-  place-items: center;
-  width: 30px;
-  aspect-ratio: 1;
-  border: 3px solid rgba(255, 244, 207, 0.62);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle, #fff4cf 0 18%, transparent 19%),
-    radial-gradient(circle, rgba(17, 167, 181, 0.95), transparent 68%);
-  box-shadow: 0 0 34px rgba(17, 167, 181, 0.75);
+  display: none;
 }
 
 .promptdex-glow span {
@@ -620,11 +612,13 @@ button:active {
   gap: 10px;
   align-items: center;
   margin: 10px 18px 0;
-  border: 5px solid #241610;
+  border: 4px solid #343643;
   padding: 14px 16px;
   color: #211109;
-  background: #fff4cf;
-  box-shadow: 0 4px 0 #6d2b18;
+  background: #fffaf0;
+  box-shadow:
+    inset 0 0 0 2px #d2d5df,
+    0 0 0 3px #181a24;
 }
 
 .intro-dialogue strong,
@@ -647,37 +641,59 @@ button:active {
 .dialogue-cue {
   align-self: end;
   justify-self: end;
+  position: relative;
   display: grid;
   place-items: center;
-  width: 30px;
-  min-width: 30px;
+  width: 34px;
+  min-width: 34px;
   height: 30px;
   min-height: 30px;
-  border: 3px solid #241610;
-  border-radius: 50%;
+  border: 0;
+  border-radius: 0;
   padding: 0;
-  color: #241610;
-  background: #ffe374;
-  box-shadow: 0 3px 0 #6d2b18;
+  color: transparent;
+  background: transparent;
+  box-shadow: none;
   font-family: "Press Start 2P", monospace;
-  font-size: 0.58rem;
+  font-size: 0;
   line-height: 1;
 }
 
-.dialogue-cue:hover {
-  transform: translateY(1px);
-  box-shadow: 0 2px 0 #6d2b18;
+.dialogue-cue::before {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 12px solid #d5472c;
+  filter: drop-shadow(2px 2px 0 #241610);
+  animation: dialogueCursorBlink 1s steps(2, end) infinite;
 }
 
-.dialogue-cue:active {
-  transform: translateY(3px);
+.dialogue-cue:hover {
+  transform: none;
   box-shadow: none;
 }
 
+.dialogue-cue:active {
+  transform: translateX(2px);
+  box-shadow: none;
+}
+
+@keyframes dialogueCursorBlink {
+  0%,
+  52% {
+    opacity: 1;
+  }
+  53%,
+  100% {
+    opacity: 0.35;
+  }
+}
+
 .intro-progress {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
+  display: none;
 }
 
 .intro-progress span {
@@ -909,12 +925,14 @@ button:active {
   grid-template-columns: minmax(0, 1fr) 34px;
   gap: 10px;
   align-items: center;
-  border: 5px solid #241610;
+  border: 4px solid #343643;
   border-radius: 0;
   margin: 10px 18px 18px;
   padding: 14px 16px;
-  background: #fff4cf;
-  box-shadow: 0 4px 0 #6d2b18;
+  background: #fffaf0;
+  box-shadow:
+    inset 0 0 0 2px #d2d5df,
+    0 0 0 3px #181a24;
 }
 
 .rescue-dialogue strong,
@@ -4713,7 +4731,8 @@ dd {
   }
 
   .intro-professor-card {
-    min-height: 420px;
+    min-height: 0;
+    height: auto;
   }
 
   .intro-silhouette {
