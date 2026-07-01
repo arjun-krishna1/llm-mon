@@ -116,6 +116,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: after removing the side-menu starter layout, mobile overrides still targeted the old list/card composition. Updated the mobile breakpoint for professor scale, rescue bag/orbs, hound silhouette, starter orb tray, starter plaque, and dialogue box. Mobile browser DOM smoke verified title/professor/rescue/starter frames fit `390x844`, critical elements are visible, there is no horizontal overflow, and no console errors.
 
+- **[P2] Replace intro-screen round A-buttons with classic dialogue cues.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass found the opening still exposed standalone circular command buttons that read as custom web UI instead of a Pokemon-style dialogue prompt. Replaced intro, rescue, and starter command buttons with compact in-box dialogue cues. Desktop browser smoke verified professor -> rescue -> starter -> GLM -> RPGJS field with no console errors; mobile DOM smoke verified the cue is visible in intro/rescue/starter and no horizontal overflow.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

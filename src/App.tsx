@@ -885,7 +885,7 @@ function IntroScreen({ onNext }: { onNext: () => void }) {
             <strong>PROF. KARPATHY</strong>
             <span>{currentLine}</span>
           </div>
-          <button className="icon-button" type="button" onClick={triggerAdvance} onPointerUp={triggerAdvance} aria-label={isFinalLine ? 'Continue to storyboard' : 'Advance professor dialogue'}>A</button>
+          <button className="dialogue-cue" type="button" onClick={triggerAdvance} onPointerUp={triggerAdvance} aria-label={isFinalLine ? 'Continue to storyboard' : 'Advance professor dialogue'}>A</button>
         </div>
         <div className="intro-progress" aria-label="Intro dialogue progress">
           {introLines.map((line, index) => (
@@ -915,9 +915,11 @@ function StoryScreen({ onNext }: { onNext: () => void }) {
           <div className="rescue-hound" aria-hidden="true" />
         </div>
         <div className="rescue-dialogue">
-          <strong>PROF. KARPATHY</strong>
-          <span>Help! Grab a LLMMON from my satchel!</span>
-          <button className="icon-button" onClick={onNext} aria-label="Continue to starter selection">A</button>
+          <div>
+            <strong>PROF. KARPATHY</strong>
+            <span>Help! Grab a LLMMON from my satchel!</span>
+          </div>
+          <button className="dialogue-cue" onClick={onNext} aria-label="Continue to starter selection">A</button>
         </div>
       </div>
     </section>
@@ -959,7 +961,7 @@ function StarterScreen({
             <strong>{selected.name}</strong>
             <span>{selected.types}. {selected.ability}. {selected.detail}</span>
           </div>
-          <button className="icon-button" onClick={onConfirm} aria-label="Confirm starter">A</button>
+          <button className="dialogue-cue" onClick={onConfirm} aria-label="Confirm starter">A</button>
         </div>
       </div>
     </section>

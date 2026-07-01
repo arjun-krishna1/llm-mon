@@ -615,12 +615,15 @@ button:active {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 10px;
   align-items: center;
-  padding: 18px;
+  margin: 10px 18px 0;
+  border: 5px solid #241610;
+  padding: 14px 16px;
   color: #211109;
   background: #fff4cf;
+  box-shadow: 0 4px 0 #6d2b18;
 }
 
 .intro-dialogue strong,
@@ -638,6 +641,36 @@ button:active {
   font-size: clamp(1rem, 1.8vw, 1.22rem);
   font-weight: 900;
   line-height: 1.55;
+}
+
+.dialogue-cue {
+  align-self: end;
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  border: 3px solid #241610;
+  border-radius: 50%;
+  padding: 0;
+  color: #241610;
+  background: #ffe374;
+  box-shadow: 0 3px 0 #6d2b18;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.58rem;
+  line-height: 1;
+}
+
+.dialogue-cue:hover {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 #6d2b18;
+}
+
+.dialogue-cue:active {
+  transform: translateY(3px);
+  box-shadow: none;
 }
 
 .intro-progress {
@@ -853,13 +886,13 @@ button:active {
   position: relative;
   z-index: 5;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 10px;
   align-items: center;
   border: 5px solid #241610;
   border-radius: 0;
-  margin: 14px 18px 18px;
-  padding: 16px;
+  margin: 10px 18px 18px;
+  padding: 14px 16px;
   background: #fff4cf;
   box-shadow: 0 4px 0 #6d2b18;
 }
