@@ -642,33 +642,128 @@ button:active {
     #11a7b5;
 }
 
-.intro-signal-orbs {
-  display: none;
+.intro-starter-lineup {
+  position: absolute;
+  left: 53.5%;
+  right: 8.5%;
+  bottom: 13.5%;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: min(12px, 1.2vw);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 280ms steps(4, end),
+    transform 280ms steps(4, end);
 }
 
-.intro-signal-orb {
-  border: 3px solid rgba(255, 244, 207, 0.42);
-  border-radius: 999px;
-  padding: 6px 8px;
-  color: #fff4cf;
-  background: rgba(36, 22, 16, 0.62);
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.42rem;
-  line-height: 1.35;
-  text-align: center;
-  filter: brightness(0.68);
+.intro-stage[data-line="1"] .intro-starter-lineup,
+.intro-stage[data-line="2"] .intro-starter-lineup {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.intro-signal-orb.anthropic {
-  box-shadow: inset 16px 0 0 #f07d2d;
+.intro-stage[data-line="1"] .intro-professor-card,
+.intro-stage[data-line="2"] .intro-professor-card {
+  left: 28%;
 }
 
-.intro-signal-orb.openai {
-  box-shadow: inset 16px 0 0 #11a7b5;
+.intro-stage[data-line="1"]::after,
+.intro-stage[data-line="2"]::after {
+  left: 28%;
+  width: 28%;
 }
 
-.intro-signal-orb.glm {
-  box-shadow: inset 16px 0 0 #1e9f68;
+.intro-stage[data-line="1"] .intro-floor-ring,
+.intro-stage[data-line="2"] .intro-floor-ring,
+.intro-stage[data-line="1"] .intro-spotlight,
+.intro-stage[data-line="2"] .intro-spotlight {
+  left: 28%;
+}
+
+.intro-starter-reveal {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  min-width: 0;
+  aspect-ratio: 0.82;
+  margin: 0;
+  filter:
+    drop-shadow(0 5px 0 rgba(0, 0, 0, 0.45))
+    brightness(0.88)
+    saturate(1.05);
+}
+
+.intro-starter-reveal:nth-child(1) {
+  transform: translateY(8%);
+}
+
+.intro-starter-reveal:nth-child(2) {
+  transform: translateY(-3%);
+}
+
+.intro-starter-reveal:nth-child(3) {
+  transform: translateY(7%);
+}
+
+.intro-starter-reveal::before {
+  content: "";
+  position: absolute;
+  inset: 14% 2% 16%;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(255, 244, 207, 0.5), rgba(255, 244, 207, 0.08) 56%, transparent 73%);
+  opacity: 0.78;
+}
+
+.intro-starter-reveal img {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: min(112px, 100%);
+  height: auto;
+  image-rendering: pixelated;
+  mask-image: radial-gradient(ellipse at 50% 54%, #000 0 59%, rgba(0, 0, 0, 0.7) 68%, transparent 77%);
+}
+
+.intro-starter-platform {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 8%;
+  z-index: 1;
+  height: 18%;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(255, 250, 240, 0.62), rgba(12, 12, 8, 0.28) 68%, transparent 74%);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+.intro-starter-reveal.anthropic {
+  filter:
+    drop-shadow(0 5px 0 rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 10px rgba(240, 125, 45, 0.36))
+    brightness(0.88)
+    saturate(1.05);
+}
+
+.intro-starter-reveal.openai {
+  filter:
+    drop-shadow(0 5px 0 rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 10px rgba(17, 167, 181, 0.34))
+    brightness(0.88)
+    saturate(1.05);
+}
+
+.intro-starter-reveal.glm {
+  filter:
+    drop-shadow(0 5px 0 rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 10px rgba(30, 159, 104, 0.34))
+    brightness(0.88)
+    saturate(1.05);
 }
 
 .intro-silhouettes {
@@ -5708,14 +5803,29 @@ dd {
     border-width: 2px;
   }
 
-  .intro-signal-orbs {
-    display: none;
+  .intro-stage[data-line="1"] .intro-professor-card,
+  .intro-stage[data-line="2"] .intro-professor-card {
+    left: 24%;
   }
 
-  .intro-signal-orb {
-    border-width: 2px;
-    padding: 5px 6px;
-    font-size: 0.34rem;
+  .intro-stage[data-line="1"]::after,
+  .intro-stage[data-line="2"]::after,
+  .intro-stage[data-line="1"] .intro-floor-ring,
+  .intro-stage[data-line="2"] .intro-floor-ring,
+  .intro-stage[data-line="1"] .intro-spotlight,
+  .intro-stage[data-line="2"] .intro-spotlight {
+    left: 24%;
+  }
+
+  .intro-starter-lineup {
+    left: 42%;
+    right: 5%;
+    bottom: 15%;
+    gap: 5px;
+  }
+
+  .intro-starter-reveal img {
+    width: min(72px, 100%);
   }
 
   .intro-silhouettes {

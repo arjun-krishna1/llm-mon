@@ -176,6 +176,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass against the bundled Ruby title reference and generated Chapter 1 title asset showed the CSS-built title still looked less finished than the provided art. Swapped the title frame to use `title_screen_claude_orange_final.png` as the visible cartridge title, hid duplicate CSS logo/legendary/copyright layers, preserved the invisible Press Start hit area and Ruby-style NEW GAME menu overlay, and kept the mobile title frame at a true 4:3 aspect ratio. Browser-tested desktop title asset loading, Press Start -> title menu, title menu -> professor -> rescue -> starter with no horizontal overflow or console errors before the final mobile-only frame adjustment; follow-up mobile screenshot capture/viewport control in the in-app browser repeatedly timed out, so mobile was verified by CSS media-rule inspection plus lint/build.
 
+- **[P2] Show starter creatures during Professor Karpathy's intro.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass against `storyboard_1_arrival_and_setup.png` panel 2 showed the professor intro still used abstract starter signal labels instead of the three LLMMON silhouettes called for in the storyboard. Replaced that beat with the finished Claude Fable, GPT 5.5, and GLM portrait assets on pixel-stage platforms, shifted Karpathy and the spotlight left during the reveal lines, and added mobile-specific sizing so the lineup remains inside the handheld frame. `npm run lint`, `npm run build`, and `git diff --check` passed. In-app browser QA was attempted twice on `http://127.0.0.1:5173/`, but the browser automation timed out before returning page state; standalone Playwright/Puppeteer packages are not installed, so this release is queued for a follow-up visual browser pass when tooling is available.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

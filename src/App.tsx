@@ -927,9 +927,12 @@ function IntroScreen({ onNext }: { onNext: () => void }) {
               <h2>Welcome to LLMMON</h2>
             </div>
           </div>
-          <div className="intro-signal-orbs" aria-label="Mystery starter signals">
+          <div className="intro-starter-lineup" aria-label="Mystery starter LLMMON">
             {starters.map((starter) => (
-              <span className={`intro-signal-orb ${starter.palette}`} key={starter.id}>{starter.types}</span>
+              <figure className={`intro-starter-reveal ${starter.palette}`} key={starter.id}>
+                <span className="intro-starter-platform" aria-hidden="true" />
+                <img src={starter.portrait} alt="" />
+              </figure>
             ))}
           </div>
         </div>
