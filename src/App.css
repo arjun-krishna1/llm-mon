@@ -2273,11 +2273,11 @@ button:active {
 }
 
 .starter-orb-ring {
-  left: 43%;
-  top: 40%;
-  width: min(360px, 42%);
-  height: min(218px, 30%);
-  transform: translate(-50%, -50%) rotate(-9deg);
+  left: 41%;
+  top: 43%;
+  width: min(455px, 52%);
+  height: min(286px, 42%);
+  transform: translate(-50%, -50%) rotate(-7deg);
 }
 
 .starter-orb-option {
@@ -2296,20 +2296,20 @@ button:active {
 
 .starter-orb-option:nth-child(1) {
   position: absolute;
-  left: 4%;
-  top: 50%;
+  left: 2%;
+  top: 42%;
 }
 
 .starter-orb-option:nth-child(2) {
   position: absolute;
-  left: 43%;
-  top: 68%;
+  left: 41%;
+  top: 62%;
 }
 
 .starter-orb-option:nth-child(3) {
   position: absolute;
-  right: 6%;
-  top: 36%;
+  right: 4%;
+  top: 34%;
 }
 
 .starter-orb-option.active {
@@ -2322,8 +2322,8 @@ button:active {
   content: "";
   position: absolute;
   left: 50%;
-  top: -23px;
-  z-index: 6;
+  top: -86px;
+  z-index: 8;
   width: 0;
   height: 0;
   border-right: 9px solid transparent;
@@ -2385,25 +2385,99 @@ button:active {
     0 0 20px rgba(255, 244, 207, 0.72);
 }
 
+.starter-choice-silhouette {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  z-index: 4;
+  display: grid;
+  place-items: end center;
+  width: min(92px, 10vw);
+  aspect-ratio: 0.82;
+  pointer-events: none;
+  transform: translateX(-50%) rotate(7deg);
+  filter:
+    drop-shadow(0 5px 0 rgba(36, 22, 16, 0.28))
+    brightness(0.72)
+    saturate(0.86);
+  opacity: 0.78;
+}
+
+.starter-choice-silhouette::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 4%;
+  height: 17%;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(255, 250, 240, 0.58), rgba(36, 22, 16, 0.16) 66%, transparent 72%);
+}
+
+.starter-choice-silhouette img {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  mask-image: radial-gradient(ellipse at 50% 54%, #000 0 59%, rgba(0, 0, 0, 0.7) 68%, transparent 77%);
+}
+
+.starter-orb-option.active .starter-choice-silhouette {
+  filter:
+    drop-shadow(0 6px 0 rgba(36, 22, 16, 0.32))
+    brightness(1.04)
+    saturate(1.12);
+  opacity: 1;
+  transform: translateX(-50%) translateY(-5px) rotate(7deg);
+}
+
 .starter-orb-option small {
-  display: none;
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  z-index: 7;
+  display: block;
+  min-width: 126px;
+  border: 3px solid #343643;
+  padding: 6px 7px;
+  color: #211109;
+  background: #fffaf0;
+  box-shadow:
+    inset 0 0 0 2px #d2d5df,
+    3px 3px 0 rgba(36, 22, 16, 0.26);
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(0.36rem, 0.82vw, 0.5rem);
+  line-height: 1.3;
+  transform: translateX(-50%) rotate(7deg);
+  opacity: 0.78;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .starter-orb-option.active small {
-  display: none;
+  opacity: 1;
+  background: #d8c777;
+}
+
+.starter-orb-option.active small::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 10px solid #d5472c;
+  filter: drop-shadow(2px 2px 0 #241610);
+  transform: translateY(-50%);
 }
 
 .starter-creature-preview {
-  position: absolute;
-  right: 10%;
-  top: 25%;
-  z-index: 3;
-  display: grid;
-  place-items: end center;
-  width: min(230px, 26%);
-  aspect-ratio: 1.18;
-  pointer-events: none;
-  filter: drop-shadow(0 8px 0 rgba(36, 22, 16, 0.2));
+  display: none;
 }
 
 .starter-creature-preview::before {
@@ -2459,23 +2533,20 @@ button:active {
 
 .starter-preview-mon {
   position: absolute;
-  left: 50%;
-  top: 58%;
-  z-index: 4;
+  right: 8%;
+  bottom: 23%;
+  z-index: 6;
   display: grid;
-  place-items: center;
-  gap: 6px;
-  width: auto;
-  min-width: 238px;
+  gap: 5px;
+  min-width: 214px;
   border: 4px solid #343643;
   border-radius: 0;
-  padding: 12px 56px 13px 18px;
+  padding: 10px 42px 10px 12px;
   background: #fffaf0;
   box-shadow:
     inset 0 0 0 2px #d2d5df,
     0 0 0 3px #181a24,
     0 6px 0 rgba(36, 22, 16, 0.28);
-  transform: translateX(-50%);
 }
 
 .starter-preview-mon.anthropic {
@@ -2496,16 +2567,16 @@ button:active {
   max-width: 90%;
   font-family: "Press Start 2P", monospace;
   line-height: 1.35;
-  text-align: center;
+  text-align: left;
 }
 
 .starter-preview-name {
-  font-size: clamp(0.62rem, 1.2vw, 0.82rem);
+  font-size: clamp(0.56rem, 1.1vw, 0.72rem);
 }
 
 .starter-preview-type {
   color: rgba(33, 17, 9, 0.76);
-  font-size: clamp(0.48rem, 1.1vw, 0.62rem);
+  font-size: clamp(0.42rem, 1vw, 0.56rem);
 }
 
 .screen-header,
@@ -7082,16 +7153,21 @@ dd {
 
   .rescue-dialogue span,
   .starter-dialogue span {
-    font-size: 1.18rem;
+    font-size: 1.08rem;
     line-height: 1.08;
   }
 
+  .starter-dialogue span {
+    font-size: 0.96rem;
+    line-height: 1.1;
+  }
+
   .starter-orb-ring {
-    left: 45%;
-    top: 34%;
-    width: min(270px, 72%);
-    height: min(164px, 28%);
-    transform: translate(-50%, -50%) rotate(-9deg);
+    left: 47%;
+    top: 38%;
+    width: min(318px, 84%);
+    height: min(205px, 34%);
+    transform: translate(-50%, -50%) rotate(-7deg);
   }
 
   .starter-orb-option {
@@ -7109,7 +7185,7 @@ dd {
   }
 
   .starter-orb-option::before {
-    top: -18px;
+    top: -60px;
     border-right-width: 7px;
     border-left-width: 7px;
     border-top-width: 11px;
@@ -7127,35 +7203,41 @@ dd {
   }
 
   .starter-orb-option .prompt-orb {
-    width: 38px;
+    width: 36px;
     border-width: 3px;
   }
 
   .starter-orb-option small {
-    top: calc(100% + 9px);
-    min-width: 88px;
+    top: calc(100% + 8px);
+    min-width: 78px;
     border-width: 2px;
-    padding: 5px 6px;
-    font-size: 0.32rem;
+    padding: 4px 5px;
+    font-size: 0.28rem;
     line-height: 1.3;
     overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .starter-choice-silhouette {
+    width: min(60px, 17vw);
+    bottom: calc(100% + 8px);
   }
 
   .starter-creature-preview {
-    right: 5%;
-    top: 37%;
-    width: min(132px, 34%);
+    right: 3%;
+    top: 31%;
+    width: min(108px, 28%);
   }
 
   .starter-preview-mon {
-    left: 50%;
-    top: 52%;
-    right: auto;
-    bottom: auto;
-    min-width: 204px;
-    width: auto;
+    left: auto;
+    right: 20px;
+    top: auto;
+    bottom: 120px;
+    min-width: 166px;
+    max-width: calc(100% - 40px);
     border-width: 3px;
-    padding: 10px 46px 10px 12px;
+    padding: 8px 34px 8px 10px;
   }
 
   .starter-preview-name {

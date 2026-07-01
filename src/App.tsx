@@ -1301,6 +1301,9 @@ function StarterScreen({
           <div className="starter-orb-ring starter-orb-tray" aria-label="Starter options">
             {starters.map((starter) => (
               <button className={starter.id === selected.id ? `starter-orb-option active ${starter.palette}` : `starter-orb-option ${starter.palette}`} key={starter.id} onClick={() => handleSelect(starter)} aria-label={`${starter.name} ${starter.types}`}>
+                <span className="starter-choice-silhouette" aria-hidden="true">
+                  <img src={starter.portrait} alt="" />
+                </span>
                 <span className="prompt-orb" />
                 <small>{starter.name}</small>
               </button>

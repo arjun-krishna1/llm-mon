@@ -188,6 +188,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: opening-flow audit against `storyboard_2_professors_call_and_starter_choice.png` and the Chapter 1 walkthrough showed the game still skipped the empty Karpathy Lab and Octavia 101 warning beats, so the professor rescue appeared without the Ruby-style town-to-route setup. Added a playable lab/approach screen between Hayes Valley arrival and rescue with a lab aide, whiteboard, GPU rack, locked starter orb table, Octavia freeway/sidewalk scene, city-kid warning, route sign, and A/Enter dialogue progression. Verified with `npm run lint`, `npm run build`, `git diff --check`, and a temporary Playwright browser pass through title -> intro -> arrival -> lab -> Octavia -> rescue -> starter on desktop `1280x720` and mobile `390x844`; both had no horizontal or vertical overflow and no console errors. Screenshot QA checked the desktop/mobile lab and Octavia compositions for text fit and visual readability.
 
+- **[P2] Recompose starter choice around visible creature lineup.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: starter-choice visual pass against `storyboard_2_professors_call_and_starter_choice.png` showed the satchel scene still relied on a side preview/custom plaque instead of a true in-world three-starter choice. Added visible Claude Fable, GPT 5.5, and GLM creature portraits above their prompt orbs, widened the satchel orbit, added persistent name tags with a red active cursor, removed the redundant large side preview, and tightened mobile dialogue sizing. Verified with `npm run lint`, `npm run build`, `git diff --check`, and a temporary Playwright browser pass through title -> intro -> arrival -> lab -> Octavia -> rescue -> starter on desktop `1280x720` and mobile `390x844`; starter switching, YES/NO confirmation, NO cancel, and confirmation reopen all passed with no horizontal or vertical overflow on the starter screen and no console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
