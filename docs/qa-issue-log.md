@@ -184,6 +184,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: opening-flow audit against `storyboard_1_arrival_and_setup.png` showed the game still jumped from Professor Karpathy's intro directly to the Octavia 101 rescue, skipping the moving van, Mom greeting, player room, and TV report beats that make the pre-starter flow feel like Pokemon Ruby. Added a playable arrival screen between intro and rescue with van/town, Hayes Valley sign, Mom/player reveal, room/TV/PC furniture, and A/Enter dialogue progression. Also fixed the opening 4:3 frame vertical overflow at `1280x720` and added keyboard A/Enter support to the rescue handoff. Verified with `npm run lint`, `npm run build`, `git diff --check`, and a temporary Playwright browser pass through title -> intro -> arrival van/home/room -> rescue -> starter on desktop `1280x720` and mobile `390x844`; both had no horizontal or vertical overflow and no console errors.
 
+- **[P2] Add Karpathy Lab and Octavia 101 setup before professor rescue.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: opening-flow audit against `storyboard_2_professors_call_and_starter_choice.png` and the Chapter 1 walkthrough showed the game still skipped the empty Karpathy Lab and Octavia 101 warning beats, so the professor rescue appeared without the Ruby-style town-to-route setup. Added a playable lab/approach screen between Hayes Valley arrival and rescue with a lab aide, whiteboard, GPU rack, locked starter orb table, Octavia freeway/sidewalk scene, city-kid warning, route sign, and A/Enter dialogue progression. Verified with `npm run lint`, `npm run build`, `git diff --check`, and a temporary Playwright browser pass through title -> intro -> arrival -> lab -> Octavia -> rescue -> starter on desktop `1280x720` and mobile `390x844`; both had no horizontal or vertical overflow and no console errors. Screenshot QA checked the desktop/mobile lab and Octavia compositions for text fit and visual readability.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

@@ -212,6 +212,7 @@ button:active {
 .title-gba-frame,
 .intro-gba-frame,
 .arrival-gba-frame,
+.approach-gba-frame,
 .rescue-gba-frame,
 .starter-gba-frame {
   position: relative;
@@ -962,6 +963,7 @@ button:active {
 
 .rescue-screen,
 .arrival-screen,
+.approach-screen,
 .starter-screen {
   display: grid;
   place-items: center;
@@ -970,6 +972,7 @@ button:active {
 }
 
 .arrival-gba-frame,
+.approach-gba-frame,
 .rescue-gba-frame,
 .starter-gba-frame {
   display: grid;
@@ -1411,6 +1414,352 @@ button:active {
 }
 
 .arrival-dialogue span {
+  font-family: var(--game-text);
+  font-size: clamp(1.32rem, 2.5vw, 1.62rem);
+  font-weight: 400;
+  line-height: 1.12;
+}
+
+.approach-stage {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: #7fb66a;
+}
+
+.approach-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.055) 0 2px, transparent 2px 6px),
+    radial-gradient(ellipse at 50% 47%, rgba(255, 244, 207, 0.18), transparent 60%);
+  mix-blend-mode: soft-light;
+}
+
+.approach-lab,
+.approach-octavia {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transition:
+    opacity 220ms steps(3, end),
+    transform 220ms steps(3, end);
+}
+
+.approach-lab {
+  background:
+    linear-gradient(#dce5ef 0 12%, #f2d06d 12% 48%, #9ec0d8 48%);
+}
+
+.approach-stage[data-scene="octavia"] .approach-lab {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+.approach-octavia {
+  opacity: 0;
+  transform: translateX(8px);
+  background:
+    linear-gradient(#efad61 0 25%, #76b861 25% 58%, #529356 58%);
+}
+
+.approach-stage[data-scene="octavia"] .approach-octavia {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.approach-lab-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 52%;
+  background:
+    linear-gradient(90deg, rgba(36, 22, 16, 0.12) 1px, transparent 1px) 0 0 / 34px 100%,
+    linear-gradient(0deg, rgba(36, 22, 16, 0.12) 1px, transparent 1px) 0 0 / 100% 34px,
+    #a7c7df;
+}
+
+.approach-whiteboard,
+.approach-gpu-rack,
+.approach-orb-table,
+.approach-lab-sign {
+  position: absolute;
+  z-index: 2;
+  border: 4px solid #343643;
+  box-shadow: 4px 4px 0 rgba(36, 22, 16, 0.24);
+}
+
+.approach-whiteboard {
+  left: 9%;
+  top: 14%;
+  width: 28%;
+  height: 22%;
+  background:
+    linear-gradient(18deg, transparent 0 44%, rgba(17, 167, 181, 0.52) 44% 47%, transparent 47%),
+    linear-gradient(-16deg, transparent 0 54%, rgba(213, 71, 44, 0.46) 54% 57%, transparent 57%),
+    #fffaf0;
+}
+
+.approach-gpu-rack {
+  right: 11%;
+  top: 15%;
+  width: 20%;
+  height: 31%;
+  background:
+    repeating-linear-gradient(0deg, #343643 0 5px, transparent 5px 21px),
+    repeating-linear-gradient(90deg, #6f7f91 0 20px, #4f5d70 20px 40px);
+}
+
+.approach-orb-table {
+  left: 38%;
+  top: 30%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: min(16px, 1.6vw);
+  width: 24%;
+  height: 18%;
+  background: #a86a43;
+}
+
+.approach-orb-table .prompt-orb {
+  width: min(42px, 24%);
+  border-width: 3px;
+}
+
+.approach-lab-sign {
+  left: 40%;
+  top: 11%;
+  padding: 7px 10px;
+  color: #211109;
+  background: #fffaf0;
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(0.42rem, 1vw, 0.58rem);
+  line-height: 1.2;
+}
+
+.approach-player,
+.approach-route-player {
+  position: absolute;
+  z-index: 4;
+  width: min(74px, 8.5%);
+  image-rendering: pixelated;
+  filter: drop-shadow(0 5px 0 rgba(36, 22, 16, 0.22));
+}
+
+.approach-player {
+  left: 38%;
+  bottom: 23%;
+}
+
+.approach-aide,
+.approach-kid {
+  position: absolute;
+  z-index: 4;
+  aspect-ratio: 0.72;
+  filter: drop-shadow(0 5px 0 rgba(36, 22, 16, 0.22));
+}
+
+.approach-aide {
+  left: 52%;
+  bottom: 23%;
+  width: min(54px, 6.5%);
+}
+
+.approach-aide::before,
+.approach-kid::before {
+  content: "";
+  position: absolute;
+  left: 30%;
+  top: 0;
+  width: 40%;
+  aspect-ratio: 1;
+  border: 3px solid #343643;
+  border-radius: 50%;
+  background: #f3c18e;
+}
+
+.approach-aide::after,
+.approach-kid::after {
+  content: "";
+  position: absolute;
+  left: 17%;
+  top: 28%;
+  width: 66%;
+  height: 54%;
+  border: 3px solid #343643;
+  border-radius: 9px 9px 4px 4px;
+}
+
+.approach-aide::after {
+  background:
+    linear-gradient(#fffaf0 0 48%, #4f87bc 48%);
+}
+
+.approach-kid::after {
+  background:
+    linear-gradient(#d8c777 0 48%, #d5472c 48%);
+}
+
+.approach-aide span,
+.approach-kid span {
+  position: absolute;
+  left: 23%;
+  right: 23%;
+  bottom: 0;
+  height: 24%;
+  background:
+    linear-gradient(90deg, #343643 0 30%, transparent 30% 70%, #343643 70%);
+}
+
+.approach-freeway {
+  position: absolute;
+  left: -6%;
+  right: -6%;
+  top: 8%;
+  height: 26%;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 250, 240, 0.56) 0 34px, transparent 34px 86px) 0 50% / 100% 5px no-repeat,
+    linear-gradient(#7f8794, #5f6e84);
+  box-shadow:
+    inset 0 5px 0 rgba(255, 250, 240, 0.16),
+    inset 0 -5px 0 rgba(36, 22, 16, 0.18),
+    0 8px 0 rgba(36, 22, 16, 0.16);
+  transform: rotate(-2deg);
+}
+
+.approach-sidewalk {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: 9%;
+  height: 34%;
+  background:
+    repeating-linear-gradient(90deg, rgba(36, 22, 16, 0.14) 0 2px, transparent 2px 58px),
+    linear-gradient(#d9bd7c, #b98852);
+  transform: skewY(-2deg);
+  box-shadow:
+    inset 0 5px 0 rgba(255, 250, 240, 0.2),
+    inset 0 -5px 0 rgba(36, 22, 16, 0.16);
+}
+
+.approach-crosswalk {
+  position: absolute;
+  left: 34%;
+  bottom: 22%;
+  z-index: 2;
+  width: 28%;
+  height: 10%;
+  background:
+    repeating-linear-gradient(90deg, #fffaf0 0 13%, transparent 13% 25%);
+  opacity: 0.78;
+  transform: rotate(-2deg);
+}
+
+.approach-grass {
+  position: absolute;
+  z-index: 2;
+  width: 16%;
+  height: 9%;
+  background:
+    repeating-linear-gradient(106deg, transparent 0 5px, rgba(46, 120, 62, 0.72) 5px 8px, transparent 8px 15px),
+    repeating-linear-gradient(74deg, transparent 0 6px, rgba(104, 169, 84, 0.68) 6px 9px, transparent 9px 17px);
+  clip-path: polygon(0 100%, 6% 35%, 14% 100%, 22% 22%, 31% 100%, 42% 28%, 51% 100%, 62% 18%, 71% 100%, 82% 34%, 92% 100%, 100% 42%, 100% 100%);
+  opacity: 0.72;
+}
+
+.approach-grass.patch-a {
+  left: 11%;
+  top: 36%;
+}
+
+.approach-grass.patch-b {
+  right: 10%;
+  top: 39%;
+  transform: scaleX(-1);
+}
+
+.approach-route-player {
+  left: 35%;
+  bottom: 24%;
+}
+
+.approach-kid {
+  left: 54%;
+  bottom: 24%;
+  width: min(52px, 6.3%);
+}
+
+.approach-warning-bubble {
+  position: absolute;
+  left: 56%;
+  bottom: 39%;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 28px;
+  border: 3px solid #343643;
+  border-radius: 50%;
+  color: #d5472c;
+  background: #fffaf0;
+  box-shadow:
+    inset 0 0 0 2px #d2d5df,
+    2px 3px 0 rgba(36, 22, 16, 0.3);
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.78rem;
+}
+
+.approach-route-sign {
+  position: absolute;
+  right: 7%;
+  bottom: 38%;
+  z-index: 4;
+  border: 3px solid #343643;
+  padding: 6px 8px;
+  color: #211109;
+  background: #d8c777;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 250, 240, 0.28),
+    3px 3px 0 rgba(36, 22, 16, 0.26);
+  font-family: "Press Start 2P", monospace;
+  font-size: clamp(0.42rem, 1vw, 0.58rem);
+  line-height: 1.2;
+}
+
+.approach-dialogue {
+  position: relative;
+  z-index: 9;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 10px;
+  align-items: center;
+  border: 4px solid #343643;
+  border-radius: 0;
+  margin: 10px 18px 18px;
+  padding: 14px 16px;
+  background: #fffaf0;
+  box-shadow:
+    inset 0 0 0 2px #d2d5df,
+    0 0 0 3px #181a24;
+}
+
+.approach-dialogue strong,
+.approach-dialogue span {
+  display: block;
+}
+
+.approach-dialogue strong {
+  margin-bottom: 8px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.62rem;
+}
+
+.approach-dialogue span {
   font-family: var(--game-text);
   font-size: clamp(1.32rem, 2.5vw, 1.62rem);
   font-weight: 400;
@@ -6135,6 +6484,7 @@ dd {
   .title-gba-frame,
   .intro-gba-frame,
   .arrival-gba-frame,
+  .approach-gba-frame,
   .rescue-gba-frame,
   .starter-gba-frame {
     width: min(100%, calc(100vw - 16px));
@@ -6438,6 +6788,133 @@ dd {
   }
 
   .arrival-dialogue span {
+    font-size: 1.18rem;
+    line-height: 1.08;
+  }
+
+  .approach-whiteboard {
+    left: 6%;
+    top: 15%;
+    width: 30%;
+    height: 19%;
+    border-width: 3px;
+  }
+
+  .approach-gpu-rack {
+    right: 6%;
+    top: 16%;
+    width: 22%;
+    height: 27%;
+    border-width: 3px;
+  }
+
+  .approach-orb-table {
+    left: 39%;
+    top: 32%;
+    width: 25%;
+    height: 15%;
+    border-width: 3px;
+    gap: 4px;
+  }
+
+  .approach-orb-table .prompt-orb {
+    width: min(30px, 28%);
+    border-width: 2px;
+  }
+
+  .approach-lab-sign {
+    left: 39%;
+    top: 12%;
+    border-width: 2px;
+    padding: 5px 6px;
+    font-size: 0.34rem;
+  }
+
+  .approach-player,
+  .approach-route-player {
+    width: min(58px, 15%);
+  }
+
+  .approach-player {
+    left: 34%;
+    bottom: 29%;
+  }
+
+  .approach-aide {
+    left: 54%;
+    bottom: 29%;
+    width: min(44px, 11%);
+  }
+
+  .approach-freeway {
+    top: 9%;
+    height: 23%;
+  }
+
+  .approach-sidewalk {
+    bottom: 14%;
+    height: 31%;
+  }
+
+  .approach-crosswalk {
+    left: 28%;
+    bottom: 26%;
+    width: 36%;
+    height: 8%;
+  }
+
+  .approach-grass.patch-a {
+    left: 3%;
+    top: 36%;
+    width: 22%;
+  }
+
+  .approach-grass.patch-b {
+    right: 1%;
+    top: 39%;
+    width: 22%;
+  }
+
+  .approach-route-player {
+    left: 31%;
+    bottom: 29%;
+  }
+
+  .approach-kid {
+    left: 55%;
+    bottom: 29%;
+    width: min(43px, 11%);
+  }
+
+  .approach-warning-bubble {
+    left: 58%;
+    bottom: 42%;
+    width: 26px;
+    height: 22px;
+    border-width: 2px;
+    font-size: 0.56rem;
+  }
+
+  .approach-route-sign {
+    right: 4%;
+    bottom: 44%;
+    border-width: 2px;
+    padding: 5px 6px;
+    font-size: 0.34rem;
+  }
+
+  .approach-dialogue {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    border-top-width: 4px;
+    padding: 12px;
+  }
+
+  .approach-dialogue strong {
+    font-size: 0.5rem;
+  }
+
+  .approach-dialogue span {
     font-size: 1.18rem;
     line-height: 1.08;
   }

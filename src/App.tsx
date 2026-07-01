@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 
-type Screen = 'title' | 'intro' | 'arrival' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge' | 'services' | 'pier' | 'mission' | 'menlo'
+type Screen = 'title' | 'intro' | 'arrival' | 'approach' | 'story' | 'starter' | 'field' | 'battle' | 'dex' | 'bag' | 'quest' | 'model' | 'badge' | 'services' | 'pier' | 'mission' | 'menlo'
 type StarterId = 'claude' | 'gpt' | 'glm'
 type BattleCommand = 'prompt' | 'bag' | 'swap'
 type BagCategory = 'orbs' | 'medicine' | 'field' | 'gear'
@@ -221,6 +221,19 @@ const arrivalScenes = [
     id: 'room',
     speaker: 'TV',
     line: 'Director Norm is preparing a public demo at Menlo Park Alignment Gym.',
+  },
+] as const
+
+const approachScenes = [
+  {
+    id: 'lab',
+    speaker: 'LAB AIDE',
+    line: 'Professor Karpathy went north toward Octavia 101. He forgot his starter satchel.',
+  },
+  {
+    id: 'octavia',
+    speaker: 'CITY KID',
+    line: "Don't go ahead without a LLMMON! Something wild is chasing the professor!",
   },
 ] as const
 
@@ -1044,6 +1057,84 @@ function ArrivalScreen({ onNext }: { onNext: () => void }) {
             <span>{currentScene.line}</span>
           </div>
           <button className="dialogue-cue" type="button" onClick={triggerAdvance} onPointerUp={triggerAdvance} aria-label={isFinalScene ? 'Continue to Octavia 101 rescue' : 'Advance arrival scene'}>A</button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ApproachScreen({ onNext }: { onNext: () => void }) {
+  const [sceneIndex, setSceneIndex] = useState(0)
+  const advanceLockRef = useRef(0)
+  const currentScene = approachScenes[sceneIndex]
+  const isFinalScene = sceneIndex === approachScenes.length - 1
+
+  const advanceApproach = useCallback(() => {
+    if (isFinalScene) {
+      onNext()
+      return
+    }
+    setSceneIndex((index) => index + 1)
+  }, [isFinalScene, onNext])
+
+  const triggerAdvance = useCallback(() => {
+    const now = window.performance.now()
+    if (now - advanceLockRef.current < 180) return
+    advanceLockRef.current = now
+    advanceApproach()
+  }, [advanceApproach])
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Enter' || event.key.toLowerCase() === 'a') {
+        event.preventDefault()
+        triggerAdvance()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [triggerAdvance])
+
+  return (
+    <section className="screen approach-screen">
+      <div className="approach-gba-frame">
+        <div className="approach-stage" data-scene={currentScene.id}>
+          <div className="approach-lab" aria-hidden="true">
+            <div className="approach-lab-floor" />
+            <div className="approach-whiteboard" />
+            <div className="approach-gpu-rack" />
+            <div className="approach-orb-table">
+              {starters.map((starter) => (
+                <span className={`prompt-orb ${starter.palette}`} key={starter.id} />
+              ))}
+            </div>
+            <img className="approach-player" src={asset('assets/kenney/chars/trainer.png')} alt="" />
+            <div className="approach-aide">
+              <span />
+            </div>
+            <div className="approach-lab-sign">KARPATHY LAB</div>
+          </div>
+          <div className="approach-octavia" aria-hidden="true">
+            <div className="approach-freeway" />
+            <div className="approach-sidewalk" />
+            <span className="approach-grass patch-a" />
+            <span className="approach-grass patch-b" />
+            <span className="approach-crosswalk" />
+            <img className="approach-route-player" src={asset('assets/kenney/chars/trainer.png')} alt="" />
+            <div className="approach-kid">
+              <span />
+            </div>
+            <div className="approach-warning-bubble">!</div>
+            <div className="approach-route-sign">OCTAVIA 101</div>
+          </div>
+        </div>
+        <div className="approach-dialogue" onMouseDownCapture={triggerAdvance} onPointerDownCapture={triggerAdvance}>
+          <div>
+            <strong>{currentScene.speaker}</strong>
+            <span>{currentScene.line}</span>
+          </div>
+          <button className="dialogue-cue" type="button" onClick={triggerAdvance} onPointerUp={triggerAdvance} aria-label={isFinalScene ? 'Continue to rescue beat' : 'Advance Octavia setup'}>A</button>
         </div>
       </div>
     </section>
@@ -2200,7 +2291,8 @@ export default function App() {
     <main className="app-shell">
       {screen === 'title' && <TitleScreen onStart={() => setScreen('intro')} />}
       {screen === 'intro' && <IntroScreen onNext={() => setScreen('arrival')} />}
-      {screen === 'arrival' && <ArrivalScreen onNext={() => setScreen('story')} />}
+      {screen === 'arrival' && <ArrivalScreen onNext={() => setScreen('approach')} />}
+      {screen === 'approach' && <ApproachScreen onNext={() => setScreen('story')} />}
       {screen === 'story' && <StoryScreen onNext={() => setScreen('starter')} />}
       {screen === 'starter' && (
         <StarterScreen
