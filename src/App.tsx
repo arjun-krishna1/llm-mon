@@ -898,6 +898,18 @@ function IntroScreen({ onNext }: { onNext: () => void }) {
 }
 
 function StoryScreen({ onNext }: { onNext: () => void }) {
+  const [canAdvance, setCanAdvance] = useState(false)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setCanAdvance(true), 260)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  const handleNext = useCallback(() => {
+    if (!canAdvance) return
+    onNext()
+  }, [canAdvance, onNext])
+
   return (
     <section className="screen story-screen rescue-screen">
       <div className="rescue-gba-frame">
@@ -919,7 +931,7 @@ function StoryScreen({ onNext }: { onNext: () => void }) {
             <strong>PROF. KARPATHY</strong>
             <span>Help! Grab a LLMMON from my satchel!</span>
           </div>
-          <button className="dialogue-cue" onClick={onNext} aria-label="Continue to starter selection">A</button>
+          <button className="dialogue-cue" onClick={handleNext} aria-label="Continue to starter selection" disabled={!canAdvance}>A</button>
         </div>
       </div>
     </section>

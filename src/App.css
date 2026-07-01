@@ -681,6 +681,11 @@ button:active {
   box-shadow: none;
 }
 
+.dialogue-cue:disabled::before {
+  opacity: 0.25;
+  animation: none;
+}
+
 @keyframes dialogueCursorBlink {
   0%,
   52% {
@@ -731,6 +736,7 @@ button:active {
   min-height: 0;
   overflow: hidden;
   background:
+    radial-gradient(ellipse at 43% 42%, rgba(211, 241, 143, 0.62), transparent 18rem),
     linear-gradient(90deg, rgba(255, 244, 207, 0.14) 1px, transparent 1px) 0 0 / 30px 30px,
     linear-gradient(#91c96e 0 56%, #4f9b54 56%);
 }
@@ -738,18 +744,23 @@ button:active {
 .starter-stage::after {
   content: "CHOOSE LLMMON";
   position: absolute;
-  left: 58%;
-  top: 35%;
-  z-index: 4;
-  border: 3px solid rgba(36, 22, 16, 0.82);
-  padding: 7px 9px;
-  color: #fff4cf;
-  background: rgba(36, 22, 16, 0.76);
+  left: 57%;
+  top: 47%;
+  z-index: 5;
+  border: 0;
+  padding: 0;
+  color: #fffaf0;
+  background: transparent;
   font-family: "Press Start 2P", monospace;
-  font-size: clamp(0.46rem, 1.2vw, 0.66rem);
+  font-size: clamp(0.44rem, 1.1vw, 0.62rem);
   line-height: 1.3;
-  text-shadow: 2px 2px 0 #241610;
-  transform: rotate(-3deg);
+  text-shadow:
+    2px 0 0 #343643,
+    -2px 0 0 #343643,
+    0 2px 0 #343643,
+    0 -2px 0 #343643,
+    3px 3px 0 #241610;
+  transform: none;
   pointer-events: none;
 }
 
@@ -770,33 +781,33 @@ button:active {
   inset: 0;
   background:
     repeating-linear-gradient(90deg, transparent 0 18px, rgba(28, 90, 48, 0.18) 18px 22px),
-    radial-gradient(ellipse at 50% 48%, rgba(255, 244, 207, 0.46), transparent 12rem);
+    radial-gradient(ellipse at 43% 40%, rgba(255, 244, 207, 0.5), transparent 13rem);
 }
 
 .rescue-satchel,
 .starter-satchel {
   position: absolute;
-  left: 42%;
-  top: 45%;
+  left: 43%;
+  top: 38%;
   z-index: 2;
-  width: min(270px, 28%);
-  aspect-ratio: 1.22;
+  width: min(230px, 24%);
+  aspect-ratio: 1.38;
   border: 5px solid #241610;
-  border-radius: 9px 9px 18px 18px;
+  border-radius: 10px 14px 16px 12px;
   background:
     linear-gradient(135deg, rgba(255, 244, 207, 0.18), transparent 36%),
-    linear-gradient(#bd8751 0 44%, #77452d 44%);
+    linear-gradient(160deg, #c6955d 0 48%, #77452d 49%);
   box-shadow:
-    inset 0 -12px 0 rgba(36, 22, 16, 0.22),
+    inset 0 -10px 0 rgba(36, 22, 16, 0.22),
     0 8px 0 rgba(36, 22, 16, 0.24);
-  transform: translate(-50%, -50%) rotate(-9deg);
+  transform: translate(-50%, -50%) rotate(-15deg);
 }
 
 .starter-satchel {
-  left: 50%;
-  top: 42%;
-  width: min(320px, 34%);
-  transform: translate(-50%, -50%) rotate(-5deg);
+  left: 43%;
+  top: 37%;
+  width: min(250px, 26%);
+  transform: translate(-50%, -50%) rotate(-14deg);
 }
 
 .bag-flap {
@@ -826,16 +837,33 @@ button:active {
 .starter-orb-ring {
   position: absolute;
   z-index: 4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .rescue-orbs {
-  left: 42%;
-  top: 38%;
-  gap: clamp(30px, 4.6vw, 54px);
-  transform: translateX(-50%) rotate(-6deg);
+  left: 43%;
+  top: 40%;
+  width: min(340px, 39%);
+  height: min(205px, 28%);
+  transform: translate(-50%, -50%) rotate(-9deg);
+}
+
+.rescue-orbs .prompt-orb {
+  position: absolute;
+}
+
+.rescue-orbs .prompt-orb:nth-child(1) {
+  left: 5%;
+  top: 50%;
+}
+
+.rescue-orbs .prompt-orb:nth-child(2) {
+  left: 43%;
+  top: 68%;
+}
+
+.rescue-orbs .prompt-orb:nth-child(3) {
+  right: 6%;
+  top: 36%;
 }
 
 .prompt-orb {
@@ -957,12 +985,11 @@ button:active {
 }
 
 .starter-orb-ring {
-  left: 50%;
-  top: 34%;
-  display: flex;
-  gap: clamp(28px, 4.5vw, 52px);
-  width: auto;
-  transform: translateX(-50%) rotate(-5deg);
+  left: 43%;
+  top: 40%;
+  width: min(360px, 42%);
+  height: min(218px, 30%);
+  transform: translate(-50%, -50%) rotate(-9deg);
 }
 
 .starter-orb-option {
@@ -979,10 +1006,28 @@ button:active {
   text-align: center;
 }
 
+.starter-orb-option:nth-child(1) {
+  position: absolute;
+  left: 4%;
+  top: 50%;
+}
+
+.starter-orb-option:nth-child(2) {
+  position: absolute;
+  left: 43%;
+  top: 68%;
+}
+
+.starter-orb-option:nth-child(3) {
+  position: absolute;
+  right: 6%;
+  top: 36%;
+}
+
 .starter-orb-option.active {
   background: transparent;
   outline: 0;
-  transform: translateY(-10px);
+  transform: translateY(-8px) scale(1.08);
 }
 
 .starter-orb-option .prompt-orb {
@@ -994,24 +1039,11 @@ button:active {
 }
 
 .starter-orb-option small {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 12px);
-  min-width: 124px;
-  border: 3px solid #241610;
-  padding: 7px 8px;
-  color: #fff4cf;
-  background: rgba(36, 22, 16, 0.86);
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.5rem;
-  line-height: 1.35;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(-50%);
+  display: none;
 }
 
 .starter-orb-option.active small {
-  opacity: 1;
+  display: none;
 }
 
 .starter-preview-mon {
@@ -5159,27 +5191,29 @@ dd {
 
   .rescue-satchel {
     left: 45%;
-    top: 42%;
-    width: min(230px, 56%);
+    top: 34%;
+    width: min(190px, 48%);
   }
 
   .starter-satchel {
-    left: 50%;
-    top: 34%;
-    width: min(250px, 62%);
+    left: 45%;
+    top: 31%;
+    width: min(205px, 52%);
   }
 
   .starter-stage::after {
-    left: 50%;
+    left: 49%;
     top: 42%;
     font-size: 0.38rem;
-    transform: translateX(-50%) rotate(-3deg);
+    transform: none;
   }
 
   .rescue-orbs {
     left: 45%;
-    top: 36%;
-    gap: 18px;
+    top: 35%;
+    width: min(260px, 68%);
+    height: min(156px, 26%);
+    transform: translate(-50%, -50%) rotate(-9deg);
   }
 
   .prompt-orb {
@@ -5213,11 +5247,11 @@ dd {
   }
 
   .starter-orb-ring {
-    left: 50%;
-    top: 27%;
-    width: auto;
-    gap: 20px;
-    transform: translateX(-50%) rotate(-5deg);
+    left: 45%;
+    top: 34%;
+    width: min(270px, 72%);
+    height: min(164px, 28%);
+    transform: translate(-50%, -50%) rotate(-9deg);
   }
 
   .starter-orb-option {
@@ -5231,7 +5265,7 @@ dd {
 
   .starter-orb-option.active {
     outline: 0;
-    transform: translateY(-7px);
+    transform: translateY(-6px) scale(1.08);
   }
 
   .starter-orb-option .prompt-orb {

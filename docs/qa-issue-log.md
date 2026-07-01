@@ -128,6 +128,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass against the Ruby professor/starter references found the opening still had a visible round A-button cue, professor progress meter, and a lingering card-era professor sprite constraint. Replaced the cue with a blinking red dialogue cursor, switched intro/rescue/starter dialogue boxes to gray-edged RPG text boxes, hid the professor progress meter, removed the old `420px` professor-card minimum height, and verified the professor sprite sits on the spotlight. Browser-tested desktop title -> professor -> starter -> RPGJS field and mobile `390x844` title/professor/starter with no horizontal overflow and no console errors.
 
+- **[P2] Recompose rescue and starter satchel scenes around Ruby-style bag staging.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass against the Ruby starter-bag reference showed the satchel still read as an oversized custom tray. Reduced and angled the bag, arranged prompt orbs around it, removed the redundant clipped active-orb name tag, kept the selected starter plaque as the label surface, and added a short rescue-scene entry guard so rapid input does not skip the rescue beat. Browser-tested desktop title -> professor -> rescue -> starter -> RPGJS field and mobile `390x844` starter selection with no horizontal overflow, no console errors, and selectable starter orbs still clickable.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
