@@ -808,17 +808,62 @@ function RpgRuntime() {
 }
 
 function TitleScreen({ onStart }: { onStart: () => void }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isStarting, setIsStarting] = useState(false)
+
+  const openMenu = useCallback(() => {
+    if (isStarting) return
+    setIsMenuOpen(true)
+  }, [isStarting])
+
+  const beginNewGame = useCallback(() => {
+    if (isStarting) return
+    setIsStarting(true)
+    window.setTimeout(onStart, 320)
+  }, [isStarting, onStart])
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const key = event.key.toLowerCase()
+
+      if (key === 'enter' || key === 'a' || key === ' ') {
+        event.preventDefault()
+        if (isMenuOpen) {
+          beginNewGame()
+          return
+        }
+        openMenu()
+      }
+
+      if ((key === 'escape' || key === 'b' || key === 'backspace') && isMenuOpen && !isStarting) {
+        event.preventDefault()
+        setIsMenuOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [beginNewGame, isMenuOpen, isStarting, openMenu])
+
   return (
     <section className="screen title-screen">
       <div className="scanlines" />
-      <div className="title-gba-frame">
+      <div className={isStarting ? 'title-gba-frame starting' : 'title-gba-frame'}>
         <div className="title-logo-lockup">
           <span className="title-logo-main">LLMMON</span>
           <span className="title-logo-sub">MYTHOS</span>
           <span className="title-version">Foundation Badge</span>
         </div>
         <div className="title-legendary-shadow" aria-hidden="true" />
-        <button className="primary-action" onClick={onStart}>Press Start</button>
+        {isMenuOpen ? (
+          <div className="title-command-menu" aria-label="Title menu">
+            <button className="active" type="button" onClick={beginNewGame}>NEW GAME</button>
+            <button type="button" disabled>CONTINUE</button>
+            <button type="button" disabled>OPTION</button>
+          </div>
+        ) : (
+          <button className="primary-action" onClick={openMenu}>Press Start</button>
+        )}
         <p className="title-copyright">© 2026 Karpathy Lab / LLMMON Mythos</p>
       </div>
     </section>

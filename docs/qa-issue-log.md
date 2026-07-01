@@ -156,6 +156,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass found the rescue beat still looked like a floating starter-bag illustration rather than the Ruby-style professor-in-trouble route moment. Added a route clearing, tall-grass patches, player sprite, Professor Karpathy field sprite, and an exclamation bubble around the existing satchel and HalluciHound staging so the scene reads as an actual encounter before starter choice. Browser-tested desktop title -> professor -> rescue -> starter confirmation -> RPGJS field and mobile `390x844` rescue -> starter flow with no horizontal overflow or console errors.
 
+- **[P2] Add cartridge-style title command menu before professor intro.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: opening pass found Press Start still behaved like a web CTA that jumped directly into the professor intro. Added a Ruby-style NEW GAME / CONTINUE / OPTION command panel, keyboard A/Enter/Space start handling, B/Escape cancel, and a short stepped fade into the professor scene. Browser-tested desktop Press Start -> menu, Escape cancel, A reopen, Enter -> professor intro -> rescue -> starter confirmation -> RPGJS field, plus mobile `390x844` title menu -> professor handoff with no horizontal overflow or console errors.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
