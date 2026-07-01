@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&family=Press+Start+2P&display=swap');
 
+@font-face {
+  font-family: "Kenney Future Narrow";
+  src: url("/assets/kenney/ui/KenneyFutureNarrow.ttf") format("truetype");
+  font-display: swap;
+}
+
 html,
 body,
 #root {

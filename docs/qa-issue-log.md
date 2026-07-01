@@ -164,6 +164,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass found the rescue beat now reads like a route encounter, but the starter selection still flattened back into a display-like bag scene. Added a subtle route clearing, grass tufts, and pixel sparkles behind the satchel/orbs so the choice screen feels continuous with the professor rescue moment. Browser-tested desktop NEW GAME -> professor -> rescue -> starter -> confirmation -> RPGJS field and mobile `390x844` starter scene with no horizontal overflow or console errors.
 
+- **[P2] Replace web-like opening dialogue text with pixel game font.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass found the opening dialogue copy still rendered with a bold browser font inside otherwise Ruby-style text boxes. Loaded the bundled Kenney pixel UI font and applied it to title command menu text, professor/rescue/starter dialogue body copy, and starter confirmation choices while keeping tiny labels/logos on Press Start 2P. Browser-tested desktop title -> NEW GAME -> professor -> rescue -> starter -> confirmation -> RPGJS field and mobile `390x844` title/professor/rescue/starter/confirmation/field with no horizontal overflow, no console errors, and one RPGJS canvas after confirmation.
+
 ## P1
 
 - No open P1 issues from the current browser pass.
