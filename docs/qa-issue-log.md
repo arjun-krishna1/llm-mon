@@ -172,6 +172,10 @@ Linear tools were not exposed in this Codex session, so these are queued for Lin
   - Status: Resolved locally, pending Linear backfill.
   - Evidence: visual pass against `storyboard_2_professors_call_and_starter_choice.png` showed the Ruby-style starter satchel scene still exposed only prompt orbs and text, so the choice lacked an actual LLMMON reveal. Cropped the bundled starter art into game-scale portrait assets, added a selected-creature aura/platform preview behind the active orb, and moved the scene label into a compact top-left "STARTER SATCHEL" tag. Browser-tested desktop Claude/GPT/GLM switching and mobile `390x844` Claude -> GLM -> confirmation -> RPGJS field with no horizontal overflow, no console errors, and one RPGJS canvas after confirmation.
 
+- **[P2] Replace CSS title recreation with finished title artwork.**
+  - Status: Resolved locally, pending Linear backfill.
+  - Evidence: visual pass against the bundled Ruby title reference and generated Chapter 1 title asset showed the CSS-built title still looked less finished than the provided art. Swapped the title frame to use `title_screen_claude_orange_final.png` as the visible cartridge title, hid duplicate CSS logo/legendary/copyright layers, preserved the invisible Press Start hit area and Ruby-style NEW GAME menu overlay, and kept the mobile title frame at a true 4:3 aspect ratio. Browser-tested desktop title asset loading, Press Start -> title menu, title menu -> professor -> rescue -> starter with no horizontal overflow or console errors before the final mobile-only frame adjustment; follow-up mobile screenshot capture/viewport control in the in-app browser repeatedly timed out, so mobile was verified by CSS media-rule inspection plus lint/build.
+
 ## P1
 
 - No open P1 issues from the current browser pass.

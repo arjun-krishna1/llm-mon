@@ -230,9 +230,9 @@ button:active {
   place-items: center;
   color: #fff4cf;
   background:
-    radial-gradient(circle at 18% 20%, rgba(255, 244, 207, 0.18) 0 2px, transparent 3px) 0 0 / 16px 16px,
-    radial-gradient(circle at 62% 45%, rgba(36, 22, 16, 0.28), transparent 18rem),
-    linear-gradient(#df251f 0 70%, #8e1715 70%);
+    linear-gradient(rgba(255, 244, 207, 0.04), rgba(36, 22, 16, 0.08)),
+    url("/assets/llmmon/mythos/generated/title_screen_claude_orange_final.png") center / cover no-repeat,
+    #8e1715;
 }
 
 .title-gba-frame::before {
@@ -241,8 +241,8 @@ button:active {
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(rgba(255, 244, 207, 0.18), transparent 30%, rgba(36, 22, 16, 0.36)),
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 6px);
+    linear-gradient(transparent 0 66%, rgba(36, 22, 16, 0.1) 66%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.055) 0 2px, transparent 2px 6px);
   mix-blend-mode: soft-light;
 }
 
@@ -275,7 +275,7 @@ button:active {
   top: 7%;
   left: 50%;
   z-index: 2;
-  display: grid;
+  display: none;
   justify-items: center;
   transform: translateX(-50%);
 }
@@ -326,7 +326,7 @@ button:active {
   right: 16%;
   bottom: 27%;
   z-index: 1;
-  display: grid;
+  display: none;
   place-items: center;
   height: 38%;
   opacity: 0.68;
@@ -372,17 +372,17 @@ button:active {
 .title-gba-frame .primary-action {
   position: absolute;
   left: 50%;
-  bottom: 32%;
+  bottom: 15%;
   z-index: 3;
-  width: auto;
-  min-height: 0;
+  width: min(360px, 48%);
+  min-height: 9%;
   border: 0;
   padding: 0;
-  color: #fff4cf;
+  color: transparent;
   background: transparent;
   box-shadow: none;
   font-size: clamp(0.72rem, 2vw, 1rem);
-  text-shadow: 3px 3px 0 #241610;
+  text-shadow: none;
   transform: translateX(-50%);
 }
 
@@ -400,7 +400,7 @@ button:active {
 .title-command-menu {
   position: absolute;
   left: 50%;
-  bottom: 24%;
+  bottom: 18%;
   z-index: 4;
   display: grid;
   gap: 10px;
@@ -457,17 +457,7 @@ button:active {
 }
 
 .title-copyright {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 13%;
-  z-index: 3;
-  margin: 0;
-  color: #fff4cf;
-  font-family: "Press Start 2P", monospace;
-  font-size: clamp(0.44rem, 1.2vw, 0.62rem);
-  text-align: center;
-  text-shadow: 2px 2px 0 #241610;
+  display: none;
 }
 
 .intro-screen {
@@ -5616,6 +5606,16 @@ dd {
     box-shadow: none;
   }
 
+  .title-gba-frame {
+    width: min(100%, calc(100vw - 16px));
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+    background:
+      linear-gradient(rgba(255, 244, 207, 0.04), rgba(36, 22, 16, 0.08)),
+      url("/assets/llmmon/mythos/generated/title_screen_claude_orange_final.png") center / cover no-repeat,
+      #8e1715;
+  }
+
   .title-logo-main {
     font-size: 2rem;
     text-shadow:
@@ -5644,7 +5644,7 @@ dd {
   }
 
   .title-command-menu {
-    bottom: 22%;
+    bottom: 20%;
     width: min(230px, 74%);
     border-width: 3px;
     padding: 12px 14px;
@@ -5657,10 +5657,7 @@ dd {
   }
 
   .title-copyright {
-    bottom: 9%;
-    padding-inline: 8px;
-    font-size: 0.4rem;
-    line-height: 1.5;
+    display: none;
   }
 
   .intro-screen {

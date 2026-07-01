@@ -853,7 +853,7 @@ function TitleScreen({ onStart }: { onStart: () => void }) {
     <section className="screen title-screen">
       <div className="scanlines" />
       <div className={isStarting ? 'title-gba-frame starting' : 'title-gba-frame'}>
-        <div className="title-logo-lockup">
+        <div className="title-logo-lockup" aria-hidden="true">
           <span className="title-logo-main">LLMMON</span>
           <span className="title-logo-sub">MYTHOS</span>
           <span className="title-version">Foundation Badge</span>
@@ -866,9 +866,9 @@ function TitleScreen({ onStart }: { onStart: () => void }) {
             <button type="button" disabled>OPTION</button>
           </div>
         ) : (
-          <button className="primary-action" onClick={openMenu}>Press Start</button>
+          <button className="primary-action" onClick={openMenu} aria-label="Press Start">Press Start</button>
         )}
-        <p className="title-copyright">© 2026 Karpathy Lab / LLMMON Mythos</p>
+        <p className="title-copyright" aria-hidden="true">© 2026 Karpathy Lab / LLMMON Mythos</p>
       </div>
     </section>
   )
