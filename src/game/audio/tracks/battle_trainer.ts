@@ -34,7 +34,7 @@ export const battle_trainer: SongDef = {
   mood: 'heavier, insistent',
   key: 'C minor',
   bpm: 160,
-  gain: 1,
+  gain: 0.88,
   echo: { beats: 0.5, feedback: 0.2, wet: 0.16 },
   channels: { p1: { inst: 'lead50' }, p2: { inst: 'arpfast' }, w: { inst: 'bass' } },
   chords: { intro: I, loop: `${A} | ${B} | ${C} | ${A}` },

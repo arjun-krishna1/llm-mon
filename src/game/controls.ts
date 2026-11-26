@@ -2,7 +2,7 @@
 // Buttons: up/down/left/right, A (Z/Space/Enter), B (X/Shift/Backspace), START (Enter/Esc).
 // Enter maps to both A and START: scenes ask for START only where a menu can open.
 
-import type { Dir } from './config'
+import { FRAME_MS, type Dir } from './config'
 
 export type Button = 'up' | 'down' | 'left' | 'right' | 'A' | 'B' | 'START'
 
@@ -28,6 +28,11 @@ class Controls {
   private dirStack: Dir[] = []
   private listeners: Array<() => void> = []
   frame = 0
+  /** Logic ticks (60 Hz) to run this render frame; see step(). */
+  ticks = 0
+  /** Index of the logic tick being run; edges (justPressed/repeat) only fire on sub-tick 0. */
+  subTick = 0
+  private acc = 0
 
   attach(): void {
     const kd = (e: KeyboardEvent) => {
@@ -70,22 +75,49 @@ class Controls {
     return false
   }
 
-  /** Sample input. Call once per game frame before scenes update. */
-  sample(): void {
-    this.frame++
+  /**
+   * Global fixed-step clock. Call once per render frame (Phaser PRE_STEP) with the
+   * frame delta. Works out how many 60 Hz logic ticks this frame runs (0..4, with a
+   * little slack so display jitter doesn't drop/double frames), and samples input
+   * only on frames that run logic (presses during 0-tick frames are kept).
+   */
+  step(deltaMs: number): void {
+    this.acc += Math.min(deltaMs, 100)
+    let n = 0
+    while (this.acc >= FRAME_MS * 0.85 && n < 4) {
+      this.acc -= FRAME_MS
+      n++
+    }
+    if (this.acc > FRAME_MS * 2) this.acc = 0
+    this.ticks = n
+    this.subTick = 0
+    if (n > 0) this.sample(n)
+  }
+
+  /** Run `fn` once per logic tick this frame (edges only visible on the first). */
+  each(fn: () => void): void {
+    for (let i = 0; i < this.ticks; i++) {
+      this.subTick = i
+      fn()
+    }
+    this.subTick = 0
+  }
+
+  private sample(n: number): void {
+    this.frame += n
     this.pressed.clear()
     this.consumed.clear()
     for (const b of BUTTONS) {
       const isDown = this.isPhysDown(b)
       if (this.pressedRaw.has(b)) this.pressed.add(b)
-      this.held[b] = isDown ? this.held[b] + 1 : this.pressedRaw.has(b) ? 1 : 0
+      this.held[b] = isDown ? this.held[b] + n : this.pressedRaw.has(b) ? 1 : 0
     }
     this.pressedRaw.clear()
   }
 
   /** True on the frame the button went down (unless consumed this frame). */
   justPressed(b: Button): boolean {
-    return this.pressed.has(b) && !this.consumed.has(b)
+    return this.subTick === 0 && this.pressed.has(b) && !this.consumed.has(b)
   }
 
   isDown(b: Button): boolean {
@@ -108,7 +140,7 @@ class Controls {
 
   /** Pressed, or held with key-repeat (menu cursors). */
   repeat(b: Button, delay = 18, rate = 5): boolean {
-    if (this.consumed.has(b)) return false
+    if (this.consumed.has(b) || this.subTick > 0) return false
     const h = this.held[b]
     if (this.pressed.has(b)) return true
     return h > delay && (h - delay) % rate === 0

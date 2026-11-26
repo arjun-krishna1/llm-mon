@@ -92,7 +92,15 @@ class AudioManager implements AudioApi {
     const ctx = this.ctx
     this.master = ctx.createGain()
     this.master.gain.value = this.vol.master
-    this.master.connect(ctx.destination)
+    // safety limiter: transparent at normal levels, catches music + sfx pile-ups
+    const limiter = ctx.createDynamicsCompressor()
+    limiter.threshold.value = -6
+    limiter.knee.value = 6
+    limiter.ratio.value = 8
+    limiter.attack.value = 0.003
+    limiter.release.value = 0.2
+    this.master.connect(limiter)
+    limiter.connect(ctx.destination)
     this.musicBus = ctx.createGain()
     this.musicBus.gain.value = this.vol.music
     this.musicBus.connect(this.master)

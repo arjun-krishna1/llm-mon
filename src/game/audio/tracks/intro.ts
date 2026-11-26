@@ -21,7 +21,7 @@ export const intro: SongDef = {
   mood: 'gentle, curious',
   key: 'F major',
   bpm: 76,
-  gain: 1,
+  gain: 0.9,
   echo: { beats: 0.75, feedback: 0.35, wet: 0.3 },
   channels: { p1: { inst: 'flute' }, p2: { inst: 'brokensoft' }, w: { inst: 'basssoft' }, n: { gain: 0.8 } },
   chords: { loop: `${A} | ${B} | ${A} | ${B}` },

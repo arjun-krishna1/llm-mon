@@ -10,6 +10,8 @@ import { audio } from '../audio'
 import { speciesName } from '../adapters/monInfo'
 import { ensureTexture } from '../assets'
 import { DialogBox } from '../ui/DialogBox'
+import { controls } from '../controls'
+import { state } from '../state'
 import { WidgetStack } from '../ui/WidgetStack'
 
 export interface BattleSceneData {
@@ -54,12 +56,14 @@ export class BattleScene extends Phaser.Scene {
         this.cameras.main.fadeOut(ms(300), 0, 0, 0)
         this.time.delayedCall(ms(320), r)
       })
+      // Per docs/BATTLE_API.md the battle scene applies prize money / caught mons before onDone.
+      if (req.trainer?.prize) state.addMoney(req.trainer.prize)
       this.data0.onDone({ outcome: 'win', prize: req.trainer?.prize })
       this.scene.stop()
     })()
   }
 
   update(): void {
-    this.stack.update()
+    controls.each(() => this.stack.update())
   }
 }

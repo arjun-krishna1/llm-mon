@@ -30,7 +30,7 @@ export const battle_wild: SongDef = {
   mood: 'driving, tense, fast arps',
   key: 'E minor',
   bpm: 152,
-  gain: 1,
+  gain: 0.94,
   echo: { beats: 0.5, feedback: 0.2, wet: 0.18 },
   channels: { p1: { inst: 'lead' }, p2: { inst: 'broken' }, w: { inst: 'bass' } },
   chords: { intro: I, loop: `${A} | ${B} | ${C} | ${D}` },

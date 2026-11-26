@@ -18,7 +18,7 @@ export const encounter_trainer: SongDef = {
   mood: 'short, tense',
   key: 'A minor',
   bpm: 140,
-  gain: 1,
+  gain: 1.0,
   echo: { beats: 0.75, feedback: 0.25, wet: 0.2 },
   channels: { p1: { inst: 'lead' }, p2: { inst: 'pluck12' }, w: { inst: 'bass' } },
   chords: { intro: 'E7', loop: L },

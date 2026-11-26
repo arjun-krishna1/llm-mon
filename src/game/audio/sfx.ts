@@ -62,7 +62,7 @@ export const SFX: Record<string, SfxDef> = {
       ;['G4', 'E4', 'C4', 'A3'].forEach((p, k) => {
         const s = t + k * 0.085
         noise(c, d, { type: 'long', rate: 0.7, t: s, dur: 0.03, gain: 0.08, hp: 1500 }, tr)
-        end = tone(c, d, { wave: 'tri', from: hz(p), to: hz(p) * 0.8, t: s, dur: 0.07, gain: 0.32 }, tr)
+        end = tone(c, d, { wave: 'tri', from: hz(p), to: hz(p) * 0.8, t: s, dur: 0.07, gain: 0.28 }, tr)
       })
       return end
     },
@@ -161,7 +161,7 @@ export const SFX: Record<string, SfxDef> = {
   },
   hit_super: {
     play: (c, d, t, _i, tr) => {
-      tone(c, d, { wave: 'tri', from: 300, to: 40, t, dur: 0.22, gain: 0.5 }, tr)
+      tone(c, d, { wave: 'tri', from: 300, to: 40, t, dur: 0.22, gain: 0.36 }, tr)
       noise(c, d, { type: 'short', rate: 4, rateEnd: 1, t, dur: 0.12, gain: 0.1 }, tr)
       noise(c, d, { type: 'long', rate: 1.8, rateEnd: 0.2, t, dur: 0.3, gain: 0.32, hold: 0.03 }, tr)
       return noise(c, d, { type: 'long', rate: 1, rateEnd: 0.3, t: t + 0.09, dur: 0.16, gain: 0.2 }, tr)
@@ -188,7 +188,7 @@ export const SFX: Record<string, SfxDef> = {
   orb_shake: {
     play: (c, d, t, _i, tr) => {
       noise(c, d, { type: 'short', rate: 3, t, dur: 0.03, gain: 0.1, hp: 1200 }, tr)
-      tone(c, d, { wave: 'tri', from: 300, to: 360, t, dur: 0.22, gain: 0.3, vib: [120, 16] }, tr)
+      tone(c, d, { wave: 'tri', from: 300, to: 360, t, dur: 0.22, gain: 0.26, vib: [120, 16] }, tr)
       return noise(c, d, { type: 'short', rate: 3, t: t + 0.13, dur: 0.03, gain: 0.08, hp: 1200 }, tr)
     },
   },
@@ -236,8 +236,8 @@ export const SFX: Record<string, SfxDef> = {
       tone(c, d, { wave: 'pulse12', from: 200, to: 1600, slide: 0.5, t, dur: 0.55, gain: 0.08, a: 0.02, hold: 0.4 }, tr)
       tone(c, d, { wave: 'pulse25', from: hz('E5'), arp: [0, 3, 7, 12], arpStep: 1 / 40, t, dur: 0.5, gain: 0.04, a: 0.2, hold: 0.25, pan: 0.3 }, tr)
       noise(c, d, { type: 'long', rate: 1, t, dur: 0.55, gain: 0.16, a: 0.4, bp: 400, sweepTo: 5000 }, tr)
-      noise(c, d, { type: 'long', rate: 1.2, rateEnd: 0.3, t: t + 0.55, dur: 0.25, gain: 0.24 }, tr)
-      return tone(c, d, { wave: 'tri', from: 200, to: 45, t: t + 0.55, dur: 0.2, gain: 0.45 }, tr)
+      noise(c, d, { type: 'long', rate: 1.2, rateEnd: 0.3, t: t + 0.55, dur: 0.25, gain: 0.18 }, tr)
+      return tone(c, d, { wave: 'tri', from: 200, to: 45, t: t + 0.55, dur: 0.2, gain: 0.3 }, tr)
     },
   },
   stat_up: {

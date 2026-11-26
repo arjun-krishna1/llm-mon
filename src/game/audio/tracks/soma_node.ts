@@ -30,7 +30,7 @@ export const soma_node: SongDef = {
   mood: 'bigger town, upbeat, techy syncopation',
   key: 'A major',
   bpm: 128,
-  gain: 1,
+  gain: 1.32,
   echo: { beats: 0.75, feedback: 0.3, wet: 0.28 },
   channels: { p1: { inst: 'lead' }, p2: { inst: 'arp' }, w: { inst: 'bassstac' } },
   chords: { loop: `${A} | ${B} | ${K}` },

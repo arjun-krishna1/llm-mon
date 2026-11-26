@@ -24,7 +24,7 @@ export const hayes_valley: SongDef = {
   key: 'C major',
   bpm: 105,
   sig: [6, 8],
-  gain: 1,
+  gain: 0.88,
   echo: { beats: 0.5, feedback: 0.22, wet: 0.24 },
   channels: { p1: { inst: 'leadsoft' }, p2: { inst: 'brokensoft' }, w: { inst: 'basssoft' } },
   chords: { loop: `${A1} | ${A2} | ${B}` },

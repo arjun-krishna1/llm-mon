@@ -27,7 +27,7 @@ export const lab: SongDef = {
   mood: 'inquisitive, bouncy',
   key: 'D dorian',
   bpm: 120,
-  gain: 1,
+  gain: 1.45,
   echo: { beats: 0.75, feedback: 0.28, wet: 0.25 },
   channels: { p1: { inst: 'stac' }, p2: { inst: 'arp' }, w: { inst: 'bassstac' } },
   chords: { loop: `${A} | ${B} | ${A} | ${B}` },

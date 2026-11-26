@@ -35,7 +35,7 @@ export const route_101: SongDef = {
   mood: 'adventurous march',
   key: 'G major',
   bpm: 128,
-  gain: 1,
+  gain: 1.0,
   echo: { beats: 0.5, feedback: 0.25, wet: 0.26 },
   channels: { p1: { inst: 'lead' }, p2: { inst: 'arp' } },
   chords: { intro: introChords, loop: `${A} | ${B} | ${A} | ${C}` },

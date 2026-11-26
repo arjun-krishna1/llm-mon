@@ -20,7 +20,7 @@ export const center: SongDef = {
   mood: 'calm, reassuring',
   key: 'Eb major',
   bpm: 88,
-  gain: 1,
+  gain: 0.9,
   echo: { beats: 1, feedback: 0.3, wet: 0.28 },
   channels: { p1: { inst: 'leadsoft' }, p2: { inst: 'brokensoft' }, w: { inst: 'basssoft' }, n: { gain: 0.8 } },
   chords: { loop: `${A} | ${B} | ${A} | ${B}` },

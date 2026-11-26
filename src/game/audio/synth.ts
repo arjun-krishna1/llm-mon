@@ -209,6 +209,7 @@ export function playNote(
   }
 
   const g = ctx.createGain()
+  g.gain.value = 0
   const gp = g.gain
   gp.setValueAtTime(0, t)
   const att = Math.min(inst.a, gate)
@@ -321,6 +322,7 @@ export function tone(ctx: BaseAudioContext, dest: AudioNode, s: ToneSpec, tracke
     }
   }
   const g = ctx.createGain()
+  g.gain.value = 0
   const a = s.a ?? 0.003
   const hold = s.hold ?? 0
   g.gain.setValueAtTime(0, s.t)
@@ -381,8 +383,13 @@ export function noise(ctx: BaseAudioContext, dest: AudioNode, s: NoiseSpec, trac
   const filt = (type: BiquadFilterType, fq: number, q: number) => {
     const f = ctx.createBiquadFilter()
     f.type = type
-    f.frequency.setValueAtTime(fq, s.t)
-    if (s.sweepTo && type !== 'highpass') f.frequency.exponentialRampToValueAtTime(s.sweepTo, end)
+    // static cutoff unless sweeping: a future-time automation step on a biquad's
+    // frequency produces a large transient in Chromium
+    f.frequency.value = fq
+    if (s.sweepTo && type !== 'highpass') {
+      f.frequency.setValueAtTime(fq, s.t)
+      f.frequency.exponentialRampToValueAtTime(s.sweepTo, end)
+    }
     f.Q.value = q
     last.connect(f)
     last = f
@@ -391,6 +398,7 @@ export function noise(ctx: BaseAudioContext, dest: AudioNode, s: NoiseSpec, trac
   if (s.lp) filt('lowpass', s.lp, 0.7)
   if (s.bp) filt('bandpass', s.bp, 1.4)
   const g = ctx.createGain()
+  g.gain.value = 0
   const a = s.a ?? 0.002
   const hold = s.hold ?? 0
   g.gain.setValueAtTime(0, s.t)

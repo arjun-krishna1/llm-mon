@@ -28,7 +28,7 @@ export const title: SongDef = {
   mood: 'grand, warm, the main theme',
   key: 'D major',
   bpm: 112,
-  gain: 1,
+  gain: 0.98,
   echo: { beats: 0.75, feedback: 0.3, wet: 0.32 },
   channels: { p1: { inst: 'brass' }, p2: { inst: 'broken' } },
   chords: { intro: introChords, loop: `${A} | ${B} | ${A}` },

@@ -35,8 +35,9 @@ export class PlayerCard extends Screen<void> {
       g.fillStyle(COLORS.paper[0])
       g.fillRect(22, y + 15, 196, 1)
     })
-    // player portrait: front stand frame of the overworld sprite, 2x
-    if (scene.textures.exists('chars/player')) this.image(188, 64, 'chars/player', 0).setScale(2)
+    // player portrait: the overworld sprite at 1x in a small photo frame (no mixed pixel scales)
+    drawPanel(g, 180, 60, 36, 44, 0xd8eef8, COLORS.frame[2], 0xa8d8f8)
+    this.image(190, 70, 'chars/player', 0)
   }
 
   input(): void {

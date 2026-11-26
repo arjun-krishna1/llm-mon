@@ -240,7 +240,9 @@ function cutFrames(textures: Phaser.Textures.TextureManager, a: ImageAsset): voi
 /** Ensure a texture exists (lazy placeholder for dynamic keys like an unknown species). */
 export function ensureTexture(scene: Phaser.Scene, key: string, w = 64, h = 64): string {
   if (!scene.textures.exists(key)) {
-    makePlaceholder(scene.textures, key, w, h)
+    const icon = key.endsWith('_icon')
+    makePlaceholder(scene.textures, key, icon ? 32 : w, icon ? 16 : h)
+    if (icon) cutFrames(scene.textures, { key, w: 32, h: 16, frames: 'auto2' })
     placeholders.add(key)
   }
   return key

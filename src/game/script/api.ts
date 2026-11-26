@@ -7,7 +7,7 @@ import { DIRS, type Dir } from '../config'
 import { audio } from '../audio'
 import { state, type FlagValue } from '../state'
 import { ms } from '../params'
-import { createMon, itemInfo, monName, speciesName, trainerRequest, wildRequest } from '../adapters/monInfo'
+import { createMon, itemInfo, monName, speciesName, trainerRequest, tutorialRequest, wildRequest } from '../adapters/monInfo'
 import { getUI, type UIScene } from '../scenes/UIScene'
 import type { SayOptions } from '../ui/DialogBox'
 import type { ListOptions } from '../ui/ListMenu'
@@ -236,8 +236,7 @@ export class ScriptApi {
     return itemInfo(itemId).name
   }
   async giveMon(speciesId: string, level: number, opts: { nickname?: string; silent?: boolean } = {}): Promise<MonInstance> {
-    const mon = createMon(speciesId, level)
-    if (opts.nickname) mon.nickname = opts.nickname
+    const mon = createMon(speciesId, level, { nickname: opts.nickname })
     const where = state.addMon(mon)
     if (!opts.silent) {
       audio.sfx('key_item_get')
@@ -269,16 +268,20 @@ export class ScriptApi {
     return this.world.startBattle(req)
   }
   async trainerBattle(trainerId: string, extra: Partial<BattleRequest> = {}): Promise<BattleResult> {
-    const req = trainerRequest(trainerId)
+    const req = trainerRequest(trainerId, extra)
     if (!req) {
       console.warn(`[script] unknown trainer '${trainerId}', using a placeholder team`)
       return this.startBattle({ ...wildRequest('hallucihound', 3), kind: 'trainer', canRun: false, canCatch: false,
         trainer: { id: trainerId, name: trainerId, sprite: 'battle/trainer_m_front', loseText: 'You win!', prize: 100 }, ...extra })
     }
-    return this.startBattle({ ...req, ...extra })
+    return this.startBattle(req)
   }
   wildBattle(speciesId: string, level: number, extra: Partial<BattleRequest> = {}): Promise<BattleResult> {
     return this.startBattle(wildRequest(speciesId, level, extra))
+  }
+  /** The scripted rescue fight (HalluciHound, cannot run/lose). */
+  tutorialBattle(level = 2): Promise<BattleResult> {
+    return this.startBattle(tutorialRequest(level))
   }
   whiteOut(): Promise<void> {
     return this.world.whiteOut()

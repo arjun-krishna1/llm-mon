@@ -22,8 +22,14 @@ const parent = document.getElementById('game')!
 function fitParent(): void {
   const s = Math.min(window.innerWidth / W, window.innerHeight / H)
   const scale = s >= 1 ? Math.floor(s) : s
-  parent.style.width = `${Math.floor(W * scale)}px`
-  parent.style.height = `${Math.floor(H * scale)}px`
+  const w = Math.floor(W * scale)
+  const h = Math.floor(H * scale)
+  parent.style.width = `${w}px`
+  parent.style.height = `${h}px`
+  // whole-pixel placement (flex centring can land on .5px and soften the image)
+  parent.style.position = 'absolute'
+  parent.style.left = `${Math.max(0, Math.floor((window.innerWidth - w) / 2))}px`
+  parent.style.top = `${Math.max(0, Math.floor((window.innerHeight - h) / 2))}px`
 }
 fitParent()
 
@@ -40,16 +46,18 @@ const game = new Phaser.Game({
   roundPixels: true,
   antialias: false,
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-  fps: { target: 60, limit: 60 },
+  fps: { target: 60 },
   input: { keyboard: false, mouse: false, touch: false, gamepad: false },
   render: { antialiasGL: false, pixelArt: true },
   scene: [BootScene, TitleScene, IntroScene, OverworldScene, UIScene, BattleScene],
 })
 
-game.events.on(Phaser.Core.Events.PRE_STEP, () => controls.sample())
+game.events.on(Phaser.Core.Events.PRE_STEP, (_time: number, delta: number) => controls.step(delta))
 
 window.addEventListener('resize', () => {
   fitParent()
+  // refresh() alone keeps the cached parent size; re-measure first so the new integer scale applies now.
+  game.scale.getParentBounds()
   game.scale.refresh()
 })
 

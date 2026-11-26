@@ -39,8 +39,10 @@ export class UIScene extends Phaser.Scene {
   }
 
   update(): void {
-    this.stack.update()
-    this.banner.tick()
+    controls.each(() => {
+      this.stack.update()
+      this.banner.tick()
+    })
   }
 
   /** True while any dialog/menu is up (the overworld should not move the player). */
@@ -302,7 +304,7 @@ export class UIScene extends Phaser.Scene {
       if (!id) break
       const info = itemInfo(id)
       const price = Math.floor(info.price / 2)
-      if (price <= 0 || info.pocket === 'key') {
+      if (price <= 0 || info.isKey) {
         await this.say(`${info.name}? Oh, I can’t buy that.`)
         continue
       }
@@ -366,7 +368,7 @@ export class UIScene extends Phaser.Scene {
   /** "{player} received X!" with jingle. */
   async itemGet(itemId: string, count = 1, verb = 'obtained'): Promise<void> {
     const info = itemInfo(itemId)
-    audio.sfx(info.pocket === 'key' ? 'key_item_get' : 'item_get')
+    audio.sfx(info.isKey ? 'key_item_get' : 'item_get')
     const what = count > 1 ? `${count} ${info.name}s` : `a ${info.name}`
     await this.say(expand(`{player} ${verb} ${what}!`))
   }

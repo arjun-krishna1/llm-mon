@@ -172,7 +172,6 @@ export class DialogBox implements Widget {
       this.arrow.setVisible(false)
       const r = this.resolve
       this.resolve = undefined
-      this.stack.remove(this)
       r?.()
       return
     }
@@ -205,7 +204,10 @@ export class DialogBox implements Widget {
     if (this.closePending) {
       // Nobody queued another message during the last frame: hide the box.
       this.closePending = false
-      if (this.phase === 'idle') this.setVisible(false)
+      if (this.phase === 'idle') {
+        this.setVisible(false)
+        this.stack.remove(this)
+      }
     }
     if (this.phase === 'typing') this.type()
     else if (this.phase === 'scrolling') this.scroll()
@@ -295,7 +297,6 @@ export class DialogBox implements Widget {
     this.closePending = true
     for (const r of this.rows) r.setText('')
     this.setPlate(undefined)
-    this.stack.remove(this)
     this.currentText = ''
     const r = this.resolve
     this.resolve = undefined

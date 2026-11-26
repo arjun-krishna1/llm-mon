@@ -22,7 +22,7 @@ export const home: SongDef = {
   key: 'Bb major',
   bpm: 84,
   sig: [3, 4],
-  gain: 1,
+  gain: 0.88,
   echo: { beats: 0.5, feedback: 0.2, wet: 0.2 },
   channels: { p1: { inst: 'flute' }, p2: { inst: 'harm50', pan: 0.25 }, w: { inst: 'basssoft' }, n: { gain: 0.8 } },
   chords: { loop: `${A} | ${B} | ${A} | ${B}` },

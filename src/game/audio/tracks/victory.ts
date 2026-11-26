@@ -18,7 +18,7 @@ export const victory: SongDef = {
   mood: 'fanfare, then a happy vamp',
   key: 'C major',
   bpm: 138,
-  gain: 1,
+  gain: 1.0,
   echo: { beats: 0.5, feedback: 0.25, wet: 0.24 },
   channels: { p1: { inst: 'brass' }, p2: { inst: 'arp' }, w: { inst: 'bass' } },
   chords: { intro: I, loop: V },

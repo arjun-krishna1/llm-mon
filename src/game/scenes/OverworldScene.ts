@@ -3,7 +3,7 @@
 
 import Phaser from 'phaser'
 import {
-  DEFAULT_ENCOUNTER_RATE, DEPTH, DIR_VEC, FADE_MS, FRAME_MS, H, OPPOSITE, PLAYER_SCREEN_X, PLAYER_SCREEN_Y,
+  DEFAULT_ENCOUNTER_RATE, DEPTH, DIR_VEC, FADE_MS, H, OPPOSITE, PLAYER_SCREEN_X, PLAYER_SCREEN_Y,
   RUN_FRAMES, TILE, TURN_FRAMES, W, WALK_FRAMES, type Dir,
 } from '../config'
 import { controls } from '../controls'
@@ -52,7 +52,6 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
   private fxs: Fx[] = []
   private ui!: UIScene
   private ready = false
-  private acc = 0
   private lockCount = 0
   private transitioning = false
   private turnTimer = 0
@@ -197,21 +196,18 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
 
   update(_time: number, delta: number): void {
     if (!this.ready || !this.map) return
-    if (controls.justPressed('A')) this.edgeA = true
-    if (controls.justPressed('START')) this.edgeStart = true
-    this.acc += Math.min(delta, 100)
-    let ticks = 0
-    while (this.acc >= FRAME_MS - 0.01) {
-      this.acc -= FRAME_MS
+    controls.each(() => {
+      this.edgeA = controls.justPressed('A')
+      this.edgeStart = controls.justPressed('START')
       this.logicTick()
-      ticks++
-    }
-    if (ticks) {
-      this.edgeA = false
-      this.edgeStart = false
-    }
+    })
     this.map.update(this.time.now)
     this.updateCamera()
+    if (!this.player.moving && !this.transitioning) {
+      state.x = this.player.tx
+      state.y = this.player.ty
+      state.facing = this.player.facing
+    }
     if (!this.transitioning) state.playTimeMs += delta
   }
 
@@ -292,7 +288,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
   private playerStepping = false
 
   private running(): boolean {
-    return state.flag('has_run') && controls.isDown('B')
+    return state.flag('has_run') && controls.isDown('B') && !this.map?.props.indoor
   }
 
   /** Attempt a player step (or bump / ledge hop). */
@@ -372,11 +368,19 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     state.y = p.ty
     state.facing = p.facing
     this.stepsSinceBattle++
+    const repel = Number(state.getFlag('repel_steps') ?? 0)
+    if (repel > 0) {
+      state.setFlag('repel_steps', repel - 1 || false)
+      if (repel === 1) {
+        void this.runInline(async (s) => s.say('The Firewall\u2019s effect wore off\u2026'))
+        return true
+      }
+    }
     // warp
     const warp = map.objectAt('warp', p.tx, p.ty)
     if (warp) {
       const tile = map.tileAt(p.tx, p.ty)
-      const sfx = String(warp.props.sfx ?? (tile.door ? 'door' : map.props.indoor ? 'exit' : 'stairs'))
+      const sfx = String(warp.props.sfx ?? (map.props.indoor ? 'exit' : tile.door ? 'door' : 'stairs'))
       void this.warp(String(warp.props.toMap ?? warp.props.map), String(warp.props.toSpawn ?? warp.props.spawn ?? ''),
         (warp.props.facing as Dir) || undefined, sfx)
       return true
@@ -402,9 +406,11 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       const table = String(this.zoneObj?.props.encounters ?? map.props.encounters ?? '')
       const rate = table ? (encounterRate(table) ?? DEFAULT_ENCOUNTER_RATE) : 0
       if (table && rng() < rate) {
-        const roll = rollEncounter(table) ?? { speciesId: pick(FALLBACK_WILD), level: randInt(2, 4) }
+        const req = wildRequest(rollEncounter(table) ?? pick(FALLBACK_WILD), randInt(2, 4))
+        const lead = state.party.find((m) => m.hp > 0)
+        if (Number(state.getFlag('repel_steps') ?? 0) > 0 && lead && req.enemyParty[0].level < lead.level) return false
         void this.runInline(async () => {
-          await this.startBattle(wildRequest(roll.speciesId, roll.level))
+          await this.startBattle(req)
         })
         return true
       }
@@ -672,12 +678,13 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     try {
       if (sfx) audio.sfx(sfx)
       await this.ui.fade(1, FADE_MS)
+      this.ui.banner.clear()
       await this.loadMap(mapId, spawn, facing)
       await this.ui.fade(0, FADE_MS)
       // exiting through a door: step out of the doorway
       const p = this.player
       const t = this.map!.tileAt(p.tx, p.ty)
-      if (t.door) {
+      if (t.door && !this.map!.props.indoor) {
         const v = DIR_VEC[p.facing]
         if (!this.blocked(p, p.tx + v.x, p.ty + v.y)) {
           await p.step(p.facing, WALK_FRAMES)
@@ -759,7 +766,6 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       this.scene.resume()
       this.stepsSinceBattle = 0
       controls.consumeAll()
-      if (result.outcome === 'win' && result.prize) state.addMoney(result.prize)
       if (result.outcome === 'win' && req.kind === 'trainer' && req.trainer) state.setFlag(`trainer_${req.trainer.id}_defeated`)
       if (result.outcome === 'lose' && !req.safety) {
         await this.whiteOut()

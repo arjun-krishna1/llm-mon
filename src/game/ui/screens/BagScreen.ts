@@ -3,9 +3,9 @@
 import Phaser from 'phaser'
 import { COLORS } from '../../config'
 import { audio } from '../../audio'
+import { controls } from '../../controls'
 import { state } from '../../state'
-import { itemInfo, monName, useFieldItem } from '../../adapters/monInfo'
-import { isPlaceholder } from '../../assets'
+import { itemInfo, useFieldItem } from '../../adapters/monInfo'
 import { drawPanel, drawStripes } from '../draw'
 import { ListMenu, type ListItem } from '../ListMenu'
 import { PxText, wrap } from '../text'
@@ -35,25 +35,28 @@ export class BagScreen extends Screen<string | null> {
     this.text(12, 8, 'ITEMS')
     g.fillStyle(COLORS.accent[1])
     g.fillRect(10, 22, 58, 2)
-    if (scene.textures.exists('fx/satchel') && !isPlaceholder('fx/satchel')) {
-      this.image(16, 36, 'fx/satchel').setScale(3)
-    } else {
-      // simple drawn satchel
-      g.fillStyle(COLORS.outline)
-      g.fillRect(17, 45, 44, 40)
-      g.fillStyle(0xa0744a)
-      g.fillRect(18, 46, 42, 38)
-      g.fillStyle(0xbd8654)
-      g.fillRect(18, 46, 42, 14)
-      g.fillStyle(COLORS.outline)
-      g.fillRect(18, 60, 42, 1)
-      g.fillRect(36, 56, 6, 8)
-      g.fillStyle(0xf8d838)
-      g.fillRect(37, 57, 4, 6)
-      g.fillStyle(COLORS.outline)
-      g.fillRect(26, 36, 26, 2)
-      g.fillRect(24, 38, 2, 8)
-      g.fillRect(52, 38, 2, 8)
+    {
+      // drawn satchel at native scale (palette WOOD ramp + outline)
+      const px = (c: number, x: number, y: number, w: number, h: number) => {
+        g.fillStyle(c)
+        g.fillRect(x, y, w, h)
+      }
+      const O = COLORS.outline
+      px(0x28222e, 20, 86, 40, 2) // ground shadow
+      // strap handle
+      px(O, 27, 34, 24, 3); px(O, 24, 36, 4, 10); px(O, 50, 36, 4, 10)
+      px(0x946240, 28, 35, 22, 1); px(0x946240, 25, 37, 2, 8); px(0x946240, 51, 37, 2, 8)
+      // body
+      px(O, 17, 45, 44, 41); px(O, 16, 47, 46, 37)
+      px(0x946240, 18, 46, 42, 39); px(0x946240, 17, 48, 44, 35)
+      px(0x6b4630, 18, 78, 42, 6) // bottom shade
+      px(0xbd8654, 19, 62, 4, 15) // left highlight
+      // flap
+      px(0xbd8654, 18, 46, 42, 15); px(0xe0b078, 19, 47, 40, 2)
+      px(O, 18, 61, 42, 1); px(0x6b4630, 18, 62, 42, 1)
+      for (let x = 21; x < 58; x += 4) px(0x6b4630, x, 58, 2, 1) // stitching
+      // clasp
+      px(O, 35, 56, 8, 10); px(0xe8b830, 36, 57, 6, 8); px(0xfce070, 37, 58, 2, 2); px(0xb08018, 36, 63, 6, 2)
     }
     const w = new Window(scene, 2, 110, 236, 48, 'ui/frame_dialog')
     this.root.add(w.obj)
@@ -110,10 +113,18 @@ export class BagScreen extends Screen<string | null> {
       const c = await sub.result()
       listShadow.destroy()
       if (c !== 0) continue
-      if (!info.usableInField || info.isBall) {
+      if (info.repelSteps > 0) {
+        state.removeItem(id, 1)
+        state.setFlag('repel_steps', info.repelSteps)
+        audio.sfx('stat_up')
+        this.say(`${state.playerName} used the ${info.name}. Weak wild LLMMON will keep away.`)
+        await this.waitButton()
+        continue
+      }
+      if (!info.usableOnMon) {
         this.say(info.isBall ? 'There’s nothing to catch here!' : 'This can’t be used right now.')
         audio.sfx('bump')
-        await this.pause(900)
+        await this.waitButton()
         continue
       }
       this.setVisible(false)
@@ -122,21 +133,37 @@ export class BagScreen extends Screen<string | null> {
       this.setVisible(true)
       if (mi < 0) continue
       const mon = state.party[mi]
-      const msg = useFieldItem(id, mon)
-      if (msg) {
-        state.removeItem(id, 1)
-        audio.sfx('heal')
-        this.say(msg)
-      } else {
-        audio.sfx('bump')
-        this.say(`It won’t have any effect on ${monName(mon)}.`)
-      }
-      await this.pause(1100)
+      const res = useFieldItem(id, mon)
+      if (res.ok) state.removeItem(id, 1)
+      const after = this.items()
+      const ghost = new ListMenu(this.scene, this.stack, after, { x: 80, y: 2, w: 158, rows: 6, depth: 2050, initial: Math.min(i, after.length - 1), cancelIndex: null })
+      ghost.setActive(false)
+      audio.sfx(res.ok ? 'heal' : 'bump')
+      this.say(res.message.replace(/'/g, '\u2019'))
+      await this.waitButton()
+      ghost.destroy()
     }
   }
 
-  private pause(ms: number): Promise<void> {
-    return new Promise((r) => this.scene.time.delayedCall(ms, r))
+  /** Wait for A or B (message acknowledged), like a dialog page. */
+  private waitButton(): Promise<void> {
+    return new Promise((res) => {
+      let t = 0
+      const w = {
+        done: false,
+        tick: () => {},
+        input: () => {
+          if (++t < 8) return
+          if (controls.justPressed('A') || controls.justPressed('B')) {
+            controls.consume('A', 'B')
+            audio.sfx('select')
+            w.done = true
+            res()
+          }
+        },
+      }
+      this.stack.push(w)
+    })
   }
 
   input(): void {

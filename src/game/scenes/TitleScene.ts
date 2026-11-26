@@ -41,7 +41,7 @@ export class TitleScene extends Phaser.Scene {
     }
     const label = 'PRESS START'
     this.press = new PxText(this, Math.round((W - measure(this, FONT.dialog, label)) / 2), 116, label, { color: 0xffffff, shadowColor: COLORS.frame[0] })
-    new PxText(this, 4, H - 9, '© LLMMON Mythos slice', { font: FONT.mini, color: 0xd4dae6, shadowColor: COLORS.frame[0], shadow: 'drop' })
+    new PxText(this, 4, H - 9, 'VERTICAL SLICE', { font: FONT.mini, color: 0xd4dae6, shadowColor: COLORS.frame[0], shadow: 'drop' })
     this.cameras.main.fadeIn(ms(500), 0, 0, 0)
     audio.playMusic('title')
     this.time.delayedCall(ms(400), () => {
@@ -64,6 +64,10 @@ export class TitleScene extends Phaser.Scene {
   }
 
   update(): void {
+    controls.each(() => this.tick())
+  }
+
+  private tick(): void {
     this.frame++
     if (this.logo) this.logo.setY(46 + (Math.floor(this.frame / 30) % 2))
     if (this.phase === 'press') {
