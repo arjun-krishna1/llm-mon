@@ -12,6 +12,7 @@ import { IntroScene } from './game/scenes/IntroScene'
 import { OverworldScene } from './game/scenes/OverworldScene'
 import { UIScene } from './game/scenes/UIScene'
 import { BattleScene } from './game/scenes/BattleScene'
+import { StarterSelectScene } from './game/scenes/StarterSelectScene'
 import { installDebug } from './game/debug'
 
 if (params.seed !== null && Number.isFinite(params.seed)) seedRng(params.seed)
@@ -49,7 +50,7 @@ const game = new Phaser.Game({
   fps: { target: 60 },
   input: { keyboard: false, mouse: false, touch: false, gamepad: false },
   render: { antialiasGL: false, pixelArt: true },
-  scene: [BootScene, TitleScene, IntroScene, OverworldScene, UIScene, BattleScene],
+  scene: [BootScene, TitleScene, IntroScene, OverworldScene, UIScene, BattleScene, StarterSelectScene],
 })
 
 game.events.on(Phaser.Core.Events.PRE_STEP, (_time: number, delta: number) => controls.step(delta))

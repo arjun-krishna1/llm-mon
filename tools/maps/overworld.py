@@ -191,9 +191,9 @@ def objects(m):
     # ---------------------------------------------------------------- Route 101
     m.sign(19, 84, script='route.sign_south')
     m.sign(23, 38, script='route.sign_north')
-    m.npc('rt_tiana', 24, 39, 'trainer_f', script='trainer.route_101_b', facing='left', sight=4,
+    m.npc('rt_tiana', 24, 39, 'trainer_f', facing='left', sight=4,
           trainer='route_101_b')
-    m.npc('rt_calvin', 33, 54, 'trainer_m', script='trainer.route_101_a', facing='left', sight=9,
+    m.npc('rt_calvin', 33, 54, 'trainer_m', facing='left', sight=9,
           trainer='route_101_a')
     m.npc('rt_elder', 28, 50, 'elder', script='route.angler', facing='right')
     m.npc('rt_techie', 17, 61, 'techie', script='route.grass_researcher', facing='down', movement='look')

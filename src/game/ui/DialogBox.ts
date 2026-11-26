@@ -133,9 +133,12 @@ export class DialogBox implements Widget {
     this.setVisible(true)
     this.setPlate(opts.speaker)
     for (const r of this.rows) r.setColorName(opts.color ?? 'default')
+    // Create the promise first: with ?fast=1 startPage() reveals instantly and a keepOpen
+    // message resolves inside it.
+    const done = new Promise<void>((res) => (this.resolve = res))
     this.startPage()
     if (!this.stack.has(this)) this.stack.push(this)
-    return new Promise((res) => (this.resolve = res))
+    return done
   }
 
   private startPage(): void {

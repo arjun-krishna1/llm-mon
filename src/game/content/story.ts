@@ -125,8 +125,10 @@ async function giveFastTokens(s: S, outside: boolean): Promise<void> {
       : 'Oh, {player}! I heard all about it. You saved the professor!',
     `And you have your own LLMMON now!\f${starterName(s)}, is it? I’m not crying, it’s just pollen.`,
     'Here, before you go. I packed these for you.')
-  await s.giveItem('fast_tokens', 1)
+  await s.giveItem('fast_tokens', 1, { silent: true })
+  s.sfx('key_item_get')
   s.setFlag(F.hasRun)
+  await s.say('{player} got the Fast Tokens!')
   await line(s, MOM,
     'Fast Tokens! Hold B outdoors and you’ll move at inference speed.',
     'SoMa Node is just up Route 101. Go see the world, sweetie. And call your mother!')
@@ -277,7 +279,7 @@ def('route.rescue', async (s) => {
   await line(s, '???', 'H-help! Somebody, anybody!')
   await s.emote('player', 'exclaim')
   s.spawn({ id: 'prof', sprite: 'prof', x: 21, y: 78, facing: 'up' })
-  s.spawn({ id: 'hound', sprite: houndSprite(s), x: 21, y: 76, facing: 'down' })
+  s.spawn({ id: 'hound', sprite: houndSprite(s), x: 21, y: 77, facing: 'down' })
   s.playMusic('encounter_trainer')
   await walkTo(s, 'player', 21, p.y)
   await s.move('player', Array(p.y - 81).fill('up') as Dir[], { speed: 'run' })
@@ -295,7 +297,6 @@ def('route.rescue', async (s) => {
   } else {
     await line(s, PROF, 'You there! I dropped my satchel, it’s right by your feet!\fQuick, grab a LLMMON out of it!')
   }
-  await s.cameraReset(400)
   let id = s.getFlag(F.starter)
   if (typeof id !== 'string' || !s.state.party.length) {
     id = await chooseStarter(s)
@@ -306,6 +307,7 @@ def('route.rescue', async (s) => {
   }
   s.face('prof', 'up')
   await s.tutorialBattle(2)
+  await s.cameraReset(0)
   s.setFlag(F.rescueDone)
   s.setFlag(F.hasSatchel, false)
   await s.flash(0xffffff, 200)

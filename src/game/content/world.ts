@@ -1,6 +1,5 @@
 // Hayes Valley, Route 101 and SoMa Node: townsfolk, signs, trainers.
 
-import { trainerInfo } from '../adapters/monInfo'
 import { F, def, say, starterName, text, type S } from './util'
 
 /** Pick a line by story progress: before the starter / after it. */
@@ -63,20 +62,8 @@ def('route.picnic_girl', (s) => say(s,
   'I saw the whole thing from my picnic blanket!\fThat HalluciHound was SO sure it was a golden retriever.',
   'It also told me the sky is a software update. It was very convincing.'))
 
-// ---- trainers: lines come from src/game/data/trainers.ts (preBattle / postBattle)
-function trainer(id: string): void {
-  def(`trainer.${id}`, async (s) => {
-    const info = trainerInfo(id)
-    if (s.flag(`trainer_${id}_defeated`)) {
-      await s.say(info.defeated || 'Good battle!')
-      return
-    }
-    if (info.intro) await s.say(info.intro)
-    await s.trainerBattle(id)
-  })
-}
-trainer('route_101_a')
-trainer('route_101_b')
+// ---- trainers (rt_calvin / rt_tiana): the engine's default trainer flow shows
+// preBattle / postBattle from src/game/data/trainers.ts; no script needed.
 
 // ============================================================================ SoMa Node
 text('soma.town_sign', 'SOMA NODE\nThe city that never stops shipping.')
