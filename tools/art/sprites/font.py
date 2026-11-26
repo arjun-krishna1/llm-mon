@@ -29,7 +29,13 @@ _F3 = {
     ':': ['...', '.#.', '...', '.#.', '...'], '-': ['...', '...', '###', '...', '...'],
     '.': ['...', '...', '...', '...', '.#.'], '!': ['.#.', '.#.', '.#.', '...', '.#.'],
 }
-F3 = {k: ''.join(v) for k, v in _F3.items()}
+_F3.update({
+    'M': ['#..#', '####', '####', '#..#', '#..#'],
+    'N': ['#..#', '##.#', '#.##', '#..#', '#..#'],
+    'W': ['#..#', '#..#', '####', '####', '#..#'],
+    'V': ['#.#', '#.#', '#.#', '.#.', '.#.'],
+})
+F3 = _F3
 
 # 5x7 mixed case (preview mock text only)
 F5 = {}
@@ -114,23 +120,21 @@ def text3(img, x, y, s, col, shadow=None):
     px = img.load()
     for ch in s.upper():
         g = F3.get(ch, F3[' '])
-        for i, c in enumerate(g):
-            if c == '#':
-                gx, gy = x + i % 3, y + i // 3
-                if shadow is not None and 0 <= gx + 1 < img.width and 0 <= gy + 1 < img.height:
-                    if px[gx + 1, gy + 1][3] == 0 or px[gx + 1, gy + 1] != col:
-                        px[gx + 1, gy + 1] = shadow
-        for i, c in enumerate(g):
-            if c == '#':
-                gx, gy = x + i % 3, y + i // 3
-                if 0 <= gx < img.width and 0 <= gy < img.height:
-                    px[gx, gy] = col
-        x += 4
+        w = len(g[0])
+        for layer, c in ((1, shadow), (0, col)):
+            if c is None:
+                continue
+            for gy, row in enumerate(g):
+                for gx, v in enumerate(row):
+                    xx, yy = x + gx + layer, y + gy + layer
+                    if v == '#' and 0 <= xx < img.width and 0 <= yy < img.height:
+                        px[xx, yy] = c
+        x += w + 1
     return x
 
 
 def width3(s):
-    return len(s) * 4 - 1
+    return sum(len(F3.get(c, F3[' '])[0]) + 1 for c in s.upper()) - 1
 
 
 def text5(img, x, y, s, col, shadow=None):

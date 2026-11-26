@@ -169,29 +169,20 @@ def draw_hp(im, bar, frac, kind=None):
 
 def cursor():
     rows = ['........',
-            '.o......',
+            '.oo.....',
             '.oxo....',
             '.oxxo...',
             '.oxxxo..',
             '.oxxo...',
             '.oxo....',
             '.oo.....']
-    rows = ['........',
-            '.o......',
-            '.oo.....',
-            '.oxo....',
-            '.oxxo...',
-            '.oxo....',
-            '.oo.....',
-            '.o......']
     im = new(8, 8)
     for y, r in enumerate(rows):
         for x, c in enumerate(r):
             if c == 'o':
                 put(im, x, y, TXT)
             elif c == 'x':
-                put(im, x, y, ACC[1])
-    # solid dark triangle with an orange core reads best on cream
+                put(im, x, y, ACC[1] if y > 3 else ACC[2])
     return im
 
 
