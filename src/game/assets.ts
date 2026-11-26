@@ -16,14 +16,14 @@ export interface ImageAsset {
   /** If set, the texture is cut into a grid of frames numbered row-major. */
   fw?: number
   fh?: number
-  /** 'auto2' = 2 square frames along the long axis (party icons). */
-  frames?: 'grid' | 'auto2'
+  /** 'auto2' = 2 square frames along the long axis (party icons); 'strip4' = 4 equal frames along the long axis. */
+  frames?: 'grid' | 'auto2' | 'strip4'
   /** Optional procedural fallback instead of the magenta box. */
   fallback?: (ctx: CanvasRenderingContext2D, w: number, h: number) => void
 }
 
 export const CHAR_IDS = ['player', 'mom', 'prof', 'aide', 'boy', 'girl', 'man', 'woman', 'elder', 'techie',
-  'nurse', 'clerk', 'trainer_m', 'trainer_f']
+  'nurse', 'clerk', 'trainer_m', 'trainer_f', 'hallucihound']
 
 export const TYPE_IDS = ['neutral', 'myth', 'logic', 'tool', 'speed', 'open', 'vision', 'glitch']
 
@@ -100,6 +100,7 @@ export function imageManifest(): ImageAsset[] {
       },
     },
     { key: 'fx/orb_throw', w: 64, h: 16, fw: 16, fh: 16 },
+    { key: 'fx/orb_big', w: 128, h: 32, frames: 'strip4' },
     { key: 'fx/truck', w: 48, h: 40 },
     { key: 'fx/satchel', w: 16, h: 16 },
     { key: 'battle/bg_grass', w: 240, h: 112 },
@@ -217,6 +218,13 @@ function cutFrames(textures: Phaser.Textures.TextureManager, a: ImageAsset): voi
   const src = tex.getSourceImage() as { width: number; height: number }
   const W = src.width
   const H = src.height
+  if (a.frames === 'strip4') {
+    const horiz = W >= H
+    const fw = horiz ? Math.floor(W / 4) : W
+    const fh = horiz ? H : Math.floor(H / 4)
+    for (let i = 0; i < 4; i++) tex.add(i, 0, horiz ? i * fw : 0, horiz ? 0 : i * fh, fw, fh)
+    return
+  }
   if (a.frames === 'auto2') {
     if (W >= H * 2) {
       tex.add(0, 0, 0, 0, H, H)

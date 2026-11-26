@@ -218,11 +218,17 @@ export class Actor {
     return true
   }
 
-  /** Walk-cycle column: stand → A → stand → B. */
+  /** True while taking a run-speed step (≥ 2 px/frame, not hopping). */
+  get running(): boolean {
+    return this.moving && this.hopT < 0 && this.speed >= 2
+  }
+
+  /** Walk-cycle column: stand → A → stand → B. Running holds the stride longer (¾ of the tile). */
   private column(): number {
     if (this.moving) {
       const half = this.dist === TILE * 2 ? TILE : TILE / 2
       if (this.hopT >= 0) return this.hopT < this.hopFrames / 2 ? 1 + this.foot : 0
+      if (this.running) return this.moved < (TILE * 3) / 4 ? 1 + this.foot : 0
       return this.moved % (half * 2) < half ? 1 + this.foot : 0
     }
     if (this.bumpT > 8) return 1 + this.foot
@@ -234,7 +240,9 @@ export class Actor {
     this.sprite.setFrame(frame)
     const x = this.px + TILE / 2
     const y = this.py + TILE
-    this.sprite.setPosition(x, y - this.lift)
+    // running: 1px stride bob while the leg is out
+    const bob = this.running && this.moved < (TILE * 3) / 4 ? 1 : 0
+    this.sprite.setPosition(x, y - this.lift - bob)
     this.sprite.setDepth(DEPTH.charBase + y + (this.id === 'player' ? 0.5 : 0))
     this.shadow.setPosition(x, y - 3)
     this.shadow.setVisible(!this.hidden && (this.lift > 0 || this.shadowAlways))

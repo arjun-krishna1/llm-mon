@@ -22,7 +22,7 @@ Symbols:
 """
 from PIL import Image
 
-from common import P, OUT, new, outline, save, SPRITES
+from common import P, OUT, new, outline, save, SPRITES, grid_to_image
 
 W, H = 16, 24
 
@@ -54,12 +54,14 @@ HEAD = {
 |..ssssssssssss..
 |..ssssssssssss..
 |..ssssssssssss..
-|..ssssssssssss..
-|..sssessssesss..
-|..sssessssesss..
-|..smssssssssms..
-|...ssssssssss...
-'''),
+|..ssssssssssssS.
+|..sswessssweSS..
+|..sseEssssseES..
+|..smsssMMsssmS..
+|...sssssssssS...
+'''.replace('|..ssssssssssssS.', '|..sssssssssssS..')
+       .replace('|..sswessssweSS..', '|..sswessssweSS..')
+       .replace('|..sseEssssseES..', '|..sseEsssseESS..')),
     'up': T('''
 |................
 |....ssssssss....
@@ -81,10 +83,10 @@ HEAD = {
 |...sssssssssss..
 |...sssssssssss..
 |...sssssssssss..
-|...sesssssssss..
-|..ssesssssssss..
-|...msssssssss...
-|....sssssssss...
+|...wesssssssss..
+|..sEesssssssss..
+|...Mmssssssss...
+|....sssssssSS...
 '''),
 }
 
@@ -94,40 +96,40 @@ HAIR = {}
 # Player: dark, tousled, a few spikes, fringe swept to one side.
 HAIR['messy'] = {
     'down': T('''
-|.....h..hh......
-|...hhhjhhjjhh...
-|..hhjjhhhhjjhhh.
-|.hhhhhhhhhhhhhh.
+|.....h....h.....
+|...hhhhhhhhhh...
+|..hhjjhhhjjhhh..
+|.hhjhhhhjhhhhhh.
 |.hhhhhhhhhhhhhh.
 |.hhHhhhhHhhhHhh.
-|.hhhH_hhh__hhhh.
-|.hh.......h..hh.
+|.hhhh.hhhh.hhhh.
+|.hh..........hh.
 |.hh..........hh.
 |..h..........h..
 '''),
     'up': T('''
-|.....h..hh......
-|...hhhjhhjjhh...
-|..hhjjhhhhjjhhh.
+|.....h....h.....
+|...hhhhhhhhhh...
+|..hhjjhhhjjhhh..
+|.hhjhhhhjhhhhhh.
 |.hhhhhhhhhhhhhh.
-|.hhhhjhhhhjhhhh.
 |.hhhhhhhhhhhhhh.
-|.hhHhhhhhhhHhhh.
 |.hhhhhhhhhhhhhh.
-|.hhhHhhhhhhHhhh.
+|.hhhhhhhhhhhhhh.
+|.hhhhhhhhhhhhhh.
 |..hhhhhhhhhhhh..
-|...HhhhhhhhhH...
+|..hhh.hhhh.hhh..
 '''),
     'left': T('''
-|......h.hh......
-|....hhjhhjjhh...
-|...hjjhhhhjjhhh.
+|......h....h....
+|....hhhhhhhhhh..
+|...hjjhhhjjhhhh.
+|..hjhhhhjhhhhhh.
 |..hhhhhhhhhhhhh.
 |..hhhhhhhhhhhhh.
-|..hHhhhhhHhhhhh.
-|...H..hhhhhhhhh.
-|.......hhhhhhhh.
+|..h.hhh.hhhhhhh.
 |........hhhhhhh.
+|.........hhhhhh.
 |.........hhhhh..
 |..........hhh...
 '''),
@@ -1154,7 +1156,8 @@ class Char:
             'o': OUT,
             'H': hairc[0], 'h': hairc[1], 'j': hairc[2],
             'S': skin[1], 's': skin[2], 't': skin[3], 'm': P.CLOTH_PINK[2],
-            'e': eye or P.HAIR_DARK[0], 'w': P.WHITE[3],
+            'e': P.HAIR_DARK[0], 'w': P.WHITE[3], 'E': eye or P.CLOTH_DARK[1],
+            'M': skin[0],
             'C': top[0], 'c': top[1], 'd': top[2],
             'P': bottom[0], 'p': bottom[1], 'q': bottom[-1],
             'K': shoes[0], 'k': shoes[1],
@@ -1182,6 +1185,7 @@ class Char:
                                     and r[i + 1] in 'hj') else c for i, c in enumerate(r))
                     for r in hair]
         stamp(g, hair, head_y)
+        self.shade_hair(g, src_d, head_y)
         # per-character extras: dict (dir, frame|None) -> (y0, rows, mode)
         for key in ((src_d, None), (src_d, f)):
             for ex in self.extras.get(key, []):
@@ -1193,6 +1197,33 @@ class Char:
                 else:
                     stamp_masked(g, rows, yy, mode)
         return g
+
+    @staticmethod
+    def shade_hair(g, d, head_y):
+        """Automatic 3-tone hair: light rim on the top-left, shadow on the
+        right/bottom edges (light comes from the top-left)."""
+        HAIRS = 'hHj'
+        src = [row[:] for row in g]
+        xs = [x for y in range(H) for x in range(W) if src[y][x] in HAIRS]
+        if not xs:
+            return
+        xmin, xmax = min(xs), max(xs)
+        for y in range(H):
+            for x in range(W):
+                if src[y][x] != 'h':
+                    continue
+                up = src[y - 1][x] if y else '.'
+                left = src[y][x - 1] if x else '.'
+                right = src[y][x + 1] if x < W - 1 else '.'
+                down = src[y + 1][x] if y < H - 1 else '.'
+                if (up == '.' or left == '.') and y <= head_y + 4 and x < (xmin + xmax) / 2 + 2:
+                    g[y][x] = 'j'
+                elif right == '.' and x > (xmin + xmax) / 2:
+                    g[y][x] = 'H'
+                elif down not in HAIRS and down != '.' and y > head_y + 3:
+                    g[y][x] = 'H'
+                elif d == 'up' and down == '.':
+                    g[y][x] = 'H'
 
     def frame(self, d, f):
         g = self.frame_grid(d, f)
@@ -1267,13 +1298,13 @@ GLASSES_LEFT = (7, T('''
 def glasses(extras):
     extras.setdefault(('down', None), []).append(
         (7, T('''
-|...xyexxxxeyx...
-|...xyex..xeyx...
+|...xwexxxxwex...
+|...x..x..x..x...
 '''), 'over', 'head'))
     extras.setdefault(('left', None), []).append(
         (7, T('''
-|..xyexxxx.......
-|..xyex..........
+|..xwexxxx.......
+|..x..x..........
 '''), 'over', 'head'))
     return extras
 
@@ -1315,7 +1346,7 @@ def define():
                     body='adult', legs='dress', acc=P.WHITE,
                     extras=apron({}, True))
     C['prof'] = Char('prof', 'swept', P.HAIR_BROWN, P.CLOTH_GREEN, P.CLOTH_DARK,
-                     body='coat', legs='coat', acc=P.WHITE[1:], acc2=[P.METAL[0], P.METAL[1], P.GLASS[3]],
+                     body='coat', legs='coat', acc=P.WHITE[1:], acc2=[P.METAL[0], P.METAL[2], P.GLASS[3]],
                      extras=glasses({}))
     C['aide'] = Char('aide', 'bowl', P.HAIR_BLOND, P.CLOTH_BLUE, P.ROCK[:3],
                      body='coat', legs='coat', acc=P.WHITE[1:])
@@ -1331,7 +1362,7 @@ def define():
                       body='adult', legs='pants', skin=P.SKIN)
     C['techie'] = Char('techie', 'beanie', P.HAIR_DARK, P.CLOTH_DARK, P.CLOTH_BLUE,
                        body='adult', legs='pants', acc=P.CLOTH_GREEN,
-                       acc2=[P.METAL[0], P.METAL[1], P.GLASS[3]], skin=P.SKIN_DEEP, extras=glasses({}))
+                       acc2=[P.METAL[0], P.METAL[2], P.GLASS[3]], skin=P.SKIN_DEEP, extras=glasses({}))
     C['nurse'] = Char('nurse', 'bun', P.HAIR_BROWN, P.ROOF_TEAL, P.ROOF_TEAL,
                       body='adult', legs='dress', acc=P.WHITE[1:],
                       extras={('down', None): [(0, T('''
@@ -1378,8 +1409,146 @@ def build():
         sh = ch.sheet()
         save(sh, SPRITES, 'chars', cid + '.png')
         out[cid] = sh
+    hs = hound_sheet()
+    save(hs, SPRITES, 'chars', 'hallucihound.png')
+    out['hallucihound'] = hs
     return out
 
 
 if __name__ == '__main__':
     build()
+
+
+# ------------------------------------------------------------ HalluciHound --
+# Overworld quadruped for the Route 101 rescue cutscene. Same 48x96 sheet
+# layout as the people. Colours follow mons/hallucihound_front: near-black fur,
+# magenta glitch streaks, cream mask with red eyes.
+HOUND_CM = {
+    'B': P.CLOTH_DARK[1], 'b': P.CLOTH_DARK[2], 'n': P.ROCK[1],
+    'm': P.WALL_CREAM[3], 'M': P.WALL_CREAM[1], 'r': P.CLOTH_RED[2], 'R': P.CLOTH_RED[0],
+    'g': P.CLOTH_PINK[1], 'G': P.CLOTH_PINK[0], 'w': P.WHITE[2], 'o': OUT,
+}
+
+# side view, facing left; rows y5..y15 (legs are drawn in code below)
+HOUND_SIDE = T('''
+|.....m..m.......
+|.....mm.mm......
+|....mmmmmmb..gg.
+|...mmmrmmbbb.gG.
+|.mmmmmmmmbbbbg..
+|.MMMmmMMbbbbgbb.
+|..wMwMbbbbbbbGbB
+|....bbbnbbbbbbBB
+|....bbbbbbgbbbBB
+|....bbbbbbbbbbB.
+''')
+# legs: (x, near?) top at y15, 5 rows to the paw on y20
+SIDE_LEGS = [(4, True), (7, False), (10, True), (13, False)]  # near=2px, far=1px
+
+
+def _leg(g, x, swing, near):
+    """2px leg from y16 to y20; swing shifts the paw forward(-)/back(+)."""
+    for i, y in enumerate(range(15, 21)):
+        xx = x + round(swing * i / 5)
+        cells = ((0, 'n'), (1, 'b')) if near else ((0, 'B'),)
+        for dx, cc in cells:
+            if 0 <= xx + dx < W:
+                g[y][xx + dx] = cc
+    if near:
+        paw = x + swing
+        if 0 <= paw < W:
+            g[20][paw] = 'w'  # claws toward the front
+
+
+HOUND_DOWN = T('''
+|..mm........mm..
+|..mmm......mmm..
+|..mmmmbbbbmmmm..
+|.bmmmmmmmmmmmmb.
+|.bmmrrmmmmrrmmb.
+|gbbmmmMmmMmmmbbg
+|.bbbmmmmmmmmbbb.
+|gbbbbmmMMmmbbbbg
+|.bbbbbwooWbbbbb.
+|..bbbbbmmbbbbb..
+|..bbnbbbbbbnbb..
+''').copy()
+HOUND_DOWN = [r.replace('W', 'w') for r in HOUND_DOWN]
+HOUND_UP = T('''
+|..mm........mm..
+|..mbb......bbm..
+|...bbbbbbbbbb...
+|..bbbbbbbbbbbb..
+|..bbbbbbbbbbbb..
+|.bbbbbbggbbbbbb.
+|.bbbbbbgGbbbbbb.
+|.bbbbbggbbbbbbb.
+|.bbbbbgGbbbbbbb.
+|..bbbbbggbbbbb..
+|..bbnbbbbbbnbb..
+''')
+
+
+def hound_frame(d, f):
+    g = blank()
+    src = 'left' if d == 'right' else d
+    if src == 'left':
+        stamp(g, HOUND_SIDE, 5)
+        # prowl: stand = legs straight; A/B = diagonal pairs swing opposite
+        sw = {0: (0, 0), 1: (-2, 2), 2: (2, -2)}[f]
+        for x, near in SIDE_LEGS:
+            front = x < 8
+            # diagonal pairs: near-front with far-back, far-front with near-back
+            pair_a = (front and near) or (not front and not near)
+            s = sw[0] if pair_a else sw[1]
+            if f == 0:
+                s = {4: 0, 7: -1, 10: 1, 13: 1}[x]  # natural splay when standing
+            if not near:
+                _leg(g, x, s, near)
+        for x, near in SIDE_LEGS:
+            front = x < 8
+            pair_a = (front and near) or (not front and not near)
+            s = sw[0] if pair_a else sw[1]
+            if f == 0:
+                s = {4: 0, 7: -1, 10: 1, 13: 1}[x]
+            if near:
+                _leg(g, x, s, near)
+        if f:
+            # glitch tail flickers
+            g[7][13], g[8][14] = ('G', 'g') if f == 1 else ('g', 'G')
+    else:
+        rows = HOUND_DOWN if src == 'down' else HOUND_UP
+        stamp(g, rows, 5)
+        # four legs seen end-on: front pair outside, hind pair inside
+        lift = {0: (0, 0), 1: (1, 0), 2: (0, 1)}[f]
+        # front view shows the two front legs (hind legs hidden behind the
+        # chest); rear view shows the two hind legs. Paws peek in the gap.
+        for i, x in enumerate((3, 11)):
+            up = lift[i]
+            for y in range(16, 21 - up):
+                g[y][x] = 'n' if i == 0 else 'b'
+                g[y][x + 1] = 'b' if i == 0 else 'B'
+            if src == 'down':
+                g[20 - up][x] = 'w'
+                g[20 - up][x + 1] = 'w'
+        for x in (6, 9):
+            g[20][x] = 'B'
+            g[19][x] = 'B'
+    rows = [''.join(r) for r in g]
+    im = grid_to_image(rows, HOUND_CM, W, H)
+    im = outline(im)
+    if f in (1, 2):
+        b2 = new(W, H)
+        b2.paste(im.crop((0, 1, W, H)), (0, 0))
+        im = b2
+    if d == 'right':
+        im = im.transpose(Image.FLIP_LEFT_RIGHT)
+    return im
+
+
+def hound_sheet():
+    sh = new(W * 3, H * 4)
+    for r, d in enumerate(('down', 'up', 'left', 'right')):
+        for c in range(3):
+            sh.paste(hound_frame(d, c), (c * W, r * H))
+    return sh

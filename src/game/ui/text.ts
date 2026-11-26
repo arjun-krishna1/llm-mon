@@ -142,9 +142,9 @@ export class PxText {
   }
 }
 
-function charAdvances(scene: Phaser.Scene, font: string): Record<number, { xAdvance: number }> {
+function charAdvances(scene: Phaser.Scene, font: string): Record<number, { xAdvance: number; kerning?: Record<number, number> }> {
   const entry = scene.cache.bitmapFont.get(font)
-  return (entry?.data?.chars ?? {}) as Record<number, { xAdvance: number }>
+  return (entry?.data?.chars ?? {}) as Record<number, { xAdvance: number; kerning?: Record<number, number> }>
 }
 
 /** Pixel width of `text` (widest line) in a bitmap font, matching BitmapText layout. */
@@ -153,9 +153,14 @@ export function measure(scene: Phaser.Scene, font: string, text: string): number
   let best = 0
   for (const line of text.split('\n')) {
     let w = 0
+    let prev = -1
     for (const ch of line) {
-      const c = chars[ch.codePointAt(0) ?? 0]
-      if (c) w += c.xAdvance
+      const code = ch.codePointAt(0) ?? 0
+      const c = chars[code]
+      if (c) {
+        w += c.xAdvance + (prev >= 0 ? (c.kerning?.[prev] ?? 0) : 0)
+        prev = code
+      }
     }
     if (line.length) w -= 1 // trailing tracking
     best = Math.max(best, w)

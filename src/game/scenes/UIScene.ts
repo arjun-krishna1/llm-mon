@@ -365,13 +365,27 @@ export class UIScene extends Phaser.Scene {
     })
   }
 
-  /** "{player} received X!" with jingle. */
-  async itemGet(itemId: string, count = 1, verb = 'obtained'): Promise<void> {
+  /** "{player} received X!" with jingle (key items: key_item_get). */
+  async itemGet(itemId: string, count = 1, verb = 'received'): Promise<void> {
     const info = itemInfo(itemId)
     audio.sfx(info.isKey ? 'key_item_get' : 'item_get')
-    const what = count > 1 ? `${count} ${info.name}s` : `a ${info.name}`
-    await this.say(expand(`{player} ${verb} ${what}!`))
+    await this.say(expand(`{player} ${verb} ${itemPhrase(info.name, count, info.isKey)}!`))
   }
+}
+
+/** "a Patch", "an Orb", "5 Prompt Orbs", "the Fast Tokens" (key items / plural-looking names take "the"). */
+export function itemPhrase(name: string, count: number, isKey: boolean): string {
+  if (count > 1) return `${count} ${pluralize(name)}`
+  const pluralName = /[^s]s$/i.test(name)
+  if (isKey || pluralName) return `the ${name}`
+  return `${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name}`
+}
+
+export function pluralize(name: string): string {
+  if (/[^s]s$/i.test(name)) return name
+  if (/(s|x|z|ch|sh)$/i.test(name)) return `${name}es`
+  if (/[^aeiou]y$/i.test(name)) return `${name.slice(0, -1)}ies`
+  return `${name}s`
 }
 
 function mapTitle(): string {

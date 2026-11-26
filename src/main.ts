@@ -63,3 +63,7 @@ window.addEventListener('resize', () => {
 })
 
 if (params.debug) installDebug(game)
+
+if (new URLSearchParams(location.search).has('audiotest')) {
+  import('./game/audio/dev/audiotest').then((m) => m.mountAudioTest(document.body))
+}

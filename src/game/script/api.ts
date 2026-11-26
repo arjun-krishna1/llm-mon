@@ -26,6 +26,23 @@ export interface NpcDef {
   text?: string
 }
 
+/** Options for spawnProp (see docs/ENGINE_API.md §Props). */
+export interface PropOpts {
+  frame?: number | string
+  /** Blocks movement over its footprint (default true). */
+  solid?: boolean
+  /** 'y' = sorted with characters (default), 'ground' = under characters, 'over' = above everything. */
+  depth?: 'y' | 'ground' | 'over'
+  /** Footprint in tiles (default: image width; 1 row, or 2 if the image is ≥ 32px tall). */
+  w?: number
+  h?: number
+  offsetX?: number
+  offsetY?: number
+  /** A-press while facing it. */
+  script?: string
+  text?: string
+}
+
 /** What a scene must provide for world commands (OverworldScene implements it). */
 export interface WorldApi {
   hasActor(id: string): boolean
@@ -34,6 +51,11 @@ export interface WorldApi {
   faceActor(id: string, dir: Dir): void
   emote(id: string, kind: EmoteKind): Promise<void>
   warp(map: string, spawn: string | { x: number; y: number }, facing?: Dir, sfx?: string): Promise<void>
+  spawnProp(id: string, key: string, x: number, y: number, opts?: PropOpts): void
+  despawnProp(id: string): void
+  setPropHidden(id: string, hidden: boolean): void
+  propPos(id: string): { x: number; y: number } | null
+  moveProp(id: string, to: Dir[] | { x: number; y: number }, durationMs: number, ease?: string): Promise<void>
   spawnNpc(def: NpcDef): void
   despawnNpc(id: string): void
   setNpcHidden(id: string, hidden: boolean): void
@@ -178,6 +200,27 @@ export class ScriptApi {
   show(id: string): void {
     this.world.setNpcHidden(this.actorId(id), false)
   }
+  /** Place a static sprite whose footprint's top-left tile is (x, y), e.g. spawnProp('satchel', 'fx/satchel', 12, 40). */
+  spawnProp(id: string, key: string, x: number, y: number, opts?: PropOpts): void {
+    this.world.spawnProp(id, key, x, y, opts)
+  }
+  despawnProp(id: string): void {
+    this.world.despawnProp(id)
+  }
+  hideProp(id: string): void {
+    this.world.setPropHidden(id, true)
+  }
+  showProp(id: string): void {
+    this.world.setPropHidden(id, false)
+  }
+  propPos(id: string): { x: number; y: number } | null {
+    return this.world.propPos(id)
+  }
+  /** Slide a prop along "right 12" / Dir[] or to {x, y} (tiles) over durationMs. Collision follows it. */
+  moveProp(id: string, to: string | Dir[] | { x: number; y: number }, durationMs = 1000, ease?: string): Promise<void> {
+    const target = typeof to === 'string' || Array.isArray(to) ? parsePath(to as string | Dir[]) : to
+    return this.world.moveProp(id, target, durationMs, ease)
+  }
   setSprite(id: string, sprite: string): void {
     this.world.setNpcSprite(this.actorId(id), sprite)
   }
@@ -224,7 +267,7 @@ export class ScriptApi {
   // ------------------------------------------------------------ items / mons / money
   async giveItem(itemId: string, count = 1, opts: { silent?: boolean; verb?: string } = {}): Promise<void> {
     state.addItem(itemId, count)
-    if (!opts.silent) await this.ui.itemGet(itemId, count, opts.verb ?? 'obtained')
+    if (!opts.silent) await this.ui.itemGet(itemId, count, opts.verb ?? 'received')
   }
   takeItem(itemId: string, count = 1): boolean {
     return state.removeItem(itemId, count)

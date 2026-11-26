@@ -10,7 +10,7 @@ import { FONT, H, W } from '../config'
 import { controls } from '../controls'
 import { audio } from '../audio'
 import { params } from '../params'
-import { ensureTexture } from '../assets'
+import { ensureTexture, isPlaceholder } from '../assets'
 import { DialogBox } from '../ui/DialogBox'
 import { Window } from '../ui/Window'
 import { WidgetStack, type Widget } from '../ui/WidgetStack'
@@ -48,6 +48,9 @@ export class StarterSelectScene extends Phaser.Scene {
   private busy = true
   private monTween?: Phaser.Tweens.Tween
   phase = 'intro'
+  private orbKey = 'fx/orb_throw'
+  /** Half the orb size (8 for the 16px orb, 16 for orb_big). */
+  private half = 8
 
   constructor() {
     super({ key: 'StarterSelect' })
@@ -68,8 +71,11 @@ export class StarterSelectScene extends Phaser.Scene {
   create(): void {
     this.add.image(0, 0, 'ui/starter_select_bg').setOrigin(0, 0)
     this.glow = this.add.graphics()
+    // ART may ship a native 32px orb (fx/orb_big, same 4 frames) that fills the pockets better.
+    this.orbKey = this.textures.exists('fx/orb_big') && !isPlaceholder('fx/orb_big') ? 'fx/orb_big' : 'fx/orb_throw'
+    this.half = this.orbKey === 'fx/orb_big' ? 16 : 8
     this.ids.forEach((_, i) => {
-      this.orbs.push(this.add.image(ORBS[i].x, ORBS[i].y, 'fx/orb_throw', 0).setOrigin(0.5, 0.5))
+      this.orbs.push(this.add.image(ORBS[i].x, ORBS[i].y, this.orbKey, 0).setOrigin(0.5, 0.5))
     })
     this.mon = this.add.image(0, 0, '__WHITE').setOrigin(0.5, 1).setAlpha(0)
     this.pointer = this.add.image(0, 0, 'ui/arrow_down').setOrigin(0.5, 0)
@@ -111,7 +117,7 @@ export class StarterSelectScene extends Phaser.Scene {
     const f = this.frame
     // pointer bounces like the dialog advance arrow; selected orb hops + wiggles
     const o = ORBS[this.index]
-    this.pointer.setPosition(o.x, o.y - 20 + [0, 1, 2, 1][Math.floor(f / 8) % 4])
+    this.pointer.setPosition(o.x, o.y - this.half - 12 + [0, 1, 2, 1][Math.floor(f / 8) % 4])
     this.orbs.forEach((orb, i) => {
       if (i !== this.index) {
         orb.setPosition(ORBS[i].x, ORBS[i].y).setFrame(0)
@@ -136,12 +142,13 @@ export class StarterSelectScene extends Phaser.Scene {
     const a = this.mon.alpha * 0.28
     if (a > 0) {
       g.fillStyle(0x3a2418, a)
-      g.fillRect(o.x - 14, o.y - 15, 28, 3)
-      g.fillRect(o.x - 18, o.y - 14, 36, 1)
+      g.fillRect(o.x - 14, o.y - this.half - 7, 28, 3)
+      g.fillRect(o.x - 18, o.y - this.half - 6, 36, 1)
     }
     g.fillStyle(0x5a3a28, 0.35)
-    g.fillRect(o.x - 6 + Math.ceil(hop / 2), o.y + 7, 12 - hop, 2)
-    g.fillRect(o.x - 5 + Math.ceil(hop / 2), o.y + 9, 10 - hop, 1)
+    const r = this.half - 2
+    g.fillRect(o.x - r + Math.ceil(hop / 2), o.y + this.half - 1, r * 2 - hop, 2)
+    g.fillRect(o.x - r + 1 + Math.ceil(hop / 2), o.y + this.half + 1, r * 2 - 2 - hop, 1)
   }
 
   private browseInput(): void {
@@ -167,8 +174,8 @@ export class StarterSelectScene extends Phaser.Scene {
     const o = ORBS[i]
     this.monTween?.stop()
     this.mon.setTexture(ensureTexture(this, `mons/${id}_front`, 64, 64))
-    this.mon.setPosition(o.x, o.y - 14 + 4).setAlpha(0)
-    this.monTween = this.tweens.add({ targets: this.mon, alpha: 1, y: o.y - 14, duration: instant || params.fast ? 1 : 260, ease: 'Quad.Out' })
+    this.mon.setPosition(o.x, o.y - this.half - 6 + 4).setAlpha(0)
+    this.monTween = this.tweens.add({ targets: this.mon, alpha: 1, y: o.y - this.half - 6, duration: instant || params.fast ? 1 : 260, ease: 'Quad.Out' })
     // name plate + chip
     const name = sp.name
     const nw = measure(this, FONT.dialog, name)

@@ -158,6 +158,9 @@ def build_real(ext_cat, ext_tsj, int_cat, int_tsj):
     stamp(ext_cat, E, 'tree', 21, 3)
     stamp(ext_cat, E, 'sign_town', 23, 9)                # board on (23..24, 9), post row 10
     m.obj('sign', 23, 10, 2, 1, script='test.cutscene')
+    # props: moving truck (solid 3x2 footprint, interactive) + satchel
+    m.obj('prop', 33, 9, 3, 2, id='truck', sprite='fx/truck', solid=True, script='test.truck', hideIfFlag='test_truck_gone')
+    m.obj('prop', 14, 14, id='satchel', sprite='fx/satchel', solid=True, script='test.satchel')
     m.set('detail', 34, 13, et('bush'))
     m.set('detail', 35, 13, et('rock'))
     fence('fence_white', [(x, 14) for x in range(25, 34)])
@@ -301,7 +304,8 @@ def main():
            'nextlayerid': lid + 1, 'nextobjectid': m.next_id, 'layers': layers, 'tilesets': tilesets,
            'properties': [{'name': 'name', 'type': 'string', 'value': 'Engine Test'},
                           {'name': 'music', 'type': 'string', 'value': 'hayes_valley'},
-                          {'name': 'indoor', 'type': 'bool', 'value': False}]}
+                          {'name': 'indoor', 'type': 'bool', 'value': False},
+                          {'name': 'onEnter', 'type': 'string', 'value': 'test.on_enter'}]}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, 'w') as f:
         json.dump(tmj, f, separators=(',', ':'))

@@ -32,7 +32,7 @@ const SPEC: Record<'enemy' | 'player', PlateSpec> = {
     hp: { x: 46, y: 17, w: 48 }, status: [9, 16],
   },
   player: {
-    key: 'ui/hud_player', name: [14, 1], nameMax: 73, level: [84, 1],
+    key: 'ui/hud_player', name: [14, 1], nameMax: 72, level: [84, 1],
     hp: { x: 48, y: 14, w: 48 }, hpText: { right: 96, y: 19 }, exp: { x: 34, y: 30, w: 62 }, status: [13, 21],
   },
 }

@@ -172,10 +172,10 @@ def starter_screen():
     bg = L(UI, 'starter_select_bg.png')
     if bg:
         scr.alpha_composite(bg)
-    orb = L(SPRITES, 'fx', 'orb_throw.png')
+    orb = L(SPRITES, 'fx', 'orb_big.png')
     for i, (x, y) in enumerate(STARTER_ORBS):
-        scr.alpha_composite(orb.crop((0, 0, 16, 16)), (x - 8, y - 8))
-    scr.alpha_composite(L(UI, 'cursor.png'), (STARTER_ORBS[1][0] - 4, STARTER_ORBS[1][1] - 20))
+        scr.alpha_composite(orb.crop((0, 0, 32, 32)), (x - 16, y - 16))
+    scr.alpha_composite(L(UI, 'arrow_down.png'), (STARTER_ORBS[1][0] - 4, STARTER_ORBS[1][1] - 26))
     fd = L(UI, 'frame_dialog.png')
     box = nine(fd, 240, 48)
     text5(box, 12, 12, 'So, you want GPT 5.5,', P.UI_TEXT, P.UI_TEXT_SHADOW)
@@ -193,6 +193,7 @@ def props_sheet(char_ids):
         x += 20
     im.alpha_composite(L(SPRITES, 'fx', 'grass_rustle.png'), (4, 24))
     im.alpha_composite(L(SPRITES, 'fx', 'orb_throw.png'), (72, 24))
+    im.alpha_composite(L(SPRITES, 'fx', 'orb_big.png'), (100, 128))
     im.alpha_composite(L(SPRITES, 'fx', 'truck.png'), (150, 4))
     # player standing in grass with shadow + emote + overlay
     pl = L(SPRITES, 'chars', 'player.png').crop((0, 0, 16, 24))
@@ -210,6 +211,30 @@ def props_sheet(char_ids):
     return scale(im, 4)
 
 
+def scene_check():
+    """Characters composited at 1x over ART-EXT's scene, by the player's door, 4x."""
+    from common import ROOT
+    p = os.path.join(ROOT, 'tools', 'art', 'tiles_exterior', 'preview', 'scene_1x.png')
+    if not os.path.exists(p):
+        return None
+    sc = Image.open(p).convert('RGBA').crop((96, 144, 336, 304))  # 240x160 window
+    def ch(cid, col, row, tx, ty):
+        sh = L(SPRITES, 'chars', cid + '.png')
+        fr = sh.crop((col * 16, row * 24, col * 16 + 16, row * 24 + 24))
+        sc.alpha_composite(L(SPRITES, 'fx', 'shadow.png'), (tx, ty + 12)) if False else None
+        sc.alpha_composite(fr, (tx, ty - 8))
+    # tile coordinates inside the window (16px grid aligned to the scene)
+    ch('player', 0, 1, 48, 80)     # facing the door
+    ch('mom', 0, 2, 64, 80)
+    ch('prof', 0, 0, 96, 96)
+    ch('player', 1, 3, 112, 96)
+    ch('hallucihound', 0, 2, 144, 96)
+    ch('hallucihound', 1, 0, 176, 96)
+    ch('nurse', 0, 0, 16, 112)
+    ch('clerk', 2, 2, 32, 112)
+    return scale(sc, 4)
+
+
 # Orb centres on starter_select_bg (also documented in the catalog).
 STARTER_ORBS = [(72, 84), (120, 84), (168, 84)]
 
@@ -221,6 +246,9 @@ def build(char_ids, mon_ids):
     out['ui'] = save(ui_sheet(), PREVIEW, 'ui_4x.png')
     out['title'] = save(title_screen(), PREVIEW, 'title_4x.png')
     out['starter'] = save(starter_screen(), PREVIEW, 'starter_select_4x.png')
+    sc = scene_check()
+    if sc is not None:
+        out['scene'] = save(sc, PREVIEW, 'chars_in_scene_4x.png')
     out['props'] = save(props_sheet(char_ids), PREVIEW, 'props_4x.png')
     out['mons'] = save(mons_grid(mon_ids), PREVIEW, 'mons_grid_3x.png')
     pairs = [('hallucihound', 'claude_fable', 'HalluciHound', 'FABLE'),

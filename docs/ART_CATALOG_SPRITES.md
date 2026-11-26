@@ -43,6 +43,15 @@ without extension (matches `src/game/assets.ts`).
   glasses, dark hoodie), `nurse` (Model Center: teal uniform, white cap, bun),
   `clerk` (Token Mart: violet apron, ponytail), `trainer_m` (spiky blond, red
   tee, shorts), `trainer_f` (brown bob, red beret, blue top, white skirt).
+- Faces (down view): 2×2 eyes with a white glint (top-left) over an iris
+  shade, pink cheeks, a 2px mouth; side view: 2px eye + glint, mouth, cheek.
+  Hair is auto-shaded in 3 tones (light rim top-left, shadow right/bottom).
+- `hallucihound` — same 48×96 layout, a quadruped for the Route 101 rescue
+  cutscene: slate-black fur with magenta glitch streaks, cream mask, red
+  eyes, white fangs/claws. Fills the full 16px width; side rows are a dog in
+  profile (4 legs, near legs lighter), steps A/B are a diagonal-pair prowl
+  with a flickering glitch tail; down/up show the masked face / rear with
+  alternately lifted paws. Same 1px bob on step frames.
 
 ## Creatures — `sprites/mons/`
 
@@ -78,7 +87,8 @@ Ids: `claude_fable`, `gpt_5_5`, `glm`, `hallucihound`, `gemma_4`,
 | `item_ball.png` | 16×16 | ground item: small Prompt Orb + shadow |
 | `shadow.png` | 16×8 | translucent ellipse (palette SHADOW), for jumps/ledges |
 | `orb_throw.png` | 64×16 | Prompt Orb frames: 0 closed, 1 tilt-left, 2 tilt-right, 3 open (lid up, glow) |
-| `truck.png` | 48×40 | "Mythos Movers" truck (3/4 view, MM livery), bottom-anchored |
+| `orb_big.png` | 128×32 | the same Prompt Orb at 32×32, 4 frames: 0 closed, 1 tilt-left, 2 tilt-right, 3 open (lid hinged back, glow). For the starter-select satchel pockets and the catch close-up. Orb body fills ~29px; centre (15.5, 15.5) |
+| `truck.png` | **48×40** exactly | "Mythos Movers" truck (3/4 view facing left/down, cream cargo box with an orange diamond + "MM" livery). One clean sprite: a single connected opaque region, alpha strictly 0/255, opaque bbox x 2–45, y 0–39 (wheels touch the bottom row). Safe to tween as one image (drive away to the left); also usable split into 16px tiles |
 | `satchel.png` | 16×16 | professor's satchel on the ground |
 
 Prompt Orb design: faceted crystal sphere, amber upper dome, teal lower dome,
@@ -165,4 +175,4 @@ glitch = CLOTH_PINK/CLOTH_RED.
 | --- | --- | --- |
 | `title_bg.png` | 240×160 | sunset, mythic fox-creature on a crag at right; leave top-centre for the logo; "PRESS START" reads well at y≈136 in cream `#fcf6e2` with dark shadow |
 | `title_logo.png` | 160×64 | "LLMMON" (arched, amber→orange, dark + cream outline, teal gem in the O) over "MYTHOS" with diamond ornaments; place at (40,6) |
-| `starter_select_bg.png` | 240×160 | open satchel on grass; three empty pockets. **Orb centres: (72,84), (120,84), (168,84)** — draw `orb_throw` frame 0 centred there; dialog box covers y≥112 |
+| `starter_select_bg.png` | 240×160 | open satchel on grass; three empty pockets. **Orb centres: (72,84), (120,84), (168,84)** — draw `fx/orb_big` frame 0 (32×32) centred there (top-left = centre − 16); dialog box covers y≥112 |

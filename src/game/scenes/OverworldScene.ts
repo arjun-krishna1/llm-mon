@@ -18,6 +18,7 @@ import { Actor } from '../world/Actor'
 import { content, runScript, scriptsRunning } from '../script'
 import type { EmoteKind, NpcDef, WorldApi } from '../script'
 import { getUI, setAreaNameProvider, type UIScene } from './UIScene'
+import { ensureTexture } from '../assets'
 
 export interface OverworldData {
   map?: string
@@ -35,6 +36,30 @@ interface GroundItem {
   hidden: boolean
 }
 
+/** A static world sprite (map `prop` object or spawned by a script). */
+interface Prop {
+  id: string
+  img: Phaser.GameObjects.Image
+  /** Pixel top-left of the collision footprint. */
+  x: number
+  y: number
+  tw: number
+  th: number
+  solid: boolean
+  depthMode: 'y' | 'ground' | 'over'
+  data: Record<string, unknown>
+  fromMap: boolean
+  scriptHidden: boolean
+}
+
+interface Particle {
+  r: Phaser.GameObjects.Rectangle
+  vx: number
+  vy: number
+  life: number
+  max: number
+}
+
 interface Fx {
   img: Phaser.GameObjects.Image
   t: number
@@ -44,11 +69,28 @@ interface Fx {
 
 const FALLBACK_WILD = ['gemma_4', 'gpt_5_4_mini', 'mistral_medium']
 
+export interface PropOptions {
+  frame?: number | string
+  solid?: boolean
+  depth?: 'y' | 'ground' | 'over'
+  /** Collision footprint in tiles (default: image width, 1 row; 2 rows if ≥ 32px tall). */
+  w?: number
+  h?: number
+  offsetX?: number
+  offsetY?: number
+  script?: string
+  text?: string
+}
+
 export class OverworldScene extends Phaser.Scene implements WorldApi {
   map?: GameMap
   player!: Actor
   npcs = new Map<string, Actor>()
   private items: GroundItem[] = []
+  props = new Map<string, Prop>()
+  private particles: Particle[] = []
+  private runSteps = 0
+  private doorFx?: Phaser.GameObjects.Graphics
   private fxs: Fx[] = []
   private ui!: UIScene
   private ready = false
@@ -79,6 +121,8 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     this.initData = data ?? {}
     this.ready = false
     this.npcs = new Map()
+    this.props = new Map()
+    this.particles = []
     this.items = []
     this.fxs = []
     this.lockCount = 0
@@ -111,6 +155,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     await this.loadMap(mapId, target, d.facing ?? state.facing)
     this.ready = true
     await this.ui.fade(0, FADE_MS)
+    await this.runOnEnter()
     this.lockCount--
     if (d.newGame && content.newGameScript) await this.run(content.newGameScript)
   }
@@ -132,6 +177,10 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     this.items = []
     for (const f of this.fxs) f.img.destroy()
     this.fxs = []
+    for (const pr of this.props.values()) pr.img.destroy()
+    this.props.clear()
+    for (const pt of this.particles) pt.r.destroy()
+    this.particles = []
 
     const map = new GameMap(this, id, raw)
     this.map = map
@@ -149,7 +198,8 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       pos = sp ? { x: sp.tx, y: sp.ty } : { x: Math.floor(map.width / 2), y: Math.floor(map.height / 2) }
     }
     const spawnObj = typeof target === 'string' ? map.objects.find((o) => o.type === 'spawn' && o.name === target) : undefined
-    const f = (facing ?? (spawnObj?.props.facing as Dir | undefined) ?? this.player.facing) as Dir
+    const onOutdoorDoor = !!map.tileAt(pos.x, pos.y).door && !map.props.indoor
+    const f = (facing ?? (spawnObj?.props.facing as Dir | undefined) ?? (onOutdoorDoor ? 'down' : this.player.facing)) as Dir
     this.player.place(pos.x, pos.y, f)
     state.x = pos.x
     state.y = pos.y
@@ -159,7 +209,22 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     // objects
     for (const o of map.objects) {
       if (o.type === 'npc') this.spawnFromObject(o)
-      else if (o.type === 'item') {
+      else if (o.type === 'prop') {
+        const pr = o.props
+        const id = String(pr.id ?? (o.name || `prop${o.id}`))
+        const sized = (o.tw > 1 || o.th > 1) || pr.w !== undefined
+        this.addProp(id, String(pr.sprite ?? pr.texture ?? 'fx/satchel'), o.tx, o.ty, {
+          frame: pr.frame as number | undefined,
+          solid: pr.solid === undefined ? true : !!pr.solid,
+          depth: (pr.depth as Prop['depthMode']) ?? 'y',
+          w: sized ? Number(pr.w ?? o.tw) : undefined,
+          h: sized ? Number(pr.h ?? o.th) : undefined,
+          offsetX: Number(pr.offsetX ?? 0),
+          offsetY: Number(pr.offsetY ?? 0),
+          data: { ...pr },
+          fromMap: true,
+        })
+      } else if (o.type === 'item') {
         const flag = String(o.props.flag ?? `item_${id}_${o.id}`)
         if (state.flag(flag)) continue
         const hidden = !!o.props.hidden
@@ -190,6 +255,48 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       const hide = a.data.hideIfFlag ? state.flag(String(a.data.hideIfFlag)) : false
       if (a.data.obj) a.setHidden(!show || hide || !!a.data.scriptHidden)
     }
+    for (const pr of this.props.values()) {
+      const show = pr.data.showIfFlag ? state.flag(String(pr.data.showIfFlag)) : true
+      const hide = pr.data.hideIfFlag ? state.flag(String(pr.data.hideIfFlag)) : false
+      pr.img.setVisible(show && !hide && !pr.scriptHidden)
+    }
+  }
+
+  // ================================================================ props
+
+  /** Create a prop whose collision footprint's top-left tile is (tx, ty). The image sits on the footprint's bottom-left. */
+  addProp(id: string, key: string, tx: number, ty: number, o: {
+    frame?: number | string; solid?: boolean; depth?: 'y' | 'ground' | 'over'; w?: number; h?: number
+    offsetX?: number; offsetY?: number; data?: Record<string, unknown>; fromMap?: boolean
+  } = {}): void {
+    this.props.get(id)?.img.destroy()
+    const tex = ensureTexture(this, key, 16, 16)
+    const img = this.add.image(0, 0, tex, o.frame).setOrigin(0, 1)
+    const tw = Math.max(1, o.w ?? Math.ceil(img.width / TILE))
+    const th = Math.max(1, o.h ?? (img.height >= 32 ? 2 : 1))
+    const pr: Prop = {
+      id, img, x: tx * TILE, y: ty * TILE, tw, th, solid: o.solid ?? true, depthMode: o.depth ?? 'y',
+      data: { ...(o.data ?? {}), offsetX: o.offsetX ?? 0, offsetY: o.offsetY ?? 0 }, fromMap: !!o.fromMap, scriptHidden: false,
+    }
+    this.props.set(id, pr)
+    this.placeProp(pr)
+    this.refreshNpcVisibility()
+  }
+
+  private placeProp(pr: Prop): void {
+    const bottom = Math.round(pr.y) + pr.th * TILE
+    pr.img.setPosition(Math.round(pr.x) + Number(pr.data.offsetX ?? 0), bottom + Number(pr.data.offsetY ?? 0))
+    pr.img.setDepth(pr.depthMode === 'ground' ? DEPTH.shadow - 1 : pr.depthMode === 'over' ? DEPTH.over + 50 : DEPTH.charBase + bottom - 1)
+  }
+
+  private propAt(x: number, y: number, solidOnly: boolean): Prop | undefined {
+    for (const pr of this.props.values()) {
+      if (!pr.img.visible || (solidOnly && !pr.solid)) continue
+      const px = x * TILE
+      const py = y * TILE
+      if (px < pr.x + pr.tw * TILE && px + TILE > pr.x && py < pr.y + pr.th * TILE && py + TILE > pr.y) return pr
+    }
+    return undefined
   }
 
   // ================================================================ main loop
@@ -229,6 +336,15 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       else f.img.setFrame(fr)
     }
     this.fxs = this.fxs.filter((f) => f.img.active)
+    for (const pt of this.particles) {
+      pt.life++
+      pt.r.x += pt.vx
+      pt.r.y += pt.vy
+      pt.vy += 0.02
+      pt.r.setAlpha(Math.max(0, 1 - pt.life / pt.max))
+      if (pt.life >= pt.max) pt.r.destroy()
+    }
+    this.particles = this.particles.filter((pt) => pt.r.active)
     if (this.bumpSfxCooldown > 0) this.bumpSfxCooldown--
   }
 
@@ -325,11 +441,86 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       }
       return
     }
+    if (warpHere && tile.door && !map.props.indoor) {
+      void this.enterDoor(d, warpHere)
+      return
+    }
     const frames = this.running() ? RUN_FRAMES : WALK_FRAMES
     if (tile.grass) this.rustle(tx, ty)
+    else if (frames === RUN_FRAMES && this.runSteps++ % 2 === 0) this.dust(p.tx, p.ty, d)
+    if (frames !== RUN_FRAMES) this.runSteps = 0
     this.playerStepping = true
     if (chained) p.chain(d, frames)
     else void p.step(d, frames)
+  }
+
+  /** Small dust puff behind the heels (running). */
+  private dust(x: number, y: number, d: Dir): void {
+    const v = DIR_VEC[d]
+    const cx = x * TILE + 8 - v.x * 4
+    const cy = y * TILE + 14 - (v.y < 0 ? -1 : 0)
+    const cols = [0xf4e4b8, 0xe8cf97, 0xfcfaf0]
+    for (let i = 0; i < 3; i++) {
+      const s = i === 0 ? 2 : 1
+      const r = this.add.rectangle(cx + (i - 1) * 3, cy - (i % 2), s, s, cols[i]).setOrigin(0, 0).setDepth(DEPTH.charBase + y * TILE + TILE - 0.5)
+      this.particles.push({ r, vx: (i - 1) * 0.12 - v.x * 0.15, vy: -0.18 - (i % 2) * 0.06, life: 0, max: 14 + i * 2 })
+    }
+  }
+
+  /** Procedural door-open overlay on a door tile: a dark opening that grows downward (k: 0 closed → 1 open). */
+  private drawDoor(g: Phaser.GameObjects.Graphics, x: number, y: number, k: number): void {
+    g.clear()
+    // door art usually rises a few px into the tile above; open from the top down like a roller door
+    const top = y * TILE - 3
+    const h = Math.round(16 * k)
+    if (h <= 0) return
+    g.fillStyle(0x28222e, 0.94)
+    g.fillRect(x * TILE + 3, top, 10, h)
+    g.fillStyle(0x4a3f4f, 0.9)
+    g.fillRect(x * TILE + 3, top + h - 1, 10, 1)
+  }
+
+  private animateDoor(g: Phaser.GameObjects.Graphics, x: number, y: number, from: number, to: number): Promise<void> {
+    const d = ms(135)
+    if (!d) {
+      this.drawDoor(g, x, y, to)
+      return Promise.resolve()
+    }
+    const t = { k: from }
+    return new Promise((res) => this.tweens.add({
+      targets: t, k: to, duration: d, onUpdate: () => this.drawDoor(g, x, y, Math.round(t.k * 4) / 4), onComplete: () => {
+        this.drawDoor(g, x, y, to)
+        res()
+      },
+    }))
+  }
+
+  /** Walk into an outdoor door: open animation, step into the doorway, then warp. */
+  private async enterDoor(d: Dir, warp: MapObject): Promise<void> {
+    const p = this.player
+    const v = DIR_VEC[d]
+    const dx = p.tx + v.x
+    const dy = p.ty + v.y
+    this.lockCount++
+    try {
+      p.face(d)
+      audio.sfx(String(warp.props.sfx ?? 'door'))
+      const g = this.add.graphics().setDepth(DEPTH.shadow - 2)
+      this.doorFx = g
+      await this.animateDoor(g, dx, dy, 0, 1)
+      await p.step(d, WALK_FRAMES)
+      state.x = p.tx
+      state.y = p.ty
+    } finally {
+      this.lockCount--
+    }
+    await this.warp(String(warp.props.toMap ?? warp.props.map), String(warp.props.toSpawn ?? warp.props.spawn ?? ''),
+      (warp.props.facing as Dir) || undefined)
+  }
+
+  private async runOnEnter(): Promise<void> {
+    const id = this.map?.props.onEnter
+    if (id) await this.run(String(id))
   }
 
   private rustle(x: number, y: number): void {
@@ -345,6 +536,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     if (!map.inBounds(x, y) || map.isSolid(x, y)) return true
     if (this.actorAt(x, y, self)) return true
     if (this.items.some((i) => !i.hidden && i.obj.tx === x && i.obj.ty === y)) return true
+    if (this.propAt(x, y, true)) return true
     return false
   }
 
@@ -465,6 +657,12 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     const item = this.items.find((i) => i.obj.tx === f.x && i.obj.ty === f.y)
     if (item) {
       void this.pickUp(item)
+      return
+    }
+    const prop = this.propAt(f.x, f.y, false)
+    if (prop && (prop.data.script || prop.data.text)) {
+      if (prop.data.script) void this.run(String(prop.data.script), undefined, { prop: prop.id })
+      else void this.runInline(async (s) => s.say(unescape(String(prop.data.text))))
       return
     }
     const sign = map.objectAt('sign', f.x, f.y)
@@ -679,19 +877,36 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       if (sfx) audio.sfx(sfx)
       await this.ui.fade(1, FADE_MS)
       this.ui.banner.clear()
+      this.doorFx?.destroy()
+      this.doorFx = undefined
       await this.loadMap(mapId, spawn, facing)
-      await this.ui.fade(0, FADE_MS)
-      // exiting through a door: step out of the doorway
+      // exiting through an outdoor door: start with the doorway open
       const p = this.player
       const t = this.map!.tileAt(p.tx, p.ty)
-      if (t.door && !this.map!.props.indoor) {
-        const v = DIR_VEC[p.facing]
+      // Arriving on an outdoor door tile: step out of it (in the arrival facing, normally down).
+      const exitDoor = t.door && !this.map!.props.indoor
+      const outDir = p.facing
+      let g: Phaser.GameObjects.Graphics | undefined
+      if (exitDoor && outDir === 'down') {
+        g = this.add.graphics().setDepth(DEPTH.shadow - 2)
+        this.drawDoor(g, p.tx, p.ty, 1)
+      }
+      await this.ui.fade(0, FADE_MS)
+      if (exitDoor) {
+        const sx = p.tx
+        const sy = p.ty
+        const v = DIR_VEC[outDir]
         if (!this.blocked(p, p.tx + v.x, p.ty + v.y)) {
-          await p.step(p.facing, WALK_FRAMES)
+          await p.step(outDir, WALK_FRAMES)
           state.x = p.tx
           state.y = p.ty
         }
+        if (g) {
+          await this.animateDoor(g, sx, sy, 1, 0)
+          g.destroy()
+        }
       }
+      await this.runOnEnter()
     } finally {
       this.lockCount--
       this.transitioning = false
@@ -706,6 +921,73 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     a.onGrass = (x, y) => !!this.map?.tileAt(x, y).grass
     a.aiTimer = randInt(60, 200)
     this.npcs.set(def.id, a)
+  }
+
+  spawnProp(id: string, key: string, x: number, y: number, opts: PropOptions = {}): void {
+    this.addProp(id, key, x, y, { ...opts, data: { script: opts.script, text: opts.text } })
+  }
+
+  despawnProp(id: string): void {
+    this.props.get(id)?.img.destroy()
+    this.props.delete(id)
+  }
+
+  setPropHidden(id: string, hidden: boolean): void {
+    const pr = this.props.get(id)
+    if (!pr) return
+    pr.scriptHidden = hidden
+    this.refreshNpcVisibility()
+  }
+
+  propPos(id: string): { x: number; y: number } | null {
+    const pr = this.props.get(id)
+    return pr ? { x: Math.round(pr.x / TILE), y: Math.round(pr.y / TILE) } : null
+  }
+
+  /** Slide a prop along a path ("right 12", Dir[]) or to a tile {x, y}; collision follows it. */
+  async moveProp(id: string, to: Dir[] | { x: number; y: number }, durationMs: number, ease = 'Sine.InOut'): Promise<void> {
+    const pr = this.props.get(id)
+    if (!pr) {
+      console.warn(`[script] moveProp: no prop '${id}'`)
+      return
+    }
+    const pts: Array<{ x: number; y: number }> = []
+    if (Array.isArray(to)) {
+      let x = pr.x
+      let y = pr.y
+      let last: Dir | null = null
+      for (const d of to) {
+        x += DIR_VEC[d].x * TILE
+        y += DIR_VEC[d].y * TILE
+        if (d === last) pts[pts.length - 1] = { x, y }
+        else pts.push({ x, y })
+        last = d
+      }
+    } else pts.push({ x: to.x * TILE, y: to.y * TILE })
+    let prev = { x: pr.x, y: pr.y }
+    const total = pts.reduce((sum, q) => {
+      const l = Math.abs(q.x - prev.x) + Math.abs(q.y - prev.y)
+      prev = q
+      return sum + l
+    }, 0) || 1
+    for (const q of pts) {
+      const len = Math.abs(q.x - pr.x) + Math.abs(q.y - pr.y)
+      const dur = ms((durationMs * len) / total)
+      if (!dur) {
+        pr.x = q.x
+        pr.y = q.y
+        this.placeProp(pr)
+        continue
+      }
+      await new Promise<void>((res) => this.tweens.add({
+        targets: pr, x: q.x, y: q.y, duration: dur, ease: pts.length > 1 ? 'Linear' : ease,
+        onUpdate: () => this.placeProp(pr),
+        onComplete: () => {
+          this.placeProp(pr)
+          res()
+        },
+      }))
+    }
   }
 
   despawnNpc(id: string): void {
@@ -792,6 +1074,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       this.currentMusic = ''
       this.playMapMusic()
       await this.ui.fade(0, FADE_MS)
+      await this.runOnEnter()
       await this.ui.say('{player} hurried back to a safe place\nand patched up the team…')
     } finally {
       this.lockCount--

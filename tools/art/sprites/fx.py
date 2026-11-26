@@ -9,6 +9,7 @@ import math
 import os
 
 from PIL import Image
+import numpy as np
 
 from common import P, OUT, ROOT, SPRITES, new, save, put, rect, hline, vline, outline, grid_to_image
 import battle as B
@@ -237,7 +238,7 @@ def _truck_livery(im):
         for dx in range(-2, 3):
             if abs(dx) + abs(dy) <= 2:
                 px[29 + dx, 21 + dy] = P.ROOF_ORANGE[0] if abs(dx) + abs(dy) == 2 else P.CLOTH_YELLOW[1]
-    text3(im, 33, 17, 'MM', P.ROOF_ORANGE[0])
+    text3(im, 33, 16, 'MM', P.ROOF_ORANGE[0], shadow=P.WALL_CREAM[0])
 
 
 SATCHEL = [
@@ -285,9 +286,133 @@ def build():
     save(item_ball(), SPRITES, 'fx', 'item_ball.png')
     save(shadow(), SPRITES, 'fx', 'shadow.png')
     save(orb_throw(), SPRITES, 'fx', 'orb_throw.png')
+    save(orb_big(32), SPRITES, 'fx', 'orb_big.png')
     save(truck(), SPRITES, 'fx', 'truck.png')
     save(satchel(), SPRITES, 'fx', 'satchel.png')
 
 
 if __name__ == '__main__':
     build()
+
+
+# ------------------------------------------------------------- big orb ----
+def orb_big_closed(size=24):
+    """24px Prompt Orb, pixel-designed with explicit facet regions so it
+    matches the 16px orb: amber cut-crystal dome, steel ring + teal gem,
+    teal cut-crystal lower dome. Light from the top-left."""
+    S = size
+    c = (S - 1) / 2
+    R = S / 2 - 1.6
+    k = S / 24.0
+    im = new(S, S)
+    ring0, ring1 = round(c - 1.5 * k), round(c + 1.5 * k)   # ring rows
+    Y = {'W': P.WHITE[3], 'y': P.CLOTH_YELLOW[2], 'a': P.CLOTH_YELLOW[1],
+         'Y': P.CLOTH_YELLOW[0], 'A': P.ROOF_ORANGE[1], 'Z': P.ROOF_ORANGE[0],
+         'S': P.ROOF_TEAL[3], 't': P.ROOF_TEAL[2], 'T': P.ROOF_TEAL[1], 'D': P.ROOF_TEAL[0],
+         'r': P.METAL[3], 'R': P.METAL[2], 'k': P.METAL[1], 'K': P.METAL[0],
+         'g': P.ROOF_TEAL[3], 'G': P.ROOF_TEAL[1]}
+    for y in range(S):
+        for x in range(S):
+            dx, dy = x - c, y - c
+            if dx * dx + dy * dy > R * R:
+                continue
+            X, Yy = dx / k, dy / k   # normalised to the 24px design
+            if ring0 <= y <= ring1:
+                row = y - ring0
+                ch = 'r' if row == 0 else 'R' if row == 1 else 'k' if row == 2 else 'K'
+                if X > 6:
+                    ch = {'r': 'R', 'R': 'k', 'k': 'K', 'K': 'K'}[ch]
+                # gem: small diamond centred on the ring
+                if abs(X + 0.5) + abs(y - (ring0 + ring1) / 2) / k * 1.4 <= 2.2:
+                    ch = 'g' if (X < 0 and y <= (ring0 + ring1) / 2) else 'G'
+            elif y < ring0:
+                # amber dome facets
+                if X + 0.9 * Yy < -6:
+                    ch = 'y'
+                elif X < -0.5 + Yy * 0.25 and Yy < -4:
+                    ch = 'y'
+                elif X < 5.5 + Yy * 0.15:
+                    ch = 'a'
+                else:
+                    ch = 'A'
+                if y == ring0 - 1:
+                    ch = 'Y' if X < 5 else 'Z'
+                # facet seams
+                if abs((X + 0.9 * Yy) + 6) < 0.6 and Yy < -1:
+                    ch = 'Y'
+                if abs(X - (5.5 + Yy * 0.15)) < 0.5:
+                    ch = 'Y'
+            else:
+                # teal dome facets
+                if X + 0.6 * (Yy - 2) < -4:
+                    ch = 't'
+                elif X < 4.5 - (Yy - 2) * 0.3:
+                    ch = 'T'
+                else:
+                    ch = 'D'
+                if Yy > R / k - 2.5:
+                    ch = 'D' if X > -5 else 'T'
+                if abs(X - (4.5 - (Yy - 2) * 0.3)) < 0.5:
+                    ch = 'D'
+                if y == ring1 + 1 and X < -2:
+                    ch = 'S'
+            put(im, x, y, Y[ch])
+    im = outline(im)
+    # prompt gem: bold diamond on the ring with its own outline
+    gy = (ring0 + ring1) / 2
+    gr = 2 if S < 30 else 3
+    gx = c - 0.5
+    for y in range(S):
+        for x in range(S):
+            d = abs(x - gx) + abs(y - gy)
+            if d <= gr + 1.0 and d > gr:
+                put(im, x, y, OUT)
+            elif d <= gr:
+                put(im, x, y, Y['g'] if (x < gx and y < gy) else Y['S'] if d < 1 else Y['G'])
+    # sparkles on the upper-left facet
+    for px_, py_ in ((round(c - 5 * k), round(c - 6 * k)), (round(c - 4 * k), round(c - 6 * k)),
+                     (round(c - 5 * k), round(c - 5 * k)), (round(c - 2 * k), round(c - 8 * k))):
+        put(im, px_, py_, Y['W'])
+    return im
+
+
+def orb_big_tilt(deg, size=24):
+    big = orb_big_closed(size).resize((size * 4, size * 4), Image.NEAREST)
+    big = big.rotate(deg, resample=Image.NEAREST, center=(size * 2 - 0.5, size * 2 + 2))
+    return big.resize((size, size), Image.NEAREST)
+
+
+def orb_big_open(size=24):
+    base = orb_big_closed(size)
+    c = (size - 1) / 2
+    k = size / 24.0
+    ring0 = round(c - 1.5 * k)
+    im = new(size, size)
+    im.alpha_composite(base.crop((0, ring0, size, size)), (0, ring0))
+    # glowing mouth just above the ring
+    for x in range(size):
+        if base.getpixel((x, ring0))[3]:
+            put(im, x, ring0 - 1, P.CLOTH_YELLOW[2])
+    for x in range(round(c - 6 * k), round(c + 7 * k)):
+        put(im, x, ring0 - 2, P.WHITE[3] if abs(x - c) < 4 * k else P.CLOTH_YELLOW[2])
+        put(im, x, ring0 - 1, P.WHITE[3] if abs(x - c) < 5 * k else P.CLOTH_YELLOW[2])
+    # lid: upper dome lifted and tipped back
+    lift = round(4 * k)
+    lid = new(size, size)
+    lid.paste(base.crop((0, 0, size, ring0 - 1)), (0, lift))   # drop original seam row
+    lid = outline(Image.fromarray(np.array(lid)))
+    lid = lid.rotate(-10, resample=Image.NEAREST, center=(2, ring0))  # hinged at the back
+    im.alpha_composite(lid, (0, -2 * lift))
+    # light rays
+    for i in range(3):
+        put(im, round(c - 8 * k) - i, ring0 - 3 - i, P.CLOTH_YELLOW[2])
+        put(im, round(c + 8 * k) + i, ring0 - 3 - i, P.CLOTH_YELLOW[2])
+    return im
+
+
+def orb_big(size=24):
+    sheet = new(size * 4, size)
+    for i, f in enumerate((orb_big_closed(size), orb_big_tilt(22, size), orb_big_tilt(-22, size),
+                           orb_big_open(size))):
+        sheet.paste(f, (i * size, 0))
+    return sheet

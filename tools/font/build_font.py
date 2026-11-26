@@ -37,19 +37,19 @@ DIALOG = {
     'H': '#...# #...# #...# #...# ##### #...# #...# #...# #...#',
     'I': '### .#. .#. .#. .#. .#. .#. .#. ###',
     'J': '..### ...#. ...#. ...#. ...#. ...#. #..#. #..#. .##..',
-    'K': '#...# #..#. #.#.. ##... ##... #.#.. #..#. #...# #...#',
+    'K': '#...# #...# #..#. #.#.. ##... #.#.. #..#. #...# #...#',
     'L': '#.... #.... #.... #.... #.... #.... #.... #.... #####',
-    'M': '#.....# ##...## #.#.#.# #..#..# #.....# #.....# #.....# #.....# #.....#',
+    'M': '#.....# ##...## #.#.#.# #..#..# #..#..# #.....# #.....# #.....# #.....#',
     'N': '#...# ##..# ##..# #.#.# #.#.# #..## #..## #...# #...#',
     'O': '.###. #...# #...# #...# #...# #...# #...# #...# .###.',
     'P': '####. #...# #...# #...# ####. #.... #.... #.... #....',
     'Q': '.###. #...# #...# #...# #...# #...# #.#.# #..#. .##.#',
-    'R': '####. #...# #...# #...# ####. #.#.. #..#. #...# #...#',
+    'R': '####. #...# #...# #...# ####. #.#.. #..#. #..#. #...#',
     'S': '.###. #...# #.... #.... .###. ....# ....# #...# .###.',
     'T': '##### ..#.. ..#.. ..#.. ..#.. ..#.. ..#.. ..#.. ..#..',
     'U': '#...# #...# #...# #...# #...# #...# #...# #...# .###.',
     'V': '#...# #...# #...# #...# #...# .#.#. .#.#. .#.#. ..#..',
-    'W': '#.....# #.....# #.....# #.....# #..#..# #..#..# #.#.#.# ##...## #.....#',
+    'W': '#.....# #.....# #.....# #..#..# #..#..# #..#..# #.#.#.# #.#.#.# .#...#.',
     'X': '#...# #...# .#.#. .#.#. ..#.. .#.#. .#.#. #...# #...#',
     'Y': '#...# #...# #...# .#.#. .#.#. ..#.. ..#.. ..#.. ..#..',
     'Z': '##### ....# ...#. ...#. ..#.. .#... .#... #.... #####',
@@ -76,7 +76,7 @@ DIALOG = {
     't': '.#.. .#.. #### .#.. .#.. .#.. .#.. ..##',
     'u': '#...# #...# #...# #...# #..## .##.#',
     'v': '#...# #...# #...# .#.#. .#.#. ..#..',
-    'w': '#.....# #.....# #..#..# #..#..# #.#.#.# .#...#.',
+    'w': '#...# #...# #.#.# #.#.# #.#.# .#.#.',
     'x': '#...# .#.#. ..#.. ..#.. .#.#. #...#',
     'y': '#...# #...# #...# #...# .#### ....# | #...# .###.',
     'z': '##### ...#. ..#.. .#... #.... #####',
@@ -95,7 +95,7 @@ DIALOG = {
     '.': '#',
     ',': '.# | #.',
     '!': '# # # # # # # . #',
-    '?': '.###. #...# ....# ...#. ..#.. ..#.. ..#.. ..... ..#..',
+    '?': '.###. #...# ....# ....# ...#. ..#.. ..#.. ..... ..#..',
     ':': '# . . . #',
     ';': '.# .. .. .. .# | #.',
     '-': '#### .... .... ....',
@@ -114,7 +114,7 @@ DIALOG = {
     'é': '...#. ..#.. ..... .###. #...# ##### #.... #...# .###.',  # e-acute
     '$': '..#.. .#### #.#.. #.#.. .###. ..#.# ..#.# ####. ..#..',
     '%': '##..# ##..# ...#. ...#. ..#.. .#... .#... #..## #..##',
-    '&': '.##.. #..#. #..#. .##.. .#... #.#.# #..#. #..#. .##.#',
+    '&': '.##.. #..#. #..#. .##.. .##.# #..#. #..#. #..#. .##.#',
     '#': '.#.#. .#.#. ##### .#.#. .#.#. ##### .#.#. .#.#. .....',
     '*': '..#.. #.#.# .###. #.#.# ..#.. ..... ..... ..... .....',
     '_': '..... | .....  #####',
@@ -180,6 +180,26 @@ MINI = {
 }
 
 
+# Kerning pairs (first, seconds, amount): tighten diagonal/overhang capitals.
+KERNING = [
+    ('T', 'acemnorsuvwxyz', -1),
+    ('VWY', 'aceosu', -1),
+    ('F', 'aeo', -1),
+    ('P', 'a', -1),
+    ('L', 'TVWY', -1),
+]
+
+
+def kern_pairs(glyphs):
+    out = []
+    for firsts, seconds, amt in KERNING:
+        for a in firsts:
+            for b in seconds:
+                if a in glyphs and b in glyphs:
+                    out.append((ord(a), ord(b), amt))
+    return out
+
+
 def parse(spec):
     tokens = spec.split()
     if '|' in tokens:
@@ -191,7 +211,7 @@ def parse(spec):
     return above, below, w
 
 
-def build(name, glyphs, ascent, descent, line_height, space_adv, tracking=1, top_pad=1):
+def build(name, glyphs, ascent, descent, line_height, space_adv, tracking=1, top_pad=1, kerning=()):
     """ascent = rows above baseline (cap height); cell height = top_pad+ascent+descent."""
     cell_h = top_pad + ascent + descent
     parsed = {}
@@ -243,7 +263,8 @@ def build(name, glyphs, ascent, descent, line_height, space_adv, tracking=1, top
     img.save(os.path.join(OUT, f'{name}.png'))
     meta = {'face': f'llmmon_{name}', 'size': cell_h, 'lineHeight': line_height,
             'base': top_pad + ascent, 'capHeight': ascent, 'scaleW': atlas_w, 'scaleH': h,
-            'file': f'{name}.png', 'chars': chars}
+            'file': f'{name}.png', 'chars': chars,
+            'kernings': [{'first': a, 'second': b, 'amount': k} for a, b, k in kerning]}
     with open(os.path.join(OUT, f'{name}.json'), 'w') as f:
         json.dump(meta, f, indent=1, ensure_ascii=False)
 
@@ -258,7 +279,10 @@ def build(name, glyphs, ascent, descent, line_height, space_adv, tracking=1, top
         lines.append(f'    <char id="{c["id"]}" x="{c["x"]}" y="{c["y"]}" width="{c["width"]}" '
                      f'height="{c["height"]}" xoffset="0" yoffset="0" xadvance="{c["xadvance"]}" '
                      'page="0" chnl="15"/>')
-    lines += ['  </chars>', '  <kernings count="0"/>', '</font>', '']
+    lines += ['  </chars>', f'  <kernings count="{len(kerning)}">']
+    for a, b, k in kerning:
+        lines.append(f'    <kerning first="{a}" second="{b}" amount="{k}"/>')
+    lines += ['  </kernings>', '</font>', '']
     with open(os.path.join(OUT, f'{name}.xml'), 'w') as f:
         f.write('\n'.join(lines))
     return img, meta
@@ -266,6 +290,7 @@ def build(name, glyphs, ascent, descent, line_height, space_adv, tracking=1, top
 
 def preview(name, meta, img, sample_lines, scale=4):
     adv = {c['id']: c for c in meta['chars']}
+    kern = {(k['first'], k['second']): k['amount'] for k in meta.get('kernings', [])}
     lh = meta['lineHeight']
     w = 236
     hh = lh * len(sample_lines) + 8
@@ -275,7 +300,10 @@ def preview(name, meta, img, sample_lines, scale=4):
     for li, text in enumerate(sample_lines):
         for colour, d in ((sh, (1, 1)), (sh, (1, 0)), (sh, (0, 1)), (fg, (0, 0))):
             x = 4
+            prev = None
             for ch in text:
+                x += kern.get((prev, ord(ch)), 0)
+                prev = ord(ch)
                 c = adv.get(ord(ch))
                 if not c:
                     continue
@@ -289,8 +317,10 @@ def preview(name, meta, img, sample_lines, scale=4):
 
 
 def main():
-    img, meta = build('dialog', DIALOG, ascent=9, descent=2, line_height=16, space_adv=4)
+    img, meta = build('dialog', DIALOG, ascent=9, descent=2, line_height=16, space_adv=4, kerning=kern_pairs(DIALOG))
     preview('dialog', meta, img, [
+        'Welcome! Wow, Tall Yaks. MAKE QUIRKS',
+        'GROWN wow WW ww Mom & Kai? Rosa',
         'The quick brown fox jumps over',
         'THE LAZY DOG! 0123456789',
         'Prof. Karpathy: "Welcome… é?"',
