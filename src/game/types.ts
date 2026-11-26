@@ -68,4 +68,6 @@ export interface SaveData {
   caught: string[]
   healPoint: { map: string; spawn: string }
   playTimeMs: number
+  /** ENGINE: overflow storage when the party is full (no PC UI in the slice). */
+  box?: MonInstance[]
 }
