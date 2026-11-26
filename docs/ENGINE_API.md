@@ -35,6 +35,7 @@ tools/maps/testmap.py         public/assets/game/maps/_test.tmj
 | `&seed=N` | seeds all RNG (engine + BATTLE-CORE via the adapter) |
 | `&fast=1` | instant text, no fades/slides (automated playtests) |
 | `&new=1` | ignore the save (Continue is hidden; the debug map boot starts fresh) |
+| `?audiotest=1` | AUDIO's test harness (`src/game/audio/dev/audiotest`) |
 
 With `?debug=1`, `window.__llmmon` exposes:
 
@@ -111,6 +112,9 @@ World
 | `pos(actor)` (sync) | `{ x, y, facing }` |
 | `spawn({ id, sprite, x, y, facing?, movement?, script?, text? })` (sync) | runtime NPC |
 | `despawn(id)`, `hide(id)`, `show(id)`, `setSprite(id, sprite)` (sync) | |
+| `spawnProp(id, textureKey, x, y, opts?)` (sync) | static world sprite; `(x, y)` = top-left tile of its collision footprint, image sits on the footprint's bottom-left. `opts`: `{ frame, solid = true, depth: 'y' (sorted with characters, default) \| 'ground' \| 'over', w, h (footprint tiles; default image width × 1 row, 2 rows if ≥ 32px tall), offsetX, offsetY, script, text }` |
+| `moveProp(id, path \| {x, y}, durationMs = 1000, ease = 'Sine.InOut')` | slide along `'left 12'` / `Dir[]` or to a tile; collision footprint follows it (can leave the map) |
+| `despawnProp(id)`, `hideProp(id)`, `showProp(id)` (sync), `propPos(id)` | |
 | `warp(map, spawnOrXY, facing?, sfx?)` | fade out → load → fade in |
 | `cameraPan(dxTiles, dyTiles, ms?)`, `cameraReset(ms?)` | offset from the player-follow position |
 | `fadeOut(ms?)`, `fadeIn(ms?)`, `flash(color?, ms?)`, `shake(ms?, px?)`, `wait(ms)` | `?fast=1` zeroes fades |
@@ -121,7 +125,7 @@ State, items, mons
 | call | notes |
 | --- | --- |
 | `flag(k)` → boolean, `getFlag(k)`, `setFlag(k, v = true)`, `clearFlag(k)` (sync) | |
-| `giveItem(id, n = 1, { silent?, verb? })` | "{player} obtained a Patch!" + jingle (`key_item_get` for key items) |
+| `giveItem(id, n = 1, { silent?, verb = 'received' })` | "{player} received a Patch!" / "an …" / "5 Prompt Orbs" / "the PromptDex" (key items and plural-looking names like "Fast Tokens" take *the*). Jingle: `item_get`, or `key_item_get` for key items. Ground items use the verb *found*. |
 | `takeItem(id, n)` / `hasItem(id, n)` (sync) / `itemName(id)` | |
 | `giveMon(speciesId, level, { nickname?, silent? })` → MonInstance | party, or box when full |
 | `healParty({ silent? })` | `heal` jingle + short wait |
@@ -193,7 +197,10 @@ flattened. Any `objectgroup` is read (convention: one called `objects`).
 
 Map properties: `name` (banner / save window), `music`, `indoor` (bool: no
 banner, no running, door auto-step off, exits play `exit`), `encounters`
-(fallback table when no zone has one).
+(fallback table when no zone has one), `onEnter` (script id run every time the
+map is entered — boot/continue, warps, white-out — after the fade-in and the
+door step-out, before the player regains control; on a new game it runs
+before `content.newGameScript`).
 
 Tile properties (merged across all layers at a cell):
 
@@ -204,7 +211,7 @@ Tile properties (merged across all layers at a cell):
 | `counter` | blocks; A on it talks to the NPC one tile beyond |
 | `grass` | tall grass: rustle fx + `grass` sfx on entry, feet overlay, encounter roll per step |
 | `ledge: "down"/"left"/"right"` | the ledge tile is blocked except when walking in that direction, which hops 2 tiles (over it) with an arc + `ledge` sfx |
-| `door` | a warp here plays `door`; arriving on a door tile outdoors auto-steps one tile in the facing direction |
+| `door` | outdoors, walking into a door tile that has a warp plays `door`, a procedural door-open animation (dark opening grows over ~8 frames), the player steps into the doorway, then the fade. Arriving on an outdoor door tile: the doorway starts open, the player steps out one tile (in the arrival facing; a door spawn without `facing` faces down), the door closes behind. Indoors (`indoor` maps) door tiles are exit mats: plain warp + `exit` sfx. |
 | `animation` | Tiled tile animation, played per tile |
 
 Objects (`type`, or `class` in Tiled ≥1.9; tile coords = rect top-left, size ≥1 tile):
@@ -218,6 +225,7 @@ Objects (`type`, or `class` in Tiled ≥1.9; tile coords = rect top-left, size �
 | `trigger` | rect; `script`; `once` (flag name, set when it fires), `ifFlag`, `unlessFlag` |
 | `item` | `itemId`, `count`, `flag` (default `item_<map>_<objId>`), `hidden: true` (invisible, walkable, A while facing) |
 | `zone` | rect; `name` (banner), `music`, `encounters` (table id, e.g. `route_101`). Smallest containing zone wins. |
+| `prop` | static sprite (e.g. the moving truck, the satchel). Rect = collision footprint (a point/1-tile object: footprint from the image size as in `spawnProp`). `id`, `sprite` (texture key, e.g. `fx/truck`), `frame`, `solid` (default **true**), `depth` (`y`/`ground`/`over`), `offsetX`/`offsetY` (px), `hideIfFlag`, `showIfFlag`, `script` or `text` (A while facing any footprint tile). Scripts can then `moveProp`/`despawnProp` it by `id`. |
 
 Step order after each player step: warp → triggers → zone (banner/music) →
 trainer sight → Firewall countdown → encounter roll. NPC talk / trainer / item
@@ -230,14 +238,19 @@ lines, one page each), `trainerBattle`. Talking to a defeated trainer shows
 `afterText` (default: `postBattle`). An npc `script` on a trainer replaces the
 whole flow; call `s.trainerBattle(id)` yourself.
 
-Regenerate the engine test map with `python3 tools/maps/testmap.py`.
+Regenerate the engine test map with `python3 tools/maps/testmap.py`. Its
+scripts (`test.*`) live in `src/game/script/testScripts.ts` (engine-owned), so
+it works regardless of CONTENT. It covers props (truck: A to drive it away;
+satchel) and an `onEnter` hook (counts entries in flag `test_enter_count`).
 
 ## 4. Movement and feel (fixed values, `config.ts`)
 
 60 Hz fixed-step logic (`controls.step()` runs from Phaser's PRE_STEP and
 decides how many logic ticks each render frame gets; every scene runs its
 logic inside `controls.each(...)`). Walk = 16 frames/tile (1 px/frame), run =
-8 (B held, flag `has_run`, not indoors). Tap a new direction while standing:
+8 (B held, flag `has_run`, not indoors; the stride frame is held for ¾ of each
+tile with a 1px bob, and a small dust puff appears every other running step
+off-grass). Tap a new direction while standing:
 turn only; keep holding ≥ 6 frames: walk. Holding a direction across tiles
 chains steps with no idle frame; changing direction while walking is instant.
 Walls: in-place walk cycle + `bump` sfx every 16 frames. Walk cycle stand → A →
@@ -276,6 +289,8 @@ START. Phaser's own keyboard plugin is disabled; use `controls`.
 - `font_mini`: 3×5 caps + digits (+ `v`, `/ : - + . % ! ? ' ×`) for HUD numbers
   (`Lv5`, `HP 23/45`).
 - Glyphs are white; colour = tint. Shadow is a separate tinted copy.
+- The dialog font has kerning pairs (T/V/W/Y/F/P + lowercase, L + T/V/W/Y);
+  `measure()` applies them.
 
 ```ts
 import { PxText, measure, wrap, expand } from '../ui/text'
@@ -370,7 +385,8 @@ BATTLE-CORE data is reached only via `src/game/adapters/monInfo.ts`
 Texture keys are the path under `public/assets/game/` without the extension,
 minus the `sprites/` prefix: `chars/player` (frames 0–11 = row×3+col, rows
 down/up/left/right), `fx/shadow`, `fx/grass_rustle` (0–3), `fx/emote_exclaim`
-(+ generated `fx/emote_question|heart|dots|note`), `battle/bg_grass`,
+(+ generated `fx/emote_question|heart|dots|note`), `fx/orb_big` (frames 0–3,
+32×32), `fx/truck`, `fx/satchel`, `chars/hallucihound` (NPC-usable sheet), `battle/bg_grass`,
 `battle/trainer_back` (0–3), `mons/<id>_front|_back|_icon` (icon frames 0–1),
 `ui/frame_dialog|menu|battle`, `ui/cursor`, `ui/arrow_down`, `ui/type_<type>` …
 The manifest is `imageManifest()` in `src/game/assets.ts` (add new files
