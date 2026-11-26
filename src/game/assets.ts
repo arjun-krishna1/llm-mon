@@ -138,6 +138,13 @@ export function imageManifest(): ImageAsset[] {
   return list
 }
 
+/** URL for a texture key: 'chars/x' → assets/game/sprites/chars/x.png, 'ui/x' → assets/game/ui/x.png. */
+export function assetUrl(key: string): string {
+  const top = key.split('/')[0]
+  const dir = top === 'ui' ? '' : 'sprites/'
+  return `${ASSET_ROOT}${dir}${key}.png`
+}
+
 const placeholders = new Set<string>()
 
 /** True if the texture was generated because the file was missing. */
@@ -148,7 +155,7 @@ export function isPlaceholder(key: string): boolean {
 /** Queue every manifest asset (and fonts) on a scene's loader. */
 export function queueAssets(load: Phaser.Loader.LoaderPlugin): ImageAsset[] {
   const list = imageManifest()
-  for (const a of list) load.image(a.key, `${ASSET_ROOT}${a.key}.png`)
+  for (const a of list) load.image(a.key, assetUrl(a.key))
   load.bitmapFont(FONT.dialog, `${ASSET_ROOT}fonts/dialog.png`, `${ASSET_ROOT}fonts/dialog.xml`)
   load.bitmapFont(FONT.mini, `${ASSET_ROOT}fonts/mini.png`, `${ASSET_ROOT}fonts/mini.xml`)
   return list
@@ -237,4 +244,48 @@ export function ensureTexture(scene: Phaser.Scene, key: string, w = 64, h = 64):
     placeholders.add(key)
   }
   return key
+}
+
+/** Procedural textures that have no file in the art contract (extra emotes, white pixel). */
+export function makeProceduralTextures(textures: Phaser.Textures.TextureManager): void {
+  const bubble = [
+    '................',
+    '..##########....',
+    '.#oooooooooo#...',
+    '.#oooooooooo#...',
+    '.#oooooooooo#...',
+    '.#oooooooooo#...',
+    '.#oooooooooo#...',
+    '.#oooooooooo#...',
+    '.#oooooooooo#...',
+    '.#oooooooooo#...',
+    '..####oo####....',
+    '.....#oo#.......',
+    '......##........',
+    '................',
+    '................',
+    '................',
+  ]
+  const glyphs: Record<string, { rows: string[]; color: string }> = {
+    question: { rows: ['..xxx...', '.x...x..', '.....x..', '....x...', '...x....', '........', '...x....'], color: '#3c64c8' },
+    heart: { rows: ['........', '.xx.xx..', 'xxxxxxx.', 'xxxxxxx.', '.xxxxx..', '..xxx...', '...x....'], color: '#e06c98' },
+    dots: { rows: ['........', '........', '........', '........', '........', '........', 'x.x.x...'], color: '#383840' },
+    note: { rows: ['...xxx..', '...x.x..', '...x....', '...x....', '.xxx....', 'xxxx....', '.xx.....'], color: '#2c9458' },
+  }
+  for (const [name, g] of Object.entries(glyphs)) {
+    const key = `fx/emote_${name}`
+    if (textures.exists(key)) continue
+    makePlaceholder(textures, key, 16, 16, (c) => {
+      bubble.forEach((row, y) => [...row].forEach((ch, x) => {
+        if (ch === '#') c.fillStyle = '#28222e'
+        else if (ch === 'o') c.fillStyle = '#fcfaf0'
+        else return
+        c.fillRect(x, y, 1, 1)
+      }))
+      c.fillStyle = g.color
+      g.rows.forEach((row, y) => [...row].forEach((ch, x) => {
+        if (ch === 'x') c.fillRect(3 + x, 2 + y, 1, 1)
+      }))
+    })
+  }
 }

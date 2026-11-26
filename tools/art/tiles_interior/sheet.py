@@ -64,7 +64,7 @@ class Sheet:
 
     # -- stamps ------------------------------------------------------------
     def stamp(self, name, img, layout, frames=None, ms=400, place='floor',
-              note='', props=None, cell_props=None):
+              note='', props=None, cell_props=None, base_layer='detail'):
         """Split a (w*16 x h*16) drawing into tiles.
 
         layout: list of strings, one char per cell:
@@ -112,7 +112,7 @@ class Sheet:
         if any(v != -1 for r in over for v in r):
             layers['over'] = over
         self.stamps[name] = {'w': w, 'h': h, 'place': place,
-                             'layers': layers}
+                             'base_layer': base_layer, 'layers': layers}
         if note:
             self.stamps[name]['note'] = note
         return self.stamps[name]

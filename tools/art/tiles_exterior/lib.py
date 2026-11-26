@@ -169,6 +169,8 @@ def hash2(x, y, seed=0):
 def palette_set():
     cols = {P.CLEAR, P.OUTLINE, P.OUTLINE_SOFT, P.SHADOW, P.UI_TEXT, P.UI_TEXT_SHADOW}
     for name in dir(P):
+        if not name.isupper():
+            continue
         v = getattr(P, name)
         if isinstance(v, list):
             for c in v:

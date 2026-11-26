@@ -1,0 +1,1094 @@
+{
+ "tileset": "interior",
+ "tilesize": 16,
+ "columns": 16,
+ "tiles": {
+  "floor_wood_a": 0,
+  "floor_wood_a_alt": 1,
+  "floor_wood_a_shadow": 2,
+  "floor_wood_a_alt_shadow": 3,
+  "floor_wood_b": 4,
+  "floor_wood_b_alt": 5,
+  "floor_wood_b_shadow": 6,
+  "floor_wood_b_alt_shadow": 7,
+  "floor_lab": 8,
+  "floor_lab_shadow": 9,
+  "floor_center": 10,
+  "floor_center_inlay": 11,
+  "floor_center_teal": 12,
+  "floor_center_shadow": 13,
+  "floor_mart": 14,
+  "floor_mart_shadow": 15,
+  "wall_home_u": 16,
+  "wall_home_l": 17,
+  "wall_home_u_left": 18,
+  "wall_home_l_left": 19,
+  "wall_home_u_right": 20,
+  "wall_home_l_right": 21,
+  "rim_home_l": 22,
+  "rim_home_r": 23,
+  "rim_home_b": 24,
+  "rim_home_bl": 25,
+  "rim_home_br": 26,
+  "rim_home_tl": 27,
+  "rim_home_tr": 28,
+  "wall_bedroom_u": 29,
+  "wall_bedroom_l": 30,
+  "wall_bedroom_u_left": 31,
+  "wall_bedroom_l_left": 32,
+  "wall_bedroom_u_right": 33,
+  "wall_bedroom_l_right": 34,
+  "rim_bedroom_l": 35,
+  "rim_bedroom_r": 36,
+  "rim_bedroom_b": 37,
+  "rim_bedroom_bl": 38,
+  "rim_bedroom_br": 39,
+  "rim_bedroom_tl": 40,
+  "rim_bedroom_tr": 41,
+  "wall_neighbor_u": 42,
+  "wall_neighbor_l": 43,
+  "wall_neighbor_u_left": 44,
+  "wall_neighbor_l_left": 45,
+  "wall_neighbor_u_right": 46,
+  "wall_neighbor_l_right": 47,
+  "rim_neighbor_l": 48,
+  "rim_neighbor_r": 49,
+  "rim_neighbor_b": 50,
+  "rim_neighbor_bl": 51,
+  "rim_neighbor_br": 52,
+  "rim_neighbor_tl": 53,
+  "rim_neighbor_tr": 54,
+  "wall_lab_u": 55,
+  "wall_lab_l": 56,
+  "wall_lab_u_left": 57,
+  "wall_lab_l_left": 58,
+  "wall_lab_u_right": 59,
+  "wall_lab_l_right": 60,
+  "rim_lab_l": 61,
+  "rim_lab_r": 62,
+  "rim_lab_b": 63,
+  "rim_lab_bl": 64,
+  "rim_lab_br": 65,
+  "rim_lab_tl": 66,
+  "rim_lab_tr": 67,
+  "wall_center_u": 68,
+  "wall_center_l": 69,
+  "wall_center_u_left": 70,
+  "wall_center_l_left": 71,
+  "wall_center_u_right": 72,
+  "wall_center_l_right": 73,
+  "rim_center_l": 74,
+  "rim_center_r": 75,
+  "rim_center_b": 76,
+  "rim_center_bl": 77,
+  "rim_center_br": 78,
+  "rim_center_tl": 79,
+  "rim_center_tr": 80,
+  "wall_mart_u": 81,
+  "wall_mart_l": 82,
+  "wall_mart_u_left": 83,
+  "wall_mart_l_left": 84,
+  "wall_mart_u_right": 85,
+  "wall_mart_l_right": 86,
+  "rim_mart_l": 87,
+  "rim_mart_r": 88,
+  "rim_mart_b": 89,
+  "rim_mart_bl": 90,
+  "rim_mart_br": 91,
+  "rim_mart_tl": 92,
+  "rim_mart_tr": 93,
+  "void": 96,
+  "rim_door_gap": 97,
+  "mat_exit_green": 98,
+  "mat_exit_green_l": 99,
+  "mat_exit_green_r": 100,
+  "mat_exit_red": 101,
+  "mat_exit_red_l": 102,
+  "mat_exit_red_r": 103,
+  "mat_exit_teal": 104,
+  "mat_exit_teal_l": 105,
+  "mat_exit_teal_r": 106,
+  "mat_exit_violet": 107,
+  "mat_exit_violet_l": 108,
+  "mat_exit_violet_r": 109,
+  "rug_red_nw": 112,
+  "rug_red_n": 113,
+  "rug_red_ne": 114,
+  "rug_red_w": 115,
+  "rug_red_c": 116,
+  "rug_red_e": 117,
+  "rug_red_sw": 118,
+  "rug_red_s": 119,
+  "rug_red_se": 120,
+  "rug_blue_nw": 121,
+  "rug_blue_n": 122,
+  "rug_blue_ne": 123,
+  "rug_blue_w": 124,
+  "rug_blue_c": 125,
+  "rug_blue_e": 126,
+  "rug_blue_sw": 127,
+  "rug_blue_s": 128,
+  "rug_blue_se": 129,
+  "rug_teal_nw": 130,
+  "rug_teal_n": 131,
+  "rug_teal_ne": 132,
+  "rug_teal_w": 133,
+  "rug_teal_c": 134,
+  "rug_teal_e": 135,
+  "rug_teal_sw": 136,
+  "rug_teal_s": 137,
+  "rug_teal_se": 138,
+  "rug_violet_nw": 139,
+  "rug_violet_n": 140,
+  "rug_violet_ne": 141,
+  "rug_violet_w": 142,
+  "rug_violet_c": 143,
+  "rug_violet_e": 144,
+  "rug_violet_sw": 145,
+  "rug_violet_s": 146,
+  "rug_violet_se": 147,
+  "counter_heal_l_top": 289,
+  "counter_heal_l": 290,
+  "counter_heal_m_top": 291,
+  "counter_heal_m": 292,
+  "counter_heal_r_top": 293,
+  "counter_heal_r": 294,
+  "counter_heal_s_top": 295,
+  "counter_heal_s": 296,
+  "counter_shop_l_top": 297,
+  "counter_shop_l": 298,
+  "counter_shop_m_top": 299,
+  "counter_shop_m": 300,
+  "counter_shop_r_top": 301,
+  "counter_shop_r": 302,
+  "counter_shop_s_top": 303,
+  "counter_shop_s": 304,
+  "counter_shop_m_top_register": 305
+ },
+ "stamps": {
+  "stairs_up": {
+   "w": 2,
+   "h": 2,
+   "place": "wall_face",
+   "base_layer": "ground",
+   "layers": {
+    "base": [
+     [
+      160,
+      161
+     ],
+     [
+      162,
+      163
+     ]
+    ]
+   },
+   "note": "Ground layer, replaces both wall-face rows. Put the warp on the lower (walkable) row."
+  },
+  "stairs_down": {
+   "w": 2,
+   "h": 2,
+   "place": "floor",
+   "base_layer": "ground",
+   "layers": {
+    "base": [
+     [
+      164,
+      165
+     ],
+     [
+      166,
+      167
+     ]
+    ]
+   },
+   "note": "Ground layer, replaces floor against the back wall. Warp on the lower row."
+  },
+  "door_inner": {
+   "w": 1,
+   "h": 2,
+   "place": "wall_face",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      168
+     ],
+     [
+      169
+     ]
+    ]
+   },
+   "note": "Detail layer over both wall-face rows. Decorative."
+  },
+  "bed": {
+   "w": 1,
+   "h": 2,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      176
+     ],
+     [
+      177
+     ]
+    ]
+   },
+   "note": "Headboard against the back wall or a side wall."
+  },
+  "desk_pc": {
+   "w": 2,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      178,
+      179
+     ],
+     [
+      180,
+      181
+     ]
+    ]
+   },
+   "note": "Desk with CRT PC and the red controls notebook (right half)."
+  },
+  "tv": {
+   "w": 2,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      182,
+      183
+     ],
+     [
+      184,
+      185
+     ]
+    ]
+   }
+  },
+  "bookshelf": {
+   "w": 2,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      186,
+      187
+     ],
+     [
+      188,
+      189
+     ]
+    ]
+   }
+  },
+  "fridge": {
+   "w": 1,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      190
+     ],
+     [
+      191
+     ]
+    ]
+   }
+  },
+  "kitchen_counter": {
+   "w": 1,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      192
+     ],
+     [
+      193
+     ]
+    ]
+   },
+   "note": "Kitchen run piece; place counter, sink, stove side by side."
+  },
+  "kitchen_sink": {
+   "w": 1,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      194
+     ],
+     [
+      195
+     ]
+    ]
+   },
+   "note": "Kitchen run piece; place counter, sink, stove side by side."
+  },
+  "kitchen_stove": {
+   "w": 1,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      196
+     ],
+     [
+      197
+     ]
+    ]
+   },
+   "note": "Kitchen run piece; place counter, sink, stove side by side."
+  },
+  "table": {
+   "w": 2,
+   "h": 2,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      198,
+      199
+     ],
+     [
+      200,
+      201
+     ]
+    ]
+   }
+  },
+  "chair_s": {
+   "w": 1,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      202
+     ]
+    ]
+   }
+  },
+  "chair_n": {
+   "w": 1,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      203
+     ]
+    ]
+   }
+  },
+  "stool": {
+   "w": 1,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      204
+     ]
+    ]
+   }
+  },
+  "cushion": {
+   "w": 1,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      205
+     ]
+    ]
+   },
+   "note": "Walkable floor cushion."
+  },
+  "bin": {
+   "w": 1,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      206
+     ]
+    ]
+   }
+  },
+  "console": {
+   "w": 1,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      207
+     ]
+    ]
+   }
+  },
+  "clock": {
+   "w": 1,
+   "h": 1,
+   "place": "wall_face",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      208
+     ]
+    ]
+   },
+   "note": "Wall decoration: detail layer on the upper wall row."
+  },
+  "plant": {
+   "w": 1,
+   "h": 2,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      -1
+     ],
+     [
+      210
+     ]
+    ],
+    "over": [
+     [
+      209
+     ],
+     [
+      -1
+     ]
+    ]
+   },
+   "note": "Leaves (top) go in over: the player can stand behind it."
+  },
+  "window": {
+   "w": 2,
+   "h": 2,
+   "place": "wall_face",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      211,
+      212
+     ],
+     [
+      213,
+      214
+     ]
+    ]
+   },
+   "note": "Wall decoration: detail layer over both wall-face rows."
+  },
+  "window_teal": {
+   "w": 2,
+   "h": 2,
+   "place": "wall_face",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      215,
+      216
+     ],
+     [
+      217,
+      218
+     ]
+    ]
+   },
+   "note": "Window with teal curtains."
+  },
+  "window_violet": {
+   "w": 2,
+   "h": 2,
+   "place": "wall_face",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      219,
+      220
+     ],
+     [
+      221,
+      222
+     ]
+    ]
+   },
+   "note": "Window with violet curtains."
+  },
+  "window_blue": {
+   "w": 2,
+   "h": 2,
+   "place": "wall_face",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      223,
+      224
+     ],
+     [
+      225,
+      226
+     ]
+    ]
+   },
+   "note": "Window with blue curtains."
+  },
+  "window_green": {
+   "w": 2,
+   "h": 2,
+   "place": "wall_face",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      227,
+      228
+     ],
+     [
+      229,
+      230
+     ]
+    ]
+   },
+   "note": "Window with green curtains."
+  },
+  "lab_rack": {
+   "w": 1,
+   "h": 2,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      -1
+     ],
+     [
+      233
+     ]
+    ],
+    "over": [
+     [
+      231
+     ],
+     [
+      -1
+     ]
+    ]
+   },
+   "note": "Freestanding or against a wall; top goes in over."
+  },
+  "lab_console": {
+   "w": 2,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      235,
+      237
+     ],
+     [
+      239,
+      241
+     ]
+    ]
+   }
+  },
+  "whiteboard": {
+   "w": 2,
+   "h": 2,
+   "place": "wall_face",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      242,
+      243
+     ],
+     [
+      244,
+      245
+     ]
+    ]
+   },
+   "note": "Wall decoration over both wall-face rows."
+  },
+  "lab_core": {
+   "w": 2,
+   "h": 3,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      -1,
+      -1
+     ],
+     [
+      248,
+      249
+     ],
+     [
+      250,
+      251
+     ]
+    ],
+    "over": [
+     [
+      246,
+      247
+     ],
+     [
+      -1,
+      -1
+     ],
+     [
+      -1,
+      -1
+     ]
+    ]
+   },
+   "note": "Centrepiece tank; top row in over."
+  },
+  "lab_shelf": {
+   "w": 2,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      252,
+      253
+     ],
+     [
+      254,
+      255
+     ]
+    ]
+   }
+  },
+  "lab_table": {
+   "w": 3,
+   "h": 2,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      256,
+      257,
+      258
+     ],
+     [
+      259,
+      260,
+      261
+     ]
+    ]
+   }
+  },
+  "terminal": {
+   "w": 1,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      262
+     ],
+     [
+      263
+     ]
+    ]
+   },
+   "note": "PC terminal."
+  },
+  "terminal_free": {
+   "w": 1,
+   "h": 2,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      -1
+     ],
+     [
+      263
+     ]
+    ],
+    "over": [
+     [
+      264
+     ],
+     [
+      -1
+     ]
+    ]
+   },
+   "note": "Same terminal standing free; screen goes in over."
+  },
+  "heal_machine": {
+   "w": 2,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      265,
+      267
+     ],
+     [
+      269,
+      271
+     ]
+    ]
+   },
+   "note": "Original restorer machine; sits on the back wall behind the heal counter."
+  },
+  "bench": {
+   "w": 2,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      273,
+      274
+     ]
+    ]
+   }
+  },
+  "mart_shelf": {
+   "w": 2,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      275,
+      276
+     ],
+     [
+      277,
+      278
+     ]
+    ]
+   }
+  },
+  "mart_shelf_free": {
+   "w": 2,
+   "h": 2,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      -1,
+      -1
+     ],
+     [
+      281,
+      282
+     ]
+    ],
+    "over": [
+     [
+      279,
+      280
+     ],
+     [
+      -1,
+      -1
+     ]
+    ]
+   },
+   "note": "Aisle shelf; top row in over."
+  },
+  "crate_apples": {
+   "w": 1,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      283
+     ]
+    ]
+   }
+  },
+  "pedestal": {
+   "w": 1,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      284
+     ]
+    ]
+   }
+  },
+  "satchel": {
+   "w": 1,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      285
+     ]
+    ]
+   }
+  },
+  "boxes": {
+   "w": 1,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      286
+     ]
+    ]
+   }
+  },
+  "poster": {
+   "w": 1,
+   "h": 2,
+   "place": "wall_face",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      287
+     ],
+     [
+      288
+     ]
+    ]
+   },
+   "note": "Wall decoration over both wall-face rows."
+  }
+ },
+ "autotiles": {
+  "rug_red": {
+   "nw": 112,
+   "n": 113,
+   "ne": 114,
+   "w": 115,
+   "c": 116,
+   "e": 117,
+   "sw": 118,
+   "s": 119,
+   "se": 120
+  },
+  "rug_blue": {
+   "nw": 121,
+   "n": 122,
+   "ne": 123,
+   "w": 124,
+   "c": 125,
+   "e": 126,
+   "sw": 127,
+   "s": 128,
+   "se": 129
+  },
+  "rug_teal": {
+   "nw": 130,
+   "n": 131,
+   "ne": 132,
+   "w": 133,
+   "c": 134,
+   "e": 135,
+   "sw": 136,
+   "s": 137,
+   "se": 138
+  },
+  "rug_violet": {
+   "nw": 139,
+   "n": 140,
+   "ne": 141,
+   "w": 142,
+   "c": 143,
+   "e": 144,
+   "sw": 145,
+   "s": 146,
+   "se": 147
+  },
+  "counter_heal": {
+   "l_top": 289,
+   "l": 290,
+   "m_top": 291,
+   "m": 292,
+   "r_top": 293,
+   "r": 294,
+   "s_top": 295,
+   "s": 296
+  },
+  "counter_shop": {
+   "l_top": 297,
+   "l": 298,
+   "m_top": 299,
+   "m": 300,
+   "r_top": 301,
+   "r": 302,
+   "s_top": 303,
+   "s": 304,
+   "m_top_register": 305
+  }
+ },
+ "walls": {
+  "home": {
+   "u": 16,
+   "l": 17,
+   "u_left": 18,
+   "l_left": 19,
+   "u_right": 20,
+   "l_right": 21,
+   "rim_l": 22,
+   "rim_r": 23,
+   "rim_b": 24,
+   "rim_bl": 25,
+   "rim_br": 26,
+   "rim_tl": 27,
+   "rim_tr": 28,
+   "void": 96,
+   "rim_door_gap": 97
+  },
+  "bedroom": {
+   "u": 29,
+   "l": 30,
+   "u_left": 31,
+   "l_left": 32,
+   "u_right": 33,
+   "l_right": 34,
+   "rim_l": 35,
+   "rim_r": 36,
+   "rim_b": 37,
+   "rim_bl": 38,
+   "rim_br": 39,
+   "rim_tl": 40,
+   "rim_tr": 41,
+   "void": 96,
+   "rim_door_gap": 97
+  },
+  "neighbor": {
+   "u": 42,
+   "l": 43,
+   "u_left": 44,
+   "l_left": 45,
+   "u_right": 46,
+   "l_right": 47,
+   "rim_l": 48,
+   "rim_r": 49,
+   "rim_b": 50,
+   "rim_bl": 51,
+   "rim_br": 52,
+   "rim_tl": 53,
+   "rim_tr": 54,
+   "void": 96,
+   "rim_door_gap": 97
+  },
+  "lab": {
+   "u": 55,
+   "l": 56,
+   "u_left": 57,
+   "l_left": 58,
+   "u_right": 59,
+   "l_right": 60,
+   "rim_l": 61,
+   "rim_r": 62,
+   "rim_b": 63,
+   "rim_bl": 64,
+   "rim_br": 65,
+   "rim_tl": 66,
+   "rim_tr": 67,
+   "void": 96,
+   "rim_door_gap": 97
+  },
+  "center": {
+   "u": 68,
+   "l": 69,
+   "u_left": 70,
+   "l_left": 71,
+   "u_right": 72,
+   "l_right": 73,
+   "rim_l": 74,
+   "rim_r": 75,
+   "rim_b": 76,
+   "rim_bl": 77,
+   "rim_br": 78,
+   "rim_tl": 79,
+   "rim_tr": 80,
+   "void": 96,
+   "rim_door_gap": 97
+  },
+  "mart": {
+   "u": 81,
+   "l": 82,
+   "u_left": 83,
+   "l_left": 84,
+   "u_right": 85,
+   "l_right": 86,
+   "rim_l": 87,
+   "rim_r": 88,
+   "rim_b": 89,
+   "rim_bl": 90,
+   "rim_br": 91,
+   "rim_tl": 92,
+   "rim_tr": 93,
+   "void": 96,
+   "rim_door_gap": 97
+  }
+ }
+}

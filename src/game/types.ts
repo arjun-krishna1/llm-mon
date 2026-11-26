@@ -46,11 +46,15 @@ export interface BattleRequest {
   music?: string
   /** If true the player cannot black out: their mon survives at 1 HP. */
   safety?: boolean
+  /** (BATTLE-CORE) Optional override for the opening line, e.g. "The wild HalluciHound is glitching out!". */
+  introText?: string
 }
 
 export interface BattleResult {
   outcome: 'win' | 'lose' | 'run' | 'caught'
   caught?: MonInstance
+  /** (BATTLE-CORE) Prize tokens for a trainer win. The caller adds it to state.money. */
+  prize?: number
 }
 
 export interface SaveData {

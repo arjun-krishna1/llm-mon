@@ -30,25 +30,23 @@ def build_structure(sh):
     # floors -------------------------------------------------------------
     wa, wl, wh = P.WOOD[3], P.WOOD[2], P.WOOD[4]
     floors = {
-        'wood_a': [S.wood_floor(wa, wl, wh, (3, 11, 7, 15),
-                                knots=((9, 5, wl), (2, 13, wl))),
-                   S.wood_floor(wa, wl, wh, (13, 5, 1, 9),
-                                knots=((6, 9, wl),))],
-        'wood_b': [S.wood_floor(P.WOOD[2], P.WOOD[1], P.WOOD[3], (3, 11, 7, 15),
-                                knots=((9, 5, P.WOOD[1]),)),
-                   S.wood_floor(P.WOOD[2], P.WOOD[1], P.WOOD[3], (13, 5, 1, 9),
-                                knots=((6, 9, P.WOOD[1]),))],
-        'lab': [S.lab_floor(), S.lab_floor(True)],
-        'center': [S.center_floor(), S.center_floor('inlay'),
-                   S.center_floor('teal')],
-        'mart': [S.mart_floor(), S.mart_floor(True)],
+        'wood_a': [S.wood_floor(wa, wl, wh, (3, None, 11, None)),
+                   S.wood_floor(wa, wl, wh, (None, 13, None, 6))],
+        'wood_b': [S.wood_floor(P.WOOD[2], P.WOOD[1], P.WOOD[3], (3, None, 11, None)),
+                   S.wood_floor(P.WOOD[2], P.WOOD[1], P.WOOD[3], (None, 13, None, 6))],
+        'lab': [S.lab_floor()],
+        'center': [S.center_floor(), None,
+                   S.center_floor('inlay'), S.center_floor('teal')],
+        'mart': [S.mart_floor()],
     }
-    suffix = ['', '_alt', '_alt2']
+    suffix = ['', '_alt', '_inlay', '_teal']
     for fname, tiles in floors.items():
         for i, t in enumerate(tiles):
-            sh.tile(f'floor_{fname}{suffix[i]}', t)
+            if t is not None:
+                sh.tile(f'floor_{fname}{suffix[i]}', t)
         for i, t in enumerate(tiles[:2]):
-            sh.tile(f'floor_{fname}{suffix[i]}_shadow', S.floor_shadow(t))
+            if t is not None:
+                sh.tile(f'floor_{fname}{suffix[i]}_shadow', S.floor_shadow(t))
     sh.new_row()
 
     # walls --------------------------------------------------------------
@@ -71,7 +69,7 @@ def build_structure(sh):
     sh.new_row()
     rims = S.rim_set(P.WOOD)
     sh.tile('void', rims['void'], solid=True)
-    sh.tile('rim_door_gap', rims['b_door'])
+    sh.tile('rim_door_gap', rims['b_door'], solid=True)
     for name in sh.walls:
         sh.walls[name]['void'] = sh.names['void']
         sh.walls[name]['rim_door_gap'] = sh.names['rim_door_gap']
@@ -94,10 +92,10 @@ def build_structure(sh):
     sh.new_row()
 
     # stairs + door --------------------------------------------------------
-    sh.stamp('stairs_up', S.stairs_up(), ['BB', 'bb'], place='wall_face',
+    sh.stamp('stairs_up', F.stairs_up(), ['BB', 'bb'], place='wall_face', base_layer='ground',
              note='Ground layer, replaces both wall-face rows. Put the warp '
                   'on the lower (walkable) row.')
-    sh.stamp('stairs_down', S.stairs_down(), ['BB', 'bb'], place='floor',
+    sh.stamp('stairs_down', F.stairs_down(), ['BB', 'bb'], place='floor', base_layer='ground',
              note='Ground layer, replaces floor against the back wall. '
                   'Warp on the lower row.')
     sh.stamp('door_inner', S.inner_door(), ['B', 'B'], place='wall_face',

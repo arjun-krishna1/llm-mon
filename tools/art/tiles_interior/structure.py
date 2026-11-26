@@ -12,22 +12,21 @@ VI = P.ROOF_VIOLET
 # ---------------------------------------------------------------- floors
 
 def wood_floor(base, seam, hi, joints, knots=(), hi2=None):
-    """Horizontal planks 4px tall. joints: x of the end joint per plank."""
+    """Long horizontal floorboards, 4px tall. joints: per plank row, the x of
+    a butt joint or None (most rows run through the tile, so boards read
+    as long planks instead of bricks)."""
     c = Cv(T, T)
     c.rect(0, 0, T, T, base)
     for k in range(4):
         y = k * 4
-        c.hl(0, 15, y + 3, seam)                 # seam under plank
+        c.hl(0, 15, y + 3, seam)
         j = joints[k]
-        c.vl(j, y, y + 2, seam)                  # butt joint
-        c.px((j + 1) % 16, y, hi)                # lit edge after joint
-        c.px((j + 2) % 16, y, hi)
-        # soft top highlight streaks
-        for x in range(16):
-            if (x - j) % 16 in (4, 5, 6, 7, 8) and k % 2 == 0:
-                c.px(x, y, hi)
-            if (x - j) % 16 in (9, 10, 11) and k % 2 == 1:
-                c.px(x, y, hi)
+        if j is None:
+            continue
+        c.vl(j, y, y + 2, seam)
+        c.px((j + 1) % 16, y, hi)
+        c.px((j + 1) % 16, y + 1, hi)
+        c.px((j - 1) % 16, y + 2, seam if hi2 is None else hi2)
     for (x, y, col) in knots:
         c.px(x, y, col)
     return c
@@ -47,21 +46,19 @@ def floor_shadow(src, rows=3):
 
 
 def lab_floor(alt=False):
+    """Clinic-clean 8px checker of white and pale aqua tiles."""
     c = Cv(T, T)
-    c.rect(0, 0, T, T, WH[2])
     for q in range(4):
         x0, y0 = (q % 2) * 8, (q // 2) * 8
-        c.hl(x0, x0 + 7, y0 + 7, ST[3])          # grout
-        c.vl(x0 + 7, y0, y0 + 7, ST[3])
-        c.hl(x0, x0 + 6, y0, WH[3])              # bevel light
+        aq = q in (1, 2)
+        base = P.GLASS[3] if aq else WH[2]
+        c.rect(x0, y0, 8, 8, base)
+        c.hl(x0, x0 + 6, y0, WH[3])
         c.vl(x0, y0, y0 + 6, WH[3])
-        c.px(x0 + 6, y0 + 6, WH[1])
+        c.hl(x0 + 1, x0 + 7, y0 + 7, ST[3] if not aq else P.GLASS[2])
+        c.vl(x0 + 7, y0 + 1, y0 + 7, ST[3] if not aq else P.GLASS[2])
     if alt:
-        # a pale blue accent tile in one quadrant
-        c.rect(8, 8, 7, 7, P.GLASS[3])
-        c.hl(8, 14, 8, WH[3])
-        c.vl(8, 8, 14, WH[3])
-        c.px(14, 14, P.GLASS[2])
+        c.px(3, 4, WH[1]); c.px(4, 4, WH[1])
     return c
 
 
@@ -75,8 +72,9 @@ def center_floor(kind='plain'):
     c.vl(0, 0, 14, P.WHITE[3])
     c.hl(1, 14, 14, WC[2])
     c.vl(14, 1, 14, WC[2])
+    if kind == 'alt':
+        c.px(10, 10, WC[2]); c.px(11, 10, WC[2]); c.px(5, 6, WC[2])
     if kind == 'inlay':
-        # teal diamond in the middle of the tile
         for i in range(4):
             c.hl(7 - i, 8 + i, 4 + i, TE[2])
             c.hl(7 - i, 8 + i, 11 - i, TE[2])
@@ -96,19 +94,21 @@ def center_floor(kind='plain'):
 
 
 def mart_floor(alt=False):
-    """Token Mart: soft lilac / white 8px checker."""
+    """Token Mart: white tiles, small lilac diamonds where corners meet."""
     c = Cv(T, T)
-    for q in range(4):
-        x0, y0 = (q % 2) * 8, (q // 2) * 8
-        lil = (q in (0, 3)) ^ alt
-        base = VI[3] if lil else WH[2]
-        lo = VI[2] if lil else WH[1]
-        hi = WH[3] if not lil else WH[2]
-        c.rect(x0, y0, 8, 8, base)
-        c.hl(x0, x0 + 6, y0, hi)
-        c.vl(x0, y0, y0 + 6, hi)
-        c.hl(x0 + 1, x0 + 7, y0 + 7, lo)
-        c.vl(x0 + 7, y0 + 1, y0 + 7, lo)
+    c.rect(0, 0, T, T, WH[2])
+    c.hl(0, 15, 15, WH[1])
+    c.vl(15, 0, 15, WH[1])
+    c.hl(0, 14, 0, WH[3])
+    c.vl(0, 0, 14, WH[3])
+    # quarter diamonds in each corner -> a 6px diamond at every grid node
+    for i in range(3):
+        n = 2 - i
+        c.hl(0, n, i, VI[3]); c.hl(15 - n, 15, i, VI[3])
+        c.hl(0, n, 15 - i, VI[3]); c.hl(15 - n, 15, 15 - i, VI[3])
+    c.px(0, 0, VI[2]); c.px(15, 15, VI[2]); c.px(15, 0, VI[2]); c.px(0, 15, VI[2])
+    if alt:
+        c.px(8, 7, WH[1]); c.px(9, 8, WH[1])
     return c
 
 
@@ -260,15 +260,16 @@ def wall_center(c):
 
 @theme('mart', VI)
 def wall_mart(c):
-    """White upper wall with violet band and violet panels (Token Mart)."""
+    """White wallpaper with a lilac diamond lattice, violet band + panels."""
     _cap(c, VI)
     c.rect(0, 4, 16, 14, WH[2])
     c.hl(0, 15, 4, WH[1])
-    for x in range(16):
-        if x % 4 == 0:
-            c.vl(x, 5, 17, WH[3])
-        if x % 4 == 3:
-            c.vl(x, 5, 17, WH[1])
+    for (x, y) in ((4, 8), (12, 14)):
+        c.px(x, y - 1, VI[3]); c.px(x - 1, y, VI[3]); c.px(x + 1, y, VI[3])
+        c.px(x, y + 1, VI[3]); c.px(x, y, VI[2])
+    for (x, y) in ((12, 8), (4, 14)):
+        c.px(x, y, WH[3]); c.px(x + 1, y, WH[1])
+    c.hl(0, 15, 17, WH[1])
     c.hl(0, 15, 18, OS)
     c.hl(0, 15, 19, VI[3])
     c.hl(0, 15, 20, VI[2])
@@ -378,19 +379,18 @@ def rug_pieces(colours):
     f, fd, fl, b, bd, tr = colours
     c = Cv(48, 48)
     c.rect(1, 1, 46, 46, f)
-    # tiled field motif (period 16 so the centre tile repeats seamlessly)
+    # tiled field motif: soft diamond lattice + medallion dots (period 16)
     for ty in range(3):
         for tx in range(3):
             ox, oy = tx * 16, ty * 16
-            for i in range(3):
-                c.hl(ox + 7 - i, ox + 8 + i, oy + 5 + i, fd)
-                c.hl(ox + 7 - i, ox + 8 + i, oy + 10 - i, fd)
-            c.hl(ox + 7, ox + 8, oy + 7, fl)
-            c.hl(ox + 7, ox + 8, oy + 8, fl)
-            c.px(ox + 0, oy + 0, fl)
-            c.px(ox + 15, oy + 15, fd)
-            c.px(ox + 0, oy + 15, fd)
-            c.px(ox + 15, oy + 0, fl)
+            for i in range(8):
+                c.px(ox + i, oy + 8 - i, fd)
+                c.px(ox + 8 + i, oy + i, fd)
+                c.px(ox + i, oy + 8 + i, fd)
+                c.px(ox + 8 + i, oy + 16 - i, fd)
+            c.rect(ox + 7, oy + 7, 2, 2, fl)
+            c.px(ox + 7, oy + 6, b); c.px(ox + 8, oy + 9, b)
+            c.px(ox + 6, oy + 8, b); c.px(ox + 9, oy + 7, b)
     # border band
     c.frame(1, 1, 46, 46, b)
     c.frame(2, 2, 44, 44, b)
