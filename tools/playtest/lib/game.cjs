@@ -6,7 +6,7 @@ const fs = require('fs')
 const path = require('path')
 const http = require('http')
 const { chromium } = require('playwright')
-const { loadMap, findPath, DIRS } = require('./maps.cjs')
+const { loadMap, findPath, DIRS, setMapDir } = require('./maps.cjs')
 
 const KEY = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', A: 'z', B: 'x', START: 'Escape' }
 const OPP = { up: 'down', down: 'up', left: 'right', right: 'left' }
@@ -99,7 +99,8 @@ class Game {
   constructor(page, opts) {
     this.page = page
     this.o = opts
-    this.fast = !!opts.fast
+    this.fast = !!opts.fast || !!opts.quick // harness pacing (no reading pauses)
+    this.gameFast = !!opts.fast // ?fast=1 on the game itself
     this.out = opts.outDir
     this.beats = []
     this.logs = []
@@ -124,6 +125,7 @@ class Game {
     const ctx = await browser.newContext({ viewport: o.viewport || { width: 960, height: 640 }, deviceScaleFactor: 1 })
     const page = await ctx.newPage()
     await page.addInitScript(PROBE)
+    if (o.dist) setMapDir(path.join(o.dist, 'assets/game/maps'))
     const g = new Game(page, o)
     g.browser = browser
     g.ctx = ctx
@@ -136,7 +138,7 @@ class Game {
     const base = `http://127.0.0.1:${this.o.port}/`
     const params = new URLSearchParams(query)
     params.set('debug', '1')
-    if (this.fast) params.set('fast', '1')
+    if (this.gameFast) params.set('fast', '1')
     if (this.o.seed != null && !params.has('seed')) params.set('seed', String(this.o.seed))
     await this.page.goto(base + '?' + params.toString())
     await this.page.waitForFunction(() => window.__llmmon && window.__ptSnap, null, { timeout: 20000 })
@@ -282,11 +284,23 @@ class Game {
       if (plan) this.curBattle.plan = plan
       console.log(`   [battle start] ${s.battle.kind} vs ${s.battle.foe && s.battle.foe.name} Lv${s.battle.foe && s.battle.foe.lv} plan=${this.curBattle.plan}`)
     }
-    if (s.battle && this.curBattle) { this.curBattle.last = s.battle; if (s.battle.foe && !this.curBattle.foe) this.curBattle.foe = s.battle.foe }
+    if (s.battle && this.curBattle) {
+      const c = this.curBattle
+      c.last = s.battle
+      if (s.battle.foe && !c.foe) c.foe = s.battle.foe
+      c.texts = c.texts || []
+      if (s.battle.text && c.texts[c.texts.length - 1] !== s.battle.text) c.texts.push(s.battle.text)
+      if (s.battle.foe) c.foeEnd = s.battle.foe
+      if (s.battle.me) c.meEnd = s.battle.me
+    }
     if (!s.battle && this.curBattle) {
       const c = this.curBattle
       c.ms = Date.now() - c.t0
-      c.outcome = c.last && c.last.outcome
+      const all = (c.texts || []).join('\n')
+      const norm = { caught: 'catch', won: 'win', lost: 'lose', ran: 'run', fled: 'run' }
+      c.rawOutcome = c.last && c.last.outcome
+      c.outcome = (c.rawOutcome && (norm[c.rawOutcome] || c.rawOutcome)) ||
+        (/Gotcha|was caught/i.test(all) ? 'catch' : /Got away safely/i.test(all) ? 'run' : /hurried back|whited out|out of usable|blacked out/i.test(all) ? 'lose' : (c.foeEnd && c.foeEnd.hp === 0) || /fainted!?\s*$|defeated/i.test(all) ? 'win' : 'unknown')
       c.moneyAfter = s.money
       this.encounters.push(c)
       console.log(`   [battle end] ${c.outcome} in ${(c.ms / 1000).toFixed(1)} s`)
@@ -302,10 +316,11 @@ class Game {
     const foe = b.foe || {}
     const moves = me.moves || []
     const dmg = moves.map((m, i) => ({ ...m, i })).filter((m) => m.power > 0 && m.pp > 0)
+    if (c.plan === 'catch' && (s.bag.prompt_orb || 0) === 0) c.plan = 'run' // out of orbs: give up on this one
     if (c.plan === 'run' && b.canRun) return { action: 'run' }
     if (c.plan === 'lose') { const st = moves.findIndex((m) => !m.power && m.pp > 0); return { action: 'fight', move: st >= 0 ? st : 0 } }
     if (c.plan !== 'lose' && me.hp / me.maxHp < 0.25 && (s.bag.patch || 0) > 0 && !c.healed) { c.healed = true; return { action: 'bag', item: 'Patch' } }
-    if (c.plan === 'catch' && b.canCatch) {
+    if (c.plan === 'catch' && b.canCatch && (s.bag.prompt_orb || 0) > 0) {
       if (foe.hp / foe.maxHp <= 0.6 || c.turns > 3) return { action: 'bag', item: 'Prompt Orb' }
       dmg.sort((a, b2) => a.power - b2.power)
       return { action: 'fight', move: dmg.length ? dmg[0].i : 0 }
@@ -521,6 +536,8 @@ class Game {
       if (!first.hop) while (n < path.length && path[n].dir === first.dir && !path[n].hop && n < (opts.maxRun || 6)) n++
       const target = path[n - 1].to
       const res = await this.holdUntil(first.dir, target, opts.run && !map.props.indoor && s.flags.has_run)
+      if (res !== 'ok' && process.env.PT_DEBUG) console.log('   walk', res, JSON.stringify({ at: [s.info.x, s.info.y], dir: first.dir, target, busy: s.info.busy }))
+      if (res === 'stuck') this.stuck = (this.stuck || 0) + 1
       if (res === 'interrupted' && opts.stopOnInterrupt) return { interrupted: true }
     }
     throw new Error('walkTo: too many attempts')

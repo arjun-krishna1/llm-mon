@@ -84,8 +84,11 @@ class GameMap {
 }
 
 const cache = new Map()
+let mapDir = MAP_DIR
+/** Point the autopilot at the maps inside a build snapshot (dist/assets/game/maps). */
+function setMapDir(d) { mapDir = d; cache.clear() }
 function loadMap(id) {
-  if (!cache.has(id)) cache.set(id, new GameMap(id))
+  if (!cache.has(id)) cache.set(id, new GameMap(id, mapDir))
   return cache.get(id)
 }
 
@@ -149,4 +152,4 @@ function findPath(map, from, goal, opts = {}) {
   return null
 }
 
-module.exports = { loadMap, findPath, DIRS, GameMap, MAP_DIR }
+module.exports = { setMapDir, loadMap, findPath, DIRS, GameMap, MAP_DIR }

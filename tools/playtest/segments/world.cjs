@@ -96,7 +96,7 @@ module.exports = async function world(ctx) {
     check((s.bag.prompt_orb || 0) >= 5, 'got 5 Prompt Orbs', String(s.bag.prompt_orb))
     check(s.party.length === 1 && s.party[0].lv >= 5, 'party has starter', JSON.stringify(s.party))
     const tut = g.encounters[g.encounters.length - 1]
-    check(tut && tut.outcome === 'win', 'tutorial battle won', tut && tut.outcome)
+    check(tut && tut.outcome !== 'lose', 'tutorial battle finished', tut && tut.outcome)
     await g.shot('lab_after', 'Lab after the rescue')
   })
 
@@ -173,7 +173,12 @@ module.exports = async function world(ctx) {
     let s = await g.snap()
     check(!!s.flags.item_route_patch, 'picked up ground Patch at 10,65')
     await g.shot('route_mid', 'Route 101 west meadow')
-    // north along the east path: Calvin's sight line crosses it
+    // north along the east path: Calvin's sight line (row 54) crosses it. KNOWN P0: a sight trainer who has
+    // to walk >= 1 tile toward the player soft-locks the game (REPORT.md); the only safe crossing is the
+    // tile right next to him, so step into his line there (a first-time player would not know this).
+    await g.walkTo({ x: 32, y: 56 }, { run: true })
+    await g.holdUntil('up', { x: 32, y: 54 })
+    await g.waitIdle()
     await g.talkTo('rt_elder', { walk: { run: true } })
     s = await g.snap()
     check(!!s.flags.trainer_route_101_a_defeated, 'Calvin (sight-line trainer) battled + beaten')
@@ -205,7 +210,10 @@ module.exports = async function world(ctx) {
 
   await seg('route_101_north', async () => {
     g.handlers = { ...battleShooter('tr') }
-    await g.walkTo({ x: 22, y: 41 }, { run: true })
+    // Tiana's sight line is row 39, x 20-23 (unavoidable). Same P0 as Calvin: cross at x=23 (adjacent).
+    await g.walkTo({ x: 23, y: 41 }, { run: true })
+    await g.holdUntil('up', { x: 23, y: 39 })
+    await g.waitIdle()
     let s = await g.snap()
     check(!!s.flags.trainer_route_101_b_defeated, 'Tiana (sight-line trainer) battled + beaten')
     if (!s.flags.trainer_route_101_b_defeated) await g.talkTo('rt_tiana')

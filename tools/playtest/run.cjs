@@ -13,13 +13,14 @@ const { Game, serve, sleep } = require('./lib/game.cjs')
 
 const args = process.argv.slice(2)
 const arg = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d }
-const FAST = args.includes('--fast')
+const GAME_FAST = args.includes('--fast')
+const FAST = GAME_FAST || args.includes('--quick') // harness: skip reading pauses
 const SEED = Number(arg('--seed', '7'))
 const STARTER = arg('--starter', 'glm')
 const ROOT = path.resolve(__dirname, '../..')
 const DIST = path.resolve(arg('--dist', path.join(__dirname, 'out/dist')))
 const PORT = Number(arg('--port', '5191'))
-const OUT = path.resolve(arg('--out', path.join(__dirname, 'out', FAST ? 'run_fast' : 'run')))
+const OUT = path.resolve(arg('--out', path.join(__dirname, 'out', GAME_FAST ? 'run_fast' : FAST ? 'run_quick' : 'run')))
 const UNTIL = arg('--until', null)
 
 function build() {
@@ -44,7 +45,7 @@ async function main() {
   fs.rmSync(OUT, { recursive: true, force: true })
   fs.mkdirSync(OUT, { recursive: true })
   const srv = await serve(DIST, PORT)
-  const g = await Game.launch({ port: PORT, outDir: OUT, fast: FAST, seed: SEED, starter: STARTER, query: 'new=1' })
+  const g = await Game.launch({ port: PORT, outDir: OUT, fast: GAME_FAST, quick: FAST, seed: SEED, starter: STARTER, query: 'new=1', dist: DIST })
   const tStart = Date.now()
   const checks = []
   const check = (ok, what, detail = '') => { checks.push({ ok, what, detail, seg: g.segment && g.segment.name }); console.log(`   ${ok ? 'PASS' : 'FAIL'} ${what} ${detail}`) }
@@ -153,7 +154,7 @@ async function main() {
     await g.end()
     const total = Date.now() - tStart
     const res = {
-      fast: FAST, seed: SEED, starter: STARTER, totalMs: total, completed: !stop,
+      fast: GAME_FAST, quick: FAST, seed: SEED, starter: STARTER, totalMs: total, completed: !stop,
       segments: g.segments.map((s) => ({ name: s.name, ms: s.ms, music: [...new Set(s.audio.filter((a) => a.k === 'playMusic').map((a) => a.id))], sfx: countBy(s.audio.filter((a) => a.k === 'sfx').map((a) => a.id)) })),
       checks, notes: g.notes, encounters: g.encounters.map((e) => ({ ...e, last: undefined })), errors: g.errors.filter((e) => !/GL Driver Message|GPU stall/.test(e.s)),
       beats: g.beats.map((b) => ({ ...b, file: path.relative(OUT, b.file), file4: path.relative(OUT, b.file4) })), strips: g.strips || [], texts: g.texts || [],
