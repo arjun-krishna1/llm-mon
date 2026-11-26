@@ -1,42 +1,27 @@
 {
   "name": "llm-mon",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "test": "vitest run",
+    "preview": "vite preview",
+    "assets": "python3 tools/build_assets.py"
   },
   "dependencies": {
-    "@canvasengine/compiler": "^2.0.0",
-    "@canvasengine/presets": "^2.0.0",
-    "@rpgjs/client": "^5.0.0-beta.24",
-    "@rpgjs/common": "^5.0.0-beta.23",
-    "@rpgjs/server": "^5.0.0-beta.24",
-    "@rpgjs/tiledmap": "^5.0.0-beta.24",
-    "@rpgjs/ui-css": "^5.0.0-beta.22",
-    "@rpgjs/vite": "^5.0.0-beta.24",
-    "@signe/di": "^3.1.0",
-    "canvasengine": "^2.0.1",
-    "path-browserify": "^1.0.1",
-    "pixi.js": "^8.19.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "phaser": "3.90.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.12.3",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^10.3.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "vitest": "^5.1.2"
   }
 }
