@@ -3,7 +3,7 @@
 import { F, def, line, say, text } from './util'
 
 // ============================================================================ home
-text('home.tv', 'The weather report is on.\n“Sunny, with a 10% chance of hallucinations.”')
+text('home.tv', 'The weather report is on.\n“Sunny,\fwith a 10% chance of hallucinations.”')
 text('home.console', 'Your old game console! The save file is from three houses ago.')
 text('home.fridge', 'Nearly empty. A note from Mom on the door says: GROCERIES (after unpacking).')
 text('home.kitchen', 'The kettle’s already on. Mom has her priorities straight.')
@@ -40,7 +40,7 @@ def('neighbor.milo', async (s) => {
       'I’ve already named my whole future team. They’re all called Kevin.')
   } else {
     await line(s, 'Milo',
-      'You got a LLMMON?! What’s its context window? Does it know any jokes? Can it beat a Kevin?!')
+      'You got a LLMMON?! What’s its context window?\fDoes it know any jokes? Can it beat a Kevin?!')
   }
 })
 text('neighbor.bookshelf', 'Rows of labelled photos. Cat. Croissant. Cat. Cat? Croissant.')
@@ -49,10 +49,10 @@ text('neighbor.bed', 'A neatly made bed with a croissant-shaped pillow.')
 
 // ============================================================================ lab props
 text('lab.shelf', 'Rows of research papers. One is titled\n“LLMMON Are Few-Shot Learners”.')
-text('lab.whiteboard', 'A diagram of a LLMMON’s brain.\nIt’s mostly arrows pointing at other arrows.')
-text('lab.console', 'Graphs of LLMMON sightings on Route 101. Most of the dots are labelled “probably real”.')
-text('lab.terminal', 'The professor’s terminal. A sticky note on the screen says:\n“Password: not my birthday”.')
-text('lab.core', 'A glass tank humming with soft blue light. A label reads:\nTRAINING IN PROGRESS. DO NOT TAP.')
+text('lab.whiteboard', 'A diagram of a LLMMON’s brain.\fIt’s mostly arrows pointing at other arrows.')
+text('lab.console', 'Graphs of LLMMON sightings on Route 101.\fMost of the dots are labelled “probably real”.')
+text('lab.terminal', 'The professor’s terminal.\fA sticky note on the screen says:\n“Password: not my birthday”.')
+text('lab.core', 'A glass tank humming with soft blue light.\fA label reads:\nTRAINING IN PROGRESS. DO NOT TAP.')
 text('lab.table', 'Beakers, a soldering iron, three coffee cups and half a sandwich.')
 text('lab.pedestal', 'An empty pedestal. The plaque reads:\n“FIELD KIT. PLEASE RETURN.”')
 text('lab.rack', 'The server racks blink politely at you.')
@@ -77,17 +77,17 @@ def('center.nurse', async (s) => {
   const first = !s.flag(F.healedAtCenter)
   s.setFlag(F.healedAtCenter)
   await line(s, N, 'Thank you for waiting! Your LLMMON are fully restored.')
-  if (first) await line(s, N, 'If your team ever faints, you’ll hurry back here to recover. We hope to see you again!')
+  if (first) await line(s, N, 'If your team ever faints, you’ll hurry back here to recover.\fWe hope to see you again!')
   else await line(s, N, 'We hope to see you again!')
 })
 
 def('center.techie', (s) => say(s,
   'The heal machine reboots your LLMMON with a fresh context.',
-  'They forget the battle, but they never forget you. Weird, right? I asked them. They said “it’s in the weights”.'))
+  'They forget the battle, but they never forget you.\fWeird, right? I asked them. They said “it’s in the weights”.'))
 def('center.woman', (s) => say(s,
   'My LLMMON caught context rot on the route. It smelled like old log files!',
   'All better now. The nurse here is a miracle worker.'))
-text('center.terminal', 'A storage terminal.\n“LLMMON STORAGE: coming in the next build.”')
+text('center.terminal', 'A storage terminal.\n“LLMMON STORAGE:\fcoming in the next build.”')
 
 // ============================================================================ Token Mart
 def('mart.clerk', async (s) => {
@@ -96,7 +96,7 @@ def('mart.clerk', async (s) => {
 def('mart.customer', (s) => say(s,
   'Prompt Orbs work best when a wild LLMMON is already weak.',
   'Kind of like asking someone for a favour after a long day.'))
-text('mart.shelf', 'Prompt Orbs, Patches and Debuggers. One box says\n“Artisanal Hand-Typed Prompts”.')
+text('mart.shelf', 'Prompt Orbs, Patches and Debuggers.\fOne box says\n“Artisanal Hand-Typed Prompts”.')
 text('mart.aisle', 'LLMMON snacks: bite-sized, byte-sized, and family size.')
 text('mart.apples', 'A crate of apples. Not that kind of Apple.')
 
@@ -106,7 +106,7 @@ def('soma_house.grandpa', (s) => say(s,
   'Well, it talks back like one! Better manners than my brother, too.'))
 def('soma_house.kid', (s) => say(s,
   'Shh! I’m watching a speedrun.',
-  'A GPT-5.4 mini just cleared all of Route 101 in 0.3 seconds. The commentators are crying.'))
+  'A GPT-5.4 mini just cleared all of Route 101 in 0.3 seconds.\fThe commentators are crying.'))
 text('soma_house.bookshelf', '“Attention Is All You Need”. Someone has written “and snacks” in the margin.')
 text('soma_house.tv', 'A cooking show. The chef keeps telling the audience to “think step by step”.')
-text('soma_house.table', 'A half-finished jigsaw puzzle of a GPU. It’s very hard. All the pieces look the same.')
+text('soma_house.table', 'A half-finished jigsaw puzzle of a GPU.\fIt’s very hard. All the pieces look the same.')

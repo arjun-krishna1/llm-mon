@@ -20,7 +20,7 @@ def('intro.prof', async (s) => {
     'My name is Karpathy. People around here call me the LLMMON Professor.')
   await st.showMon('claude_fable')
   await say(s,
-    'This world is home to creatures called LLMMON. Language models that wandered out of the lab and into the wild!',
+    'This world is home to creatures called LLMMON.\fLanguage models that wandered out of the lab and into the wild!',
     'Some people keep them as study buddies. Others battle with them.',
     'Me? I mostly ask them to explain my own papers back to me.')
   await st.hideMon()
@@ -28,7 +28,7 @@ def('intro.prof', async (s) => {
   await s.chooseName('Your name?', ['Arjun', 'Maya', 'Kai', 'Noor', 'Theo'])
   await say(s,
     '{player}! What a great name. Very low perplexity.',
-    'You and your mom are moving to Hayes Valley today, right? My lab is just up the street!')
+    'You and your mom are moving to Hayes Valley today, right?\fMy lab is just up the street!')
   await st.hideProf()
   await st.showPlayer()
   await say(s,
@@ -49,7 +49,7 @@ def('story.arrival', async (s) => {
   s.face('mom_out', 'right')
   await line(s, MOM,
     '{player}! The truck made it in one piece. And so did you!',
-    'This is Hayes Valley. Smaller than the city, but everyone says it has a big context window.',
+    'This is Hayes Valley.\fSmaller than the city, but everyone says it has a big context window.',
     'Come on, let me show you the house!')
   await Promise.all([
     s.move('mom_out', 'left 5, up 2'),
@@ -62,7 +62,7 @@ def('story.arrival', async (s) => {
   await s.move('mom', 'right 2, down')
   s.face('mom', 'down')
   await line(s, MOM,
-    'Ta-da! Home sweet home. The movers did a great job, apart from the boxes labelled MISC.',
+    'Ta-da! Home sweet home.\fThe movers did a great job, apart from the boxes labelled MISC.',
     'Your room is upstairs. They even set up your PC!',
     'Go take a look. And don’t forget to unpack your notebook!')
   await s.move('mom', 'up, left 2')
@@ -77,8 +77,8 @@ def('home.mom_lab_call', async (s) => {
   await s.emote('mom', 'exclaim')
   await line(s, MOM,
     'Oh, {player}! Professor Karpathy’s lab just called.',
-    'He wants to welcome you to the neighbourhood. His lab is up the street, the building with the big dish.',
-    'Go say hello! And be polite. He’s very smart, so he’ll probably explain things twice.')
+    'He wants to welcome you to the neighbourhood.\fHis lab is up the street, the building with the big dish.',
+    'Go say hello! And be polite.\fHe’s very smart, so he’ll probably explain things twice.')
   s.setFlag(F.momLabCall)
   s.face('mom', 'left')
 })
@@ -94,7 +94,7 @@ def('home.mom', async (s) => {
   }
   if (!s.flag(F.rescueDone)) {
     if (s.flag(F.metAide)) {
-      await line(s, MOM, 'The professor wandered off into the tall grass? Oh dear. Be careful out there, {player}!')
+      await line(s, MOM, 'The professor wandered off into the tall grass?\fOh dear. Be careful out there, {player}!')
     } else {
       await line(s, MOM, 'The professor’s lab is the building with the big satellite dish. You can’t miss it!')
     }
@@ -109,8 +109,8 @@ def('home.mom', async (s) => {
   await s.healParty()
   await s.fadeIn(300)
   const lines = [
-    'There! Your LLMMON look bright and freshly booted. Don’t forget to call me from SoMa Node!',
-    'All better! Remember: eat your vegetables, and never trust a LLMMON that cites itself.',
+    'There! Your LLMMON look bright and freshly booted.\fDon’t forget to call me from SoMa Node!',
+    'All better!\fRemember: eat your vegetables, and never trust a LLMMON that cites itself.',
     'Good as new! I’m so proud of you. And of {starter}. Mostly of you.',
   ]
   const i = Number(s.getFlag('mom_line') ?? 0)
@@ -123,7 +123,7 @@ async function giveFastTokens(s: S, outside: boolean): Promise<void> {
     outside
       ? '{player}! There you are! The whole street is talking about you and the professor!'
       : 'Oh, {player}! I heard all about it. You saved the professor!',
-    `And you have your own LLMMON now! ${starterName(s)}, is it? I’m not crying, it’s just pollen.`,
+    `And you have your own LLMMON now!\f${starterName(s)}, is it? I’m not crying, it’s just pollen.`,
     'Here, before you go. I packed these for you.')
   await s.giveItem('fast_tokens', 1)
   s.setFlag(F.hasRun)
@@ -148,7 +148,7 @@ def('hayes.mom_fast_tokens', async (s) => {
 // ---- notebook tutorial (bedroom desk)
 def('home.notebook', async (s) => {
   if (!s.flag(F.readNotebook)) {
-    await s.say('It’s your trusty notebook! The first page says: HOW TO BE A TRAINER, by {player}, age 10 and a half.')
+    await s.say('It’s your trusty notebook!\fThe first page says: HOW TO BE A TRAINER, by {player}, age 10 and a half.')
   }
   const c = await s.choice('Read which page?', ['MOVING', 'TALKING', 'MENU', 'BATTLES', 'CLOSE'])
   if (c === 0) {
@@ -161,12 +161,12 @@ def('home.notebook', async (s) => {
       'The same button reads signs and picks up items. Hold it to make text go faster.')
   } else if (c === 2) {
     await say(s,
-      'MENU: Press Enter or Esc (START) to open the menu. Check your LLMMON, your bag, or save the game.',
+      'MENU: Press Enter or Esc (START) to open the menu.\fCheck your LLMMON, your bag, or save the game.',
       'X or Shift is the B button. It backs out of menus.')
   } else if (c === 3) {
     await say(s,
-      'BATTLES: Wild LLMMON live in tall grass. Weaken one, then throw a Prompt Orb to catch it!',
-      'Myth beats Logic, Logic beats Tool, and Tool beats Myth. A good story beats a proof!')
+      'BATTLES: Wild LLMMON live in tall grass.\fWeaken one, then throw a Prompt Orb to catch it!',
+      'Myth beats Logic, Logic beats Tool, and Tool beats Myth.\fA good story beats a proof!')
   }
   s.setFlag(F.readNotebook)
 })
@@ -178,8 +178,8 @@ def('lab.aide', async (s) => {
     if (!s.flag(F.metAide)) {
       await line(s, A,
         'Oh, hi! You must be {player}, from the moving truck. The professor said you’d drop by.',
-        'He’s not here, sorry. He ran up Route 101 to check on reports of a glitchy wild LLMMON.',
-        'And he forgot his satchel! It has his three field LLMMON in it. He’ll have nothing to protect himself with!')
+        'He’s not here, sorry.\fHe ran up Route 101 to check on reports of a glitchy wild LLMMON.',
+        'And he forgot his satchel! It has his three field LLMMON in it.\fHe’ll have nothing to protect himself with!')
       await s.yesNo('Could you take it to him? Route 101 is just north of town.', { speaker: A })
       await s.say('{player} took the professor’s satchel!')
       s.sfx('key_item_get')
@@ -187,14 +187,14 @@ def('lab.aide', async (s) => {
       s.setFlag(F.metAide)
       s.setFlag(F.hasSatchel)
     } else {
-      await line(s, A, 'The professor went north, up Route 101. Please hurry, he’s hopeless without that satchel!')
+      await line(s, A, 'The professor went north, up Route 101.\fPlease hurry, he’s hopeless without that satchel!')
     }
     return
   }
   const lines = [
-    'The professor talks to LLMMON like colleagues. Honestly, they’re better at stand-ups than I am.',
-    'Wild LLMMON on Route 101 are weak to type moves. Your starter learns one around level 7!',
-    'If your LLMMON get hurt, your mom will patch them up. Or the Model Center in SoMa Node.',
+    'The professor talks to LLMMON like colleagues.\fHonestly, they’re better at stand-ups than I am.',
+    'Wild LLMMON on Route 101 are weak to type moves.\fYour starter learns one around level 7!',
+    'If your LLMMON get hurt, your mom will patch them up.\fOr the Model Center in SoMa Node.',
   ]
   const i = Number(s.getFlag('aide_line') ?? 0)
   s.setFlag('aide_line', i + 1)
@@ -205,18 +205,18 @@ def('lab.aide', async (s) => {
 async function labDex(s: S): Promise<void> {
   if (s.flag(F.gotDex)) return
   await line(s, PROF,
-    'Welcome to my lab! And thank you, again. I’d still be explaining backprop to that HalluciHound if you hadn’t shown up.',
-    `${starterName(s)} seems to like you. Keep it! A LLMMON learns best from a trainer it trusts.`,
+    'Welcome to my lab! And thank you, again.\fI’d still be explaining backprop to that HalluciHound if you hadn’t shown up.',
+    `${starterName(s)} seems to like you. Keep it!\fA LLMMON learns best from a trainer it trusts.`,
     'And please, take this. It’s my latest invention!')
   await s.giveItem('promptdex', 1, { verb: 'received' })
   await line(s, PROF,
-    'The PromptDex! It records every LLMMON you see and catch. Think of it as a dataset you build just by walking around.',
+    'The PromptDex! It records every LLMMON you see and catch.\fThink of it as a dataset you build just by walking around.',
     'You’ll need these to fill it, too.')
   await s.giveItem('prompt_orb', 5, { verb: 'received' })
   s.setFlag(F.gotDex)
   await line(s, PROF,
-    'Weaken a wild LLMMON, then throw a Prompt Orb. A good prompt is short, specific and a little bit lucky.',
-    'Route 101 leads north to SoMa Node. There’s a Model Center to heal your team, and a Token Mart for supplies.',
+    'Weaken a wild LLMMON, then throw a Prompt Orb.\fA good prompt is short, specific and a little bit lucky.',
+    'Route 101 leads north to SoMa Node.\fThere’s a Model Center to heal your team, and a Token Mart for supplies.',
     'But drop by and see your mom first. She’ll want to hear all about it!')
 }
 
@@ -228,7 +228,7 @@ def('lab.prof', async (s) => {
   const seen = s.state.seen.length
   const caught = s.state.caught.length
   await line(s, PROF,
-    `Let’s see your PromptDex... ${seen} seen, ${caught} caught. Excellent data!`,
+    `Let’s see your PromptDex...\f${seen} seen, ${caught} caught. Excellent data!`,
     seen < 5
       ? 'There are more LLMMON in the tall grass of Route 101. Go and meet them!'
       : 'Wonderful! You’re already beating my benchmark. Don’t tell my reviewers.')
@@ -237,9 +237,9 @@ def('lab.prof', async (s) => {
 // ============================================================================ rescue
 const STARTERS = ['claude_fable', 'gpt_5_5', 'glm']
 const STARTER_BLURB: Record<string, string> = {
-  claude_fable: 'Claude Fable, the Myth-type storyteller. Warm, thoughtful, and very hard to argue with.',
-  gpt_5_5: 'GPT 5.5, the Tool-type all-rounder. If there’s an API for something, it’s already calling it.',
-  glm: 'GLM, the Logic-type thinker. It solves problems by drawing graphs nobody asked for.',
+  claude_fable: 'Claude Fable, the Myth-type storyteller.\fWarm, thoughtful, and very hard to argue with.',
+  gpt_5_5: 'GPT 5.5, the Tool-type all-rounder.\fIf there’s an API for something, it’s already calling it.',
+  glm: 'GLM, the Logic-type thinker.\fIt solves problems by drawing graphs nobody asked for.',
 }
 
 /**
@@ -286,14 +286,14 @@ def('route.rescue', async (s) => {
   await s.shake(250, 2)
   await s.move('prof', 'down', { speed: 'slow' })
   s.face('prof', 'up')
-  await line(s, PROF, 'Easy there! Good HalluciHound... I am NOT a chew toy, whatever your training data says!')
+  await line(s, PROF, 'Easy there! Good HalluciHound...\fI am NOT a chew toy, whatever your training data says!')
   await line(s, 'HalluciHound', 'Grrfzzt! I am a golden retriever! I have a PhD! Bzzt!')
   s.face('prof', 'down')
   await s.emote('prof', 'exclaim')
   if (s.flag(F.hasSatchel)) {
     await line(s, PROF, 'You there! Is that my satchel?! Brilliant! Quick, grab a LLMMON out of it!')
   } else {
-    await line(s, PROF, 'You there! I dropped my satchel, it’s right by your feet! Quick, grab a LLMMON out of it!')
+    await line(s, PROF, 'You there! I dropped my satchel, it’s right by your feet!\fQuick, grab a LLMMON out of it!')
   }
   await s.cameraReset(400)
   let id = s.getFlag(F.starter)
@@ -316,8 +316,8 @@ def('route.rescue', async (s) => {
   await s.wait(300)
   await s.move('prof', 'down')
   await line(s, PROF,
-    'Phew... Thank you! You must be the new kid from the moving truck. {player}, right? I’m Professor Karpathy!',
-    'That was a wild HalluciHound. They make things up with total confidence, and get VERY upset when you check their sources.',
+    'Phew... Thank you! You must be the new kid from the moving truck.\f{player}, right? I’m Professor Karpathy!',
+    'That was a wild HalluciHound. They make things up with total confidence,\fand get VERY upset when you check their sources.',
     'Come back to my lab with me. I’d like to thank you properly!')
   await s.fadeOut(400)
   s.despawn('prof')

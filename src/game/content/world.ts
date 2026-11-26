@@ -17,16 +17,16 @@ text('hayes.truck', 'MYTHOS MOVERS\nWe carry the weight. All of it.')
 
 def('hayes.boy', (s) => byProgress(s,
   ['The tall grass on Route 101 is full of wild LLMMON!',
-    'Mom says I can’t go in until I’m ten. Or until I’m “aligned”. I don’t know what that means.'],
+    'Mom says I can’t go in until I’m ten.\fOr until I’m “aligned”. I don’t know what that means.'],
   ['Whoa, you got a LLMMON?! Does it have a system prompt? Can it do my homework?',
     '...Don’t tell my mom I asked that.']))
 
 def('hayes.mover', (s) => say(s,
-  'Mythos Movers, at your service! Last week we moved a whole data centre. This week, your couch.',
+  'Mythos Movers, at your service!\fLast week we moved a whole data centre. This week, your couch.',
   'Careful with that box marked FRAGILE: WEIGHTS. Took four of us to lift it.'))
 
 def('hayes.woman', (s) => byProgress(s,
-  ['Welcome to Hayes Valley! It’s a small town, but everyone here remembers everything.',
+  ['Welcome to Hayes Valley!\fIt’s a small town, but everyone here remembers everything.',
     'Huge context window, this street. Gossip travels fast!'],
   ['I heard you saved the professor from a HalluciHound! See? Gossip travels fast.']))
 
@@ -36,15 +36,15 @@ def('hayes.elder', (s) => say(s,
 
 def('hayes.girl', async (s) => {
   if (!s.flag(F.rescueDone)) {
-    await s.say('Professor Karpathy explains everything from scratch. Even “hello”. ESPECIALLY “hello”.')
+    await s.say('Professor Karpathy explains everything from scratch.\fEven “hello”. ESPECIALLY “hello”.')
   } else {
     await s.say(`Is that ${starterName(s)}? It’s so cute! Does it bite? Does it... byte?`)
   }
 })
 
 def('hayes.techie', (s) => say(s,
-  'See that dish on the lab roof? It streams benchmark results from all over the region.',
-  'Ninety percent of what it receives is spam. The other ten percent is also spam, but with charts.'))
+  'See that dish on the lab roof?\fIt streams benchmark results from all over the region.',
+  'Ninety percent of what it receives is spam.\fThe other ten percent is also spam, but with charts.'))
 
 // ============================================================================ Route 101
 text('route.sign_south', 'ROUTE 101\n▲ SoMa Node     ▼ Hayes Valley')
@@ -55,12 +55,12 @@ def('route.angler', (s) => say(s,
   '...There are no fish in this pond. I’m waiting for a LLMMON to hallucinate one.'))
 
 def('route.grass_researcher', (s) => byProgress(s,
-  ['I’m benchmarking this tall grass. So far it scores 98% on Being Grass. State of the art!'],
+  ['I’m benchmarking this tall grass.\fSo far it scores 98% on Being Grass. State of the art!'],
   ['Wild LLMMON hide in tall grass. If your team needs a rest, walk around it!',
-    'And if you hop down a ledge, it’s a one-way trip. Great shortcut home, though.']))
+    'And if you hop down a ledge, it’s a one-way trip.\fGreat shortcut home, though.']))
 
 def('route.picnic_girl', (s) => say(s,
-  'I saw the whole thing from my picnic blanket! That HalluciHound was SO sure it was a golden retriever.',
+  'I saw the whole thing from my picnic blanket!\fThat HalluciHound was SO sure it was a golden retriever.',
   'It also told me the sky is a software update. It was very convincing.'))
 
 // ---- trainers: lines come from src/game/data/trainers.ts (preBattle / postBattle)
@@ -80,10 +80,10 @@ trainer('route_101_b')
 
 // ============================================================================ SoMa Node
 text('soma.town_sign', 'SOMA NODE\nThe city that never stops shipping.')
-text('soma.road_closed', 'ROAD CLOSED\nAlignment in progress. Please wait for the next release.')
+text('soma.road_closed', 'ROAD CLOSED\nAlignment in progress.\fPlease wait for the next release.')
 text('soma.gym_door',
   'ALIGNMENT GYM\nThe doors are boarded up.',
-  'A note: “The Alignment Gym opens in the next build. Please stay aligned until then.”')
+  'A note: “The Alignment Gym opens in the next build.\fPlease stay aligned until then.”')
 text('soma.locked_house', 'It’s locked. A sticky note on the door:\n“At a hackathon. Back in 48 hours. Or 72.”')
 text('soma.fountain', 'The Node Plaza fountain. A plaque reads:\n“All requests flow through here.”')
 
@@ -91,12 +91,12 @@ def('soma.end_sign', async (s) => {
   await say(s,
     'THANK YOU FOR PLAYING!',
     'You’ve reached the end of the LLMMON Mythos vertical slice.',
-    `${starterName(s)} and your PromptDex will be waiting for you in the next build. See you on the road!`)
+    `${starterName(s)} and your PromptDex will be waiting for you in the next build.\fSee you on the road!`)
   s.setFlag(F.sawEnd)
 })
 
 def('soma.guard', (s) => say(s,
-  'Sorry, kid. The road north is closed while the Alignment Survey team checks what’s up ahead.',
+  'Sorry, kid. The road north is closed.\fThe Alignment Survey team is still checking what’s up ahead.',
   'They said it’ll be ready in the next build. Whatever that means.'))
 
 def('soma.girl', (s) => say(s,
@@ -105,10 +105,10 @@ def('soma.girl', (s) => say(s,
 
 def('soma.techie', (s) => say(s,
   'I came to SoMa Node to found a startup.',
-  'Then my LLMMON wrote the business plan, the code AND the pitch deck. Now I mostly hold the coffee.'))
+  'Then my LLMMON wrote the business plan, the code AND the pitch deck.\fNow I mostly hold the coffee.'))
 
 def('soma.woman', (s) => say(s,
-  'The Model Center heals your LLMMON for free, and the Token Mart sells Prompt Orbs.',
+  'The Model Center heals your LLMMON for free,\fand the Token Mart sells Prompt Orbs.',
   'Between the two of them, you’ve got the whole stack!'))
 
 def('soma.elder', (s) => say(s,
@@ -117,7 +117,7 @@ def('soma.elder', (s) => say(s,
 
 def('soma.man', (s) => say(s,
   'Tokens are money around here. Spend them wisely.',
-  'I once spent a thousand tokens asking my LLMMON to be more concise. It wrote me an essay about brevity.'))
+  'I once spent a thousand tokens asking my LLMMON to be more concise.\fIt wrote me an essay about brevity.'))
 
 def('soma.boy', (s) => say(s,
   'I’ve caught three GPT-5.4 minis!',
