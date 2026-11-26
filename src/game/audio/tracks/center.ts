@@ -26,7 +26,7 @@ export const center: SongDef = {
   chords: { loop: `${A} | ${B} | ${A} | ${B}` },
   loop: {
     p1: `${melA} | ${melB} | @flute ${melA} | ${melB} @leadsoft`,
-    p2: `${comp(A, 'alberti8', { center: 'G4', v: 9 })} | ${comp(B, 'alberti8', { center: 'G4', v: 9 })} | ${descant}`,
+    p2: `${comp(A, 'alberti8', { center: 'Eb4', v: 9 })} | ${comp(B, 'alberti8', { center: 'Eb4', v: 9 })} | ${descant}`,
     w: bassLine(`${A} | ${B} | ${A} | ${B}`, 'rf2', { center: 'Eb3', v: 12 }),
     n: '(-:4 hs:4 -:4 hs:8 hs:8)x32',
   },

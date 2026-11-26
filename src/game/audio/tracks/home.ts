@@ -13,7 +13,7 @@ const melB = `G5:2 F5:4 | F5:4 D5:4 Bb4:4 | Eb5:2 G5:4 | C5:2. |
   Bb4:4 Eb5:4 G5:4 | F5:4 D5:4 A4:4 | G4:4 Bb4:4 A4:4 | Bb4:2. `
 
 // music-box sparkle an octave up on the repeat of B
-const bellB = '@bell v8 -:2. | -:2. | -:2. | -:4 C6:4 F6:4 | -:2. | -:2. | -:2. | -:4 F6:4 Bb6:4'
+const bellB = '@bell v8 -:2. | -:2. | -:2. | -:4 C6:4 F6:4 | -:2. | -:2. | -:2. | -:4 F6:4 D6:4'
 
 export const home: SongDef = {
   id: 'home',

@@ -115,7 +115,15 @@ def remove_checker(a):
 def key_magenta(a):
     rgb = a[..., :3].astype(int)
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
-    bg = (r > 150) & (b > 150) & (g < 140) & (abs(r - b) < 90) & (r - g > 70)
+    bglike = (r > 150) & (b > 150) & (g < 140) & (abs(r - b) < 90) & (r - g > 70)
+    # only background connected to the image border (purple creatures exist)
+    seed = np.zeros_like(bglike)
+    seed[0, :] = seed[-1, :] = True
+    seed[:, 0] = seed[:, -1] = True
+    near = (abs(r - 255) < 40) & (abs(b - 255) < 40) & (g < 60)
+    bg = flood(seed & bglike, bglike)
+    # pure-magenta pockets enclosed by the creature (between legs etc.)
+    bg |= near
     # magenta fringe: strongly magenta-tinted pixels touching the background
     fringe = (r - g > 60) & (b - g > 60) & (g < 170)
     a = a.copy()
@@ -123,7 +131,7 @@ def key_magenta(a):
     edge = _dilate(bg) & fringe
     for _ in range(2):
         a[edge, 3] = 0
-        edge = _dilate(edge) & fringe
+        edge = _dilate(edge) & fringe & ~(a[..., 3] == 0)
     return a
 
 
@@ -330,12 +338,16 @@ def place(arr, W, H, anchor='bottom', margin_bottom=1, dx=0, dy=0):
 TUNE = {
     'default': {'box': (62, 60), 'colors': 15},
     'mistral_medium': {'dewisp': 6},
-    'claude_fable': {'accents': [(lambda r, g, b: (r > 190) & (g < 150) & (g > 40) & (b < 80),
+    'hallucihound': {'box': (64, 60), 'dewisp': 3},
+    'claude_fable': {'back_vis': 0.95, 'accents': [(lambda r, g, b: (r > 190) & (g < 150) & (g > 40) & (b < 80),
                                   (0.0, 0.38, 0.62, 0.64), 0.3)]},
     'glm': {'accents': [(lambda r, g, b: (g > 150) & (b < 110) & (r > 70) & (r < 215) & (g > r + 20),
                          (0.0, 0.30, 0.55, 0.52), 0.2)]},
     'claude_haiku': {'dewisp': 6, 'protect': [(0.2, 0.0, 0.85, 0.25)]},
     'kimi': {'dewisp': 3},
+    'gpt_5_5_xhigh': {'back_box': (72, 84)},
+    'gemini_flash': {'back_box': (70, 84), 'back_vis': 0.9},
+    'deepseek_flash': {'back_box': (70, 84)},
 }
 
 
@@ -359,7 +371,7 @@ def make_back(sid, src, back_src):
     t = tune(sid)
     vis = t.get('back_vis', 0.82)
     if back_src is not None:
-        bw, bh = t.get('back_box', (68, 84))
+        bw, bh = t.get('back_box', (64, 84))
         arr = reduce(back_src, bw, bh, colors=t['colors'], sharpen=t.get('sharpen', 0.5),
                      sat=t.get('sat', 1.12))
     else:

@@ -212,7 +212,9 @@ def prekey(path_or_img):
     from mons import key_magenta
     im = path_or_img if isinstance(path_or_img, Image.Image) else Image.open(path_or_img)
     a = key_magenta(np.array(im.convert('RGBA')))
-    tmp = os.path.join(GEN_RAW, '..', '_tmp_key_%d.png' % os.getpid())
+    import tempfile
+    fd, tmp = tempfile.mkstemp(suffix='.png', prefix='artspr_')
+    os.close(fd)
     Image.fromarray(a).save(tmp)
     return tmp
 
@@ -303,7 +305,6 @@ def trainer_back():
         return sheet
     frames = split_strip(p, 4)
     # common scale so the character is the same size in every frame
-    tmp = os.path.join(GEN_RAW, '..', '_tmp_frame.png')
     hs = []
     for f in frames:
         bb = f.getbbox()

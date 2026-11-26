@@ -220,6 +220,17 @@ export class DialogBox implements Widget {
   }
 
   input(): void {
+    if (this.phase === 'typing' && this.holdArmed && controls.justPressed('A')) {
+      // a fresh tap finishes the two visible lines
+      controls.consume('A')
+      const L = this.lines()
+      if (this.row === 0) this.rows[0].setText(L[this.top] ?? '')
+      this.rows[1].setText(L[this.top + 1] ?? '')
+      this.row = 1
+      this.chars = (L[this.top + 1] ?? '').length
+      this.finishReveal()
+      return
+    }
     if (this.phase === 'waiting' && (controls.justPressed('A') || controls.justPressed('B'))) {
       controls.consume('A', 'B')
       this.advance()

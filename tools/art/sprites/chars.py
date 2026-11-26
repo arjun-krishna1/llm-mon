@@ -1176,6 +1176,11 @@ class Char:
         # head + hair
         stamp(g, HEAD[src_d], head_y)
         hair = HAIR[self.hair][src_d]
+        if src_d == 'up':
+            # isolated dark specks read as dots/eyes on the back of the head
+            hair = [''.join('h' if (c == 'H' and 0 < i < len(r) - 1 and r[i - 1] in 'hj'
+                                    and r[i + 1] in 'hj') else c for i, c in enumerate(r))
+                    for r in hair]
         stamp(g, hair, head_y)
         # per-character extras: dict (dir, frame|None) -> (y0, rows, mode)
         for key in ((src_d, None), (src_d, f)):

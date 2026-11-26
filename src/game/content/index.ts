@@ -69,3 +69,7 @@ registerScript('test.cutscene', async (s) => {
   await s.fadeIn()
   await s.say('Cutscene over!')
 })
+
+registerScript('test.clerk', async (s) => {
+  await s.shop(['prompt_orb', 'great_orb', 'patch', 'big_patch', 'debugger'])
+})
