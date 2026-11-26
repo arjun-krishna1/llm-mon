@@ -41,13 +41,13 @@ export const route_101: SongDef = {
   chords: { intro: introChords, loop: `${A} | ${B} | ${A} | ${C}` },
   intro: {
     p1: 'D4:8 G4:8 B4:8 D5:8 G5:4 -:4 | F#5:8 E5:8 D5:8 C5:8 A4:4 -:8 D4:8',
-    p2: comp(introChords, 'pulse8', { center: 'G4', v: 9 }),
+    p2: comp(introChords, 'pulse8', { center: 'D4', v: 9 }),
     w: bassLine(introChords, 'rf', { center: 'G2' }),
     n: 's:16 s:16 s:16 s:16 s:8 s:8 k:4 s:4 | s:16 s:16 s:16 s:16 s:8 s:8 s:16 s:16 t:16 t:16 tl:16 tl:16 s:16 s:16',
   },
   loop: {
     p1: `${melA} | ${melB} | ${melA} | ${melC}`,
-    p2: `${comp(A, 'stab', { center: 'G4', v: 11 })} | ${comp(B, 'alberti8', { center: 'G4', v: 9, inst: 'broken' })} | ${counterA} | ${comp(C, 'up8', { center: 'G4', v: 9, inst: 'broken' })}`,
+    p2: `${comp(A, 'stab', { center: 'D4', v: 11 })} | ${comp(B, 'alberti8', { center: 'E4', v: 9, inst: 'broken' })} | ${counterA} | ${comp(C, 'up8', { center: 'E4', v: 9, inst: 'broken' })}`,
     w: `${bassLine(A, 'rf', { center: 'G2' })} | ${bassLine(B, 'r5', { center: 'G2' })} | ${bassLine(A, 'rf', { center: 'G2' })} | ${bassLine(C, 'oct8', { center: 'G2' })}`,
     n: `${drum8} | ${drum8} | ${drum8} | ${drumC}`,
   },

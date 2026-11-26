@@ -40,7 +40,7 @@ export const title: SongDef = {
   },
   loop: {
     p1: `${melA} | ${melB} | ${melA}`,
-    p2: `${comp(A, 'alberti8', { center: 'A4', v: 10 })} | ${comp(B, 'up8', { center: 'A4', v: 10 })} | ${counter}`,
+    p2: `${comp(A, 'alberti8', { center: 'F#4', v: 10 })} | ${comp(B, 'up8', { center: 'F#4', v: 10 })} | ${counter}`,
     w: `${bassLine(A, 'rf', { center: 'D3' })} | ${bassLine(B, 'oct8', { center: 'C3' })} | ${bassLine(A, 'rf', { center: 'D3' })}`,
     n: `${drA} | ${drB} | ${drA2}`,
   },

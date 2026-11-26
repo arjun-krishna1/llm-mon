@@ -159,7 +159,7 @@ def town(cat):
                       (6, 18): 'red', (7, 19): 'yellow', (29, 21): 'red', (38, 15): 'white',
                       (23, 13): 'yellow', (8, 5): 'red', (9, 5): 'yellow', (10, 5): 'red',
                       (8, 6): 'white', (9, 6): 'red', (10, 6): 'white', (32, 5): 'pink',
-                      (33, 6): 'yellow', (13, 5): 'white', (16, 4): 'red'}.items():
+                      (33, 6): 'yellow', (16, 4): 'red'}.items():
         m.tile('ground', x, y, 'flower_' + c)
 
     # forest walls: top band with a gap for the route, left and right bands

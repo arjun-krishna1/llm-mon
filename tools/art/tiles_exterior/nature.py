@@ -14,8 +14,24 @@ def tree_sprite():
     """32 px wide tree, outline reinforced."""
     s = genart.sprite('ext_tree', width=32, colors=32, sat=1.15)
     genart.resnap(s, LEAF_COLS)
+    _fill_holes(s, P.TRUNK[0])
     _reink(s)
     return s
+
+
+def _fill_holes(s, col):
+    for _ in range(2):
+        todo = []
+        for y in range(s.h):
+            for x in range(s.w):
+                if s.px[y][x][3]:
+                    continue
+                n = sum(1 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                        if s.get(x + dx, y + dy)[3] == 255)
+                if n >= 3:
+                    todo.append((x, y))
+        for x, y in todo:
+            s.px[y][x] = col
 
 
 def _reink(s, col=O):
@@ -63,7 +79,7 @@ def forest_canvas(cols, rows):
             _shadow(c, k * 32 + 17, r * 32 + 46, 11, 2.5)
             c.blit(s, k * 32, r * 32 + oy)
     # fill gaps bounded on all four sides (keeps the outer silhouette open)
-    fill = P.TREE[0]
+    fill = P.TREE[1]
     solid = [[c.px[y][x][3] == 255 for x in range(c.w)] for y in range(c.h)]
 
     def bounded(x, y):
@@ -75,7 +91,9 @@ def forest_canvas(cols, rows):
                 # leave the trunk row (below the last crowns) open to show ground
                 if y >= c.h - 14:
                     continue
-                c.px[y][x] = fill
+                # deep foliage: dark base with a few leaf glints
+                h = (x * 7 + y * 13) % 23
+                c.px[y][x] = P.TREE[2] if h == 0 else (P.TREE[0] if h in (5, 11) else fill)
     return c
 
 
