@@ -6,8 +6,8 @@ runs twice. Order below = story order.
 
 | flag | set by | meaning / used by |
 | --- | --- | --- |
-| `arrived` | `story.arrival` (new-game script) | Mom has walked you into the house. Arrival never replays. |
-| `visited_2f` | silent triggers next to the 2F stairs (`home_2f`) | You went up to your room. Mom's talk changes; enables the lab call trigger. |
+| `arrived` | `story.arrival` (new-game script) | Truck has driven off (truck prop + mover hidden by this flag) and Mom has walked you in. Never replays. |
+| `visited_2f` | `home.enter_2f` (the `onEnter` hook of `home_2f`) | You went up to your room. Mom's talk changes; enables the lab call trigger. |
 | `read_notebook` | `home.notebook` | You opened the controls notebook (only changes its first line). |
 | `mom_lab_call` | `home.mom_lab_call` (trigger at the bottom of the 1F stairs, or talking to Mom) | Mom told you the professor's lab called. |
 | `met_aide` | `lab.aide` | The aide explained the professor went up Route 101. |

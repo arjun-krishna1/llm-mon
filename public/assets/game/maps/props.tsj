@@ -22,66 +22,6 @@
      "value": true
     }
    ]
-  },
-  {
-   "id": 4,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 5,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 6,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 7,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 8,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 9,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
   }
  ]
 }

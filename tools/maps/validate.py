@@ -78,6 +78,9 @@ def run(maps, strict_scripts=False):
                     E(m, 'item %r at %d,%d on a solid tile' % (o['name'], x, y))
                 if not p.get('hidden'):
                     bl.add((x, y))
+            elif t == 'prop':
+                if p.get('solid', True) and not (p.get('showIfFlag') or p.get('hideIfFlag')):
+                    bl |= set(cells(o))
             elif t == 'sign':
                 if not m.solid(x, y):
                     W(m, 'sign at %d,%d is on a walkable tile' % (x, y))
@@ -196,6 +199,8 @@ def run(maps, strict_scripts=False):
     reg = registered_scripts()
     missing = set()
     for m in maps:
+        if m.props.get('onEnter') and m.props['onEnter'] not in reg:
+            missing.add(m.props['onEnter'])
         for o in m.objects:
             s = o['props'].get('script')
             if s and s not in reg:

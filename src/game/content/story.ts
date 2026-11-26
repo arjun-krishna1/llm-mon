@@ -39,24 +39,47 @@ def('intro.prof', async (s) => {
 })
 
 // ============================================================================ arrival
-// Fade in beside the Mythos Movers truck; Mom greets you and walks you inside.
+// Fade in on the street: the mover loads the last box and drives the Mythos
+// Movers truck away, Mom comes out to greet you and walks you inside.
+const MOVER = 'Mover'
 def('story.arrival', async (s) => {
   if (s.flag(F.arrived)) return
   s.face('player', 'left')
+  await s.wait(300)
+  await s.cameraPan(-4, -1, 900)
+  await s.wait(300)
+  s.face('hv_mover', 'right')
+  await line(s, MOVER,
+    'And that\u2019s the last box! The one marked FRAGILE: WEIGHTS took four of us.',
+    'Mythos Movers, signing off. Welcome to Hayes Valley, kid!')
+  await s.move('hv_mover', 'up, left')
+  s.sfx('door')
+  s.hide('hv_mover')
   await s.wait(400)
-  s.spawn({ id: 'mom_out', sprite: 'mom', x: 13, y: 98, facing: 'down' })
-  await s.move('mom_out', 'down, right 5')
+  s.sfx('run')
+  await s.moveProp('truck', 'down 3, left 11', 2800, 'Sine.In')
+  s.despawnProp('truck')
+  await s.wait(300)
+  // Mom comes out of the house
+  s.spawn({ id: 'mom_out', sprite: 'mom', x: 13, y: 97, facing: 'down' })
+  s.sfx('door')
+  await s.move('mom_out', 'down 2, right 7')
+  await s.move('mom_out', 'up')
   s.face('mom_out', 'right')
+  await s.emote('mom_out', 'heart')
   await line(s, MOM,
     '{player}! The truck made it in one piece. And so did you!',
     'This is Hayes Valley.\fSmaller than the city, but everyone says it has a big context window.',
     'Come on, let me show you the house!')
   await Promise.all([
-    s.move('mom_out', 'left 5, up 2'),
-    s.wait(450).then(() => s.move('player', 'left 5')),
+    s.cameraReset(900),
+    s.move('mom_out', 'down, left 7, up 2').then(() => {
+      s.sfx('door')
+      s.despawn('mom_out')
+    }),
+    s.wait(550).then(() => s.move('player', 'left, down, left 7, up')),
   ])
-  s.despawn('mom_out')
-  await s.move('player', 'left, up 2')
+  await s.move('player', 'up')
   await s.warp('home_1f', 'entrance', 'up', 'door')
   // inside
   await s.move('mom', 'right 2, down')
@@ -125,10 +148,8 @@ async function giveFastTokens(s: S, outside: boolean): Promise<void> {
       : 'Oh, {player}! I heard all about it. You saved the professor!',
     `And you have your own LLMMON now!\f${starterName(s)}, is it? I’m not crying, it’s just pollen.`,
     'Here, before you go. I packed these for you.')
-  await s.giveItem('fast_tokens', 1, { silent: true })
-  s.sfx('key_item_get')
+  await s.giveItem('fast_tokens', 1)
   s.setFlag(F.hasRun)
-  await s.say('{player} got the Fast Tokens!')
   await line(s, MOM,
     'Fast Tokens! Hold B outdoors and you’ll move at inference speed.',
     'SoMa Node is just up Route 101. Go see the world, sweetie. And call your mother!')
@@ -145,6 +166,10 @@ def('hayes.mom_fast_tokens', async (s) => {
   await giveFastTokens(s, true)
   await s.move('mom_out', Array(Math.max(0, 100 - p.y - 1)).fill('down') as Dir[])
   s.despawn('mom_out')
+})
+
+def('home.enter_2f', (s) => {
+  s.setFlag(F.visited2f)
 })
 
 // ---- notebook tutorial (bedroom desk)
@@ -210,11 +235,11 @@ async function labDex(s: S): Promise<void> {
     'Welcome to my lab! And thank you, again.\fI’d still be explaining backprop to that HalluciHound if you hadn’t shown up.',
     `${starterName(s)} seems to like you. Keep it!\fA LLMMON learns best from a trainer it trusts.`,
     'And please, take this. It’s my latest invention!')
-  await s.giveItem('promptdex', 1, { verb: 'received' })
+  await s.giveItem('promptdex', 1)
   await line(s, PROF,
     'The PromptDex! It records every LLMMON you see and catch.\fThink of it as a dataset you build just by walking around.',
     'You’ll need these to fill it, too.')
-  await s.giveItem('prompt_orb', 5, { verb: 'received' })
+  await s.giveItem('prompt_orb', 5)
   s.setFlag(F.gotDex)
   await line(s, PROF,
     'Weaken a wild LLMMON, then throw a Prompt Orb.\fA good prompt is short, specific and a little bit lucky.',
@@ -267,36 +292,53 @@ export async function chooseStarter(s: S): Promise<string> {
   }
 }
 
-function houndSprite(s: S): string {
-  return s.game.textures.exists('chars/hallucihound') ? 'hallucihound' : 'mons/hallucihound_icon'
-}
+const SATCHEL = { x: 23, y: 81 }
 
 def('route.rescue', async (s) => {
   if (s.flag(F.rescueDone)) return
   const p = s.pos('player')
   if (!p) return
+  const carrying = s.flag(F.hasSatchel)
   s.stopMusic(300)
+  // stage: professor backed against the path, the hound prowling in front of him
+  s.spawn({ id: 'prof', sprite: 'prof', x: 21, y: 78, facing: 'up' })
+  s.spawn({ id: 'hound', sprite: 'hallucihound', x: 21, y: 76, facing: 'down' })
+  if (!carrying) s.spawnProp('satchel', 'fx/satchel', SATCHEL.x, SATCHEL.y)
   await line(s, '???', 'H-help! Somebody, anybody!')
   await s.emote('player', 'exclaim')
-  s.spawn({ id: 'prof', sprite: 'prof', x: 21, y: 78, facing: 'up' })
-  s.spawn({ id: 'hound', sprite: houndSprite(s), x: 21, y: 77, facing: 'down' })
   s.playMusic('encounter_trainer')
   await walkTo(s, 'player', 21, p.y)
-  await s.move('player', Array(p.y - 81).fill('up') as Dir[], { speed: 'run' })
-  await s.cameraPan(0, -2, 500)
+  await s.move('player', Array(Math.max(0, p.y - 82)).fill('up') as Dir[], { speed: 'run' })
+  await s.cameraPan(0, -3, 600)
+  // the hound prowls, then lunges
+  await s.move('hound', 'left', { speed: 'slow' })
+  await s.move('hound', 'right 2', { speed: 'slow' })
+  await s.move('hound', 'left', { speed: 'slow' })
+  s.face('hound', 'down')
   await s.emote('hound', 'exclaim')
-  await s.shake(250, 2)
-  await s.move('prof', 'down', { speed: 'slow' })
+  await Promise.all([s.move('hound', 'down', { speed: 'run' }), s.wait(120).then(() => s.move('prof', 'down', { speed: 'run' }))])
   s.face('prof', 'up')
+  await s.shake(300, 3)
   await line(s, PROF, 'Easy there! Good HalluciHound...\fI am NOT a chew toy, whatever your training data says!')
   await line(s, 'HalluciHound', 'Grrfzzt! I am a golden retriever! I have a PhD! Bzzt!')
+  await s.move('hound', 'up', { speed: 'slow' })
+  s.face('hound', 'down')
   s.face('prof', 'down')
   await s.emote('prof', 'exclaim')
-  if (s.flag(F.hasSatchel)) {
-    await line(s, PROF, 'You there! Is that my satchel?! Brilliant! Quick, grab a LLMMON out of it!')
+  if (carrying) {
+    await line(s, PROF, 'You there! Is that my satchel?! Brilliant!\fQuick, open it and grab a LLMMON!')
   } else {
-    await line(s, PROF, 'You there! I dropped my satchel, it’s right by your feet!\fQuick, grab a LLMMON out of it!')
+    await line(s, PROF, 'You there! I dropped my satchel, it\u2019s right next to you!\fQuick, grab a LLMMON out of it!')
   }
+  // walk over to the satchel and face it
+  await s.move('player', 'right, up')
+  s.face('player', 'right')
+  if (carrying) {
+    s.spawnProp('satchel', 'fx/satchel', SATCHEL.x, SATCHEL.y)
+    s.sfx('select')
+    await s.say('{player} set the satchel down and opened it.')
+  }
+  await s.wait(250)
   let id = s.getFlag(F.starter)
   if (typeof id !== 'string' || !s.state.party.length) {
     id = await chooseStarter(s)
@@ -305,24 +347,33 @@ def('route.rescue', async (s) => {
     s.sfx('orb_throw')
     await s.say(`{player} chose ${s.speciesName(id)}! Go, ${s.speciesName(id)}!`)
   }
-  s.face('prof', 'up')
+  s.face('player', 'up')
   await s.tutorialBattle(2)
-  await s.cameraReset(0)
   s.setFlag(F.rescueDone)
   s.setFlag(F.hasSatchel, false)
-  await s.flash(0xffffff, 200)
+  // the hound bolts back into the tall grass
+  s.face('hound', 'up')
+  await s.emote('hound', 'dots')
+  await s.move('hound', 'up 5', { speed: 'run' })
   s.despawn('hound')
-  await s.say('The HalluciHound glitched out and scampered back into the grass!')
+  await s.say('The HalluciHound yelped and bolted back into the tall grass!')
   s.resumeMapMusic()
-  s.face('prof', 'down')
   await s.wait(300)
-  await s.move('prof', 'down')
+  // the professor collects his satchel
+  await s.move('prof', 'down, right 2')
+  s.face('prof', 'down')
+  await s.wait(200)
+  s.sfx('select')
+  s.despawnProp('satchel')
+  s.face('prof', 'left')
+  s.face('player', 'right')
   await line(s, PROF,
-    'Phew... Thank you! You must be the new kid from the moving truck.\f{player}, right? I’m Professor Karpathy!',
+    'Phew... Thank you! You must be the new kid from the moving truck.\f{player}, right? I\u2019m Professor Karpathy!',
     'That was a wild HalluciHound. They make things up with total confidence,\fand get VERY upset when you check their sources.',
-    'Come back to my lab with me. I’d like to thank you properly!')
+    'Come back to my lab with me. I\u2019d like to thank you properly!')
   await s.fadeOut(400)
   s.despawn('prof')
+  await s.cameraReset(0)
   await s.warp('lab', 'prof_talk', 'up')
   await labDex(s)
 })

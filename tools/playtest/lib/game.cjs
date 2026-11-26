@@ -53,7 +53,8 @@ const PROBE = () => {
     const out = {
       t: Math.round(performance.now()),
       info,
-      ui: ui && ui.dialog ? { dlg: ui.dialog.phase, text: ui.dialog.currentText || '', top: topOf(ui.stack), menuOpen: !!ui.menuOpen } : null,
+      ui: ui && ui.dialog ? { dlg: ui.dialog.phase, text: ui.dialog.currentText || '', top: topOf(ui.stack), menuOpen: !!ui.menuOpen,
+        page: `${ui.dialog.page}:${ui.dialog.top}`, rows: ui.dialog.rows.map((r) => r.text), rowW: ui.dialog.rows.map((r) => r.width), maxW: ui.dialog.textWidth, open: ui.dialog.isOpen } : null,
       battle: null,
       starter: null,
       music: window.__llmmonAudio ? window.__llmmonAudio.currentMusic() : null,
@@ -234,6 +235,7 @@ class Game {
     let still = 0
     while (Date.now() - t0 < timeout) {
       const s = await this.snap()
+      this.trackBattle(s, H)
       if (until(s)) return s
       const key = JSON.stringify([s.info.busy, s.ui && s.ui.dlg, s.ui && s.ui.text, s.ui && s.ui.top, s.battle && [s.battle.phase, s.battle.box, s.battle.text, s.battle.top], s.starter, s.info.x, s.info.y, s.info.map, s.title])
       if (key === lastKey) still++
@@ -251,10 +253,19 @@ class Game {
           lastText = s.ui.text
           if (H.onText) await H.onText(s.ui.text, s)
           this.textLog(s.ui.text)
-          await sleep(this.readMs(s.ui.text))
+        }
+        const pk = s.ui.text + '|' + s.ui.page
+        if (pk !== this.lastPage) {
+          this.lastPage = pk
+          if (s.ui.rowW.some((w) => w > s.ui.maxW)) this.note('P1', `dialog text overflows box (${Math.max(...s.ui.rowW)}px > ${s.ui.maxW}px): "${s.ui.rows.join(' / ')}"`)
+          await sleep(this.readMs(s.ui.rows.join(' ')))
         }
         await this.press('A')
         await sleep(60)
+      } else if (s.ui && s.ui.top && s.ui.top.cls === 'Object') {
+        // anonymous widgets: shop quantity picker / bag "press a button" acknowledgements
+        if (H.widget) await H.widget(s, this)
+        else { await sleep(this.readMs('x'.repeat(30))); await this.press('A') }
       } else if (s.ui && s.ui.top && /Screen|PlayerCard/.test(s.ui.top.cls || '')) {
         if (H.screen) await H.screen(s)
         else await this.press('B')
@@ -263,6 +274,43 @@ class Game {
       }
     }
     throw new Error('drive timeout')
+  }
+  trackBattle(s, H) {
+    if (s.battle && !this.curBattle) {
+      this.curBattle = { t0: Date.now(), kind: s.battle.kind, foe: s.battle.foe, seg: this.segment && this.segment.name, map: s.info.map, x: s.info.x, y: s.info.y, plan: 'win', turns: 0 }
+      const plan = H.planBattle ? H.planBattle(s, this.encounters.length) : null
+      if (plan) this.curBattle.plan = plan
+      console.log(`   [battle start] ${s.battle.kind} vs ${s.battle.foe && s.battle.foe.name} Lv${s.battle.foe && s.battle.foe.lv} plan=${this.curBattle.plan}`)
+    }
+    if (s.battle && this.curBattle) { this.curBattle.last = s.battle; if (s.battle.foe && !this.curBattle.foe) this.curBattle.foe = s.battle.foe }
+    if (!s.battle && this.curBattle) {
+      const c = this.curBattle
+      c.ms = Date.now() - c.t0
+      c.outcome = c.last && c.last.outcome
+      c.moneyAfter = s.money
+      this.encounters.push(c)
+      console.log(`   [battle end] ${c.outcome} in ${(c.ms / 1000).toFixed(1)} s`)
+      this.curBattle = null
+    }
+  }
+  /** Default battle policy driven by curBattle.plan: win | run | catch | lose. */
+  defaultAction(s) {
+    const b = s.battle
+    const c = this.curBattle || { plan: 'win' }
+    c.turns = (c.turns || 0) + 1
+    const me = b.me || {}
+    const foe = b.foe || {}
+    const moves = me.moves || []
+    const dmg = moves.map((m, i) => ({ ...m, i })).filter((m) => m.power > 0 && m.pp > 0)
+    if (c.plan === 'run' && b.canRun) return { action: 'run' }
+    if (c.plan === 'lose') { const st = moves.findIndex((m) => !m.power && m.pp > 0); return { action: 'fight', move: st >= 0 ? st : 0 } }
+    if (c.plan !== 'lose' && me.hp / me.maxHp < 0.25 && (s.bag.patch || 0) > 0 && !c.healed) { c.healed = true; return { action: 'bag', item: 'Patch' } }
+    if (c.plan === 'catch' && b.canCatch) {
+      if (foe.hp / foe.maxHp <= 0.6 || c.turns > 3) return { action: 'bag', item: 'Prompt Orb' }
+      dmg.sort((a, b2) => a.power - b2.power)
+      return { action: 'fight', move: dmg.length ? dmg[0].i : 0 }
+    }
+    return { action: 'fight' }
   }
   textLog(t) {
     this.texts = this.texts || []
@@ -301,7 +349,7 @@ class Game {
     if (H.battle) { const r = await H.battle(s, this); if (r === true) return }
     const top = b.top || {}
     if (b.phase === 'command' && top.cls === 'Grid2x2') {
-      const plan = H.battleAction ? await H.battleAction(s) : { action: 'fight' }
+      const plan = H.battleAction ? await H.battleAction(s, this) : this.defaultAction(s)
       if (plan.action === 'fight') {
         await this.pick(0, 'Battle', true)
         await this.waitBattleTop('Grid2x2', 'moves')

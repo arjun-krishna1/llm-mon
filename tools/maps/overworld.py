@@ -12,7 +12,6 @@ Legend
   f  wood fence       F  white fence        g  wood fence on path
   #  stamp footprint  H house_orange  N house_blue  L lab  C model_center  M token_mart
   G gym  D shed  S sign_town  t tree  B rock_big  n bench  l lamp (post cell; head above)
-  k  moving truck (props, top-left, on path)
 """
 from mapdsl import MapDef
 
@@ -29,7 +28,7 @@ LEGEND = {
     '#': 'calm', 'H': ('stamp', 'house_orange'), 'N': ('stamp', 'house_blue'), 'L': ('stamp', 'lab'),
     'C': ('stamp', 'model_center'), 'M': ('stamp', 'token_mart'), 'G': ('stamp', 'gym'), 'D': ('stamp', 'shed'),
     'S': ('stamp', 'sign_town'), 't': ('stamp', 'tree'), 'B': ('stamp', 'rock_big'), 'n': ('stamp', 'bench'),
-    'l': ('stamp', 'lamp', 0, -1), 'k': ('multi', ('area', 'path'), ('props', 'truck')),
+    'l': ('stamp', 'lamp', 0, -1)
 }
 
 # Interior columns x=8..35 (28 chars); PAD forest is added on both sides.
@@ -122,7 +121,7 @@ HAYES = [
     'TT.#####.....==..#######..TT',  # 92
     'TT.#####.yr..==..#######..TT',  # 93
     'TT.#####.....==..#######.bTT',  # 94
-    'TT.#####k##..==..#######..TT',  # 95 truck
+    'TT.#####.....==..#######..TT',  # 95 (truck prop parks on the drive below)
     'TT.#####%%%..==.....=.....TT',  # 96
     'TT.#####%%%..==.....=.....TT',  # 97 house door x13
     'TT...=m.===..==.....=.....TT',  # 98 mailbox
@@ -166,7 +165,7 @@ def objects(m):
     m.zone(0, 86, W, H - 86, 'HAYES VALLEY', music='hayes_valley')
 
     # ---------------------------------------------------------------- Hayes Valley
-    m.spawn('arrival', 19, 99, facing='left')
+    m.spawn('arrival', 21, 98, facing='left')
     m.door(13, 97, 'home_1f', 'entrance', 'home_door')
     m.door(28, 95, 'lab', 'entrance', 'lab_door')
     m.door(14, 107, 'neighbor', 'entrance', 'neighbor_door')
@@ -175,10 +174,10 @@ def objects(m):
     m.sign(18, 91, script='hayes.town_sign')
     m.sign(19, 91, script='hayes.town_sign')
     m.sign(14, 98, script='hayes.mailbox')
-    for x in (16, 17, 18):
-        m.sign(x, 97, script='hayes.truck')
+    # Mythos Movers truck: parked on the drive at new game, drives off during the arrival
+    m.prop('truck', 16, 96, 'fx/truck', w=3, h=2, hideIfFlag='arrived', script='hayes.truck')
     m.npc('hv_boy', 20, 93, 'boy', script='hayes.boy', facing='down', movement='look')
-    m.npc('hv_mover', 19, 97, 'man', script='hayes.mover', facing='left', hideIfFlag='got_dex')
+    m.npc('hv_mover', 19, 97, 'man', script='hayes.mover', facing='right', hideIfFlag='arrived')
     m.npc('hv_woman', 18, 104, 'woman', script='hayes.woman', facing='down', movement='wander', radius=2)
     m.npc('hv_elder', 25, 102, 'elder', script='hayes.elder', facing='right', movement='look')
     m.npc('hv_girl', 30, 100, 'girl', script='hayes.girl', facing='left', movement='wander', radius=3)

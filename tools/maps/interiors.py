@@ -143,8 +143,7 @@ def home_2f():
     m.warp(8, 3, 'home_1f', 'stairs', facing='down', sfx='stairs')
     m.warp(9, 3, 'home_1f', 'stairs', facing='down', sfx='stairs')
     m.spawn('stairs', 8, 4, facing='left')
-    for (x, y) in ((7, 4), (9, 4), (8, 5)):
-        m.trigger(x, y, 1, 1, once='visited_2f')
+    m.props['onEnter'] = 'home.enter_2f'
     signs(m, [(3, 2)], 'home.pc')
     signs(m, [(4, 2)], 'home.notebook')
     signs(m, [(1, 2), (1, 3)], 'home.bed')
