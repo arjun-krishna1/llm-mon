@@ -48,7 +48,7 @@ reference (names, flavour text, stats) and is excluded from build and lint.
 | Engine | Phaser 3.90 + TypeScript + Vite | Mature tilemap, camera, input, tween, pixel-art pipeline; huge docs; no beta APIs. |
 | Maps | Tiled JSON (`.tmj`, embedded tilesets) | Engine-native in Phaser, and hand-editable in the Tiled editor later. |
 | Map authoring | ASCII-layer Python DSL in `tools/maps/` → `.tmj` | Agents can author and diff maps without a GUI; output still opens in Tiled. |
-| Art | Python + Pillow generators in `tools/art/` | Reproducible, palette-locked, original. |
+| Art | Generated source art (codex CLI image tool via `tools/art/gen/imagegen.py`) for objects, buildings, characters and backgrounds → `pixelize.py` (downscale, palette snap, outline); code-drawn Pillow art for seamless ground, autotile edges and animations | Generated objects look far better than code-drawn ones; anything that must tile exactly stays code-drawn. Raw generations are cached in `tools/art/gen/raw/` so builds are reproducible. |
 | Creatures | Existing generated art downscaled to 64×64, ≤15 colours + outline | Tested: reads well at GBA scale. |
 | Audio | WebAudio chiptune synth in TS (no audio files) | Original music/SFX, tiny bundle, no licensing. |
 | State | Plain TS singleton + `localStorage` save | Simple, testable. |
