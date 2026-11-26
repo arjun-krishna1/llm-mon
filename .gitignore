@@ -26,3 +26,7 @@ dist-ssr
 # Local project artifacts
 art_sources/
 POLISH_BACKLOG.md
+
+# Python
+__pycache__/
+*.pyc
