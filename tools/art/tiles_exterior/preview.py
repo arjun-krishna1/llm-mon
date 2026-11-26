@@ -191,7 +191,7 @@ def town(cat):
     m.tile('detail', 11, 17, 'bush'); m.tile('detail', 11, 18, 'bush')
     m.tile('detail', 18, 19, 'rock')
     m.stamp('rock_big', 6, 22)
-    m.stamp('tree', 16, 16)
+    m.stamp('tree', 16, 15)
     m.stamp('tree', 13, 3)
     m.stamp('tree', 34, 3)
     m.tile('detail', 37, 13, 'bush')
@@ -248,6 +248,11 @@ def main():
     fx, fy = 22 * T, 12 * T
     fr = img.crop((fx, fy, fx + 240, fy + 160))
     fr.resize((960, 640), Image.NEAREST).save(os.path.join(PV, 'scene_frame2_4x.png'))
+    # animated tiles check: pond + flowers, 4 frames
+    frames = [m.render(sheet, f, anims).crop((4 * T, 16 * T, 20 * T, 26 * T)) for f in range(4)]
+    frames = [f.resize((f.width * 3, f.height * 3), Image.NEAREST) for f in frames]
+    frames[0].save(os.path.join(PV, 'anim_3x.gif'), save_all=True, append_images=frames[1:],
+                   duration=280, loop=0)
     print('previews ->', PV)
 
 

@@ -47,6 +47,21 @@ def _blade(im, x, y0, h, lean, cols):
         put(im, xx, y0 - i, cols[0] if i == 0 else cols[1] if t < 0.6 else cols[2])
 
 
+BLADES = [(0, 7, 0), (1, 9, 1), (3, 8, -1), (4, 10, 0), (6, 8, 1), (7, 10, -1), (9, 9, 0),
+          (10, 10, 1), (12, 8, -1), (13, 9, 0), (15, 7, -1), (2, 6, 0), (5, 6, 0), (8, 6, 0),
+          (11, 6, 0), (14, 6, 0)]
+
+
+def _clump(im, spread=0, squash=0, base_y=15):
+    """Tall-grass clump: back blades dark, front blades light, dark base."""
+    for i, (x, h, lean) in enumerate(BLADES):
+        side = -1 if x < 7 else 1 if x > 8 else 0
+        front = i >= 11
+        cols = (TG[0], TG[1], TG[2]) if not front else (TG[1], TG[2], TG[3])
+        _blade(im, x, base_y, h - squash, lean + side * spread, cols)
+    hline(im, 0, 15, base_y, TG[0])
+
+
 def grass_overlay():
     """Front blades of tall grass that cover a standing character's feet."""
     ext = os.path.join(ROOT, 'public', 'assets', 'game', 'tilesets')
@@ -65,31 +80,26 @@ def grass_overlay():
         except Exception:
             pass
     im = new(16, 16)
-    for x, h, lean in ((0, 6, 1), (2, 7, -1), (4, 5, 1), (6, 7, 0), (8, 6, 1), (10, 7, -1),
-                       (12, 6, 0), (14, 7, -1), (15, 5, 0), (1, 4, 0), (5, 4, 0), (9, 4, 0), (13, 4, 0)):
-        _blade(im, x, 15, h, lean, (TG[0], TG[1], TG[2]))
-    rect(im, 0, 14, 16, 2, TG[0])
-    for x in range(0, 16, 3):
-        put(im, x, 13, TG[1])
+    for i, (x, h, lean) in enumerate(BLADES[11:] + BLADES[:11]):
+        hh = min(h, 6)
+        cols = (TG[1], TG[2], TG[3]) if i % 2 else (TG[0], TG[1], TG[2])
+        _blade(im, x, 15, hh, lean, cols)
+    hline(im, 0, 15, 15, TG[0])
     return im
 
 
 def grass_rustle():
-    """4 frames: blades flick outward and two leaf bits fly up then settle."""
+    """4 frames: blades part outward and two leaf bits flick up then fall."""
     sheet = new(64, 16)
     for f in range(4):
         im = new(16, 16)
-        spread = [0, 2, 3, 1][f]
-        for x, h in ((1, 6), (3, 8), (5, 7), (8, 8), (10, 7), (12, 8), (14, 6)):
-            lean = (-spread if x < 7 else spread if x > 8 else 0)
-            _blade(im, x, 15, h - (1 if f in (1, 2) and 5 < x < 11 else 0), lean, (TG[0], TG[2], TG[3]))
-        rect(im, 0, 15, 16, 1, TG[0])
-        # flying leaf bits
-        if f in (1, 2, 3):
-            dy = [0, 3, 6, 5][f]
-            for lx, ly in ((3 - f, 10 - dy), (11 + f, 9 - dy)):
-                put(im, lx, ly, TG[3])
-                put(im, lx + 1, ly, TG[2])
+        _clump(im, spread=[0, 2, 3, 1][f], squash=[0, 2, 1, 0][f])
+        if f:
+            dy = [0, 4, 7, 5][f]
+            for lx, ly, c in ((4 - f, 9 - dy, TG[3]), (11 + f, 8 - dy, TG[2])):
+                put(im, lx, ly, OUT)
+                put(im, lx + 1, ly, c)
+                put(im, lx, ly + 1, c) if f == 2 else None
         sheet.paste(im, (f * 16, 0))
     return sheet
 

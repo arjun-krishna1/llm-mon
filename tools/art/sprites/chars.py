@@ -1199,6 +1199,11 @@ class Char:
                 if ch != '.':
                     px[x, y] = self.cmap[ch]
         im = outline(im)
+        if f in (1, 2):
+            # 1px bob on the passing/step frames (stand -> A -> stand -> B)
+            bob = new(W, H)
+            bob.paste(im.crop((0, 1, W, H)), (0, 0))
+            im = bob
         if d == 'right':
             im = im.transpose(Image.FLIP_LEFT_RIGHT)
         return im

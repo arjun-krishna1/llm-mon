@@ -25,7 +25,6 @@ export class BagScreen extends Screen<string | null> {
   private desc: PxText[]
   private list?: ListMenu
   private ids: string[] = []
-  private bagIcon: Phaser.GameObjects.Image | null = null
 
   constructor(scene: Phaser.Scene, stack: WidgetStack, o: BagOptions = { mode: 'view' }) {
     super(scene, stack)
@@ -37,7 +36,7 @@ export class BagScreen extends Screen<string | null> {
     g.fillStyle(COLORS.accent[1])
     g.fillRect(10, 22, 58, 2)
     if (scene.textures.exists('fx/satchel') && !isPlaceholder('fx/satchel')) {
-      this.bagIcon = this.image(16, 36, 'fx/satchel').setScale(3)
+      this.image(16, 36, 'fx/satchel').setScale(3)
     } else {
       // simple drawn satchel
       g.fillStyle(COLORS.outline)
@@ -146,7 +145,6 @@ export class BagScreen extends Screen<string | null> {
 
   close(r: string | null): void {
     this.list?.destroy()
-    this.bagIcon = null
     super.close(r)
   }
 }

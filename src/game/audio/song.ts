@@ -281,7 +281,7 @@ export class SongPlayer implements Tracker {
         }
         this.pass++
         this.idx = 0
-        if (this.pass > 0 && this.passStart(this.pass) >= until) return
+        if (this.pass > 0 && this.t0 + this.passStart(this.pass) * spt >= until) return
         continue
       }
       const e = list[this.idx]

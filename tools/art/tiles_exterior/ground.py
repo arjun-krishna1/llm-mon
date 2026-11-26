@@ -179,7 +179,6 @@ def _area_mask(nb):
                 dy = max(gy - py, 0, py - (gy + 16))
                 best = min(best, math.hypot(dx, dy))
             dist[y][x] = best
-    thr = [[INSET + _wave(x if True else 0) * 0 + 0.0 for x in range(N)] for y in range(N)]
     # wobble: horizontal edges vary with x, vertical edges vary with y
     core = [[False] * N for _ in range(N)]
     for y in range(N):
@@ -204,7 +203,6 @@ def _area_mask(nb):
         for x in range(N):
             if dist[y][x] >= 12:
                 mask[y][x] = True
-    del thr
     return mask
 
 
@@ -222,10 +220,14 @@ def _dirt_texture(x, y):
 
 
 def _sand_texture(x, y):
+    """Sand: pale with wind ripples (short dark/light dash pairs) + grains."""
     x %= 16; y %= 16
-    if (x, y) in {(2, 3), (9, 6), (13, 12), (5, 11), (12, 1)}:
+    dark = {(2, 3), (3, 3), (4, 4), (10, 7), (11, 7), (12, 8), (5, 12), (6, 12), (7, 13),
+            (13, 1), (14, 14)}
+    lit = {(2, 2), (3, 2), (10, 6), (11, 6), (5, 11), (6, 11), (8, 1), (1, 9), (14, 10)}
+    if (x, y) in dark:
         return S[0]
-    if (x, y) in {(3, 3), (10, 6), (6, 11), (13, 1), (1, 13), (8, 14)}:
+    if (x, y) in lit:
         return S[2]
     return S[1]
 
@@ -235,7 +237,7 @@ def _water_texture(x, y, f):
     f = frame 0..3."""
     x %= 16; y %= 16
     # (x, y, length, drift per frame)
-    ripples = [(1, 2, 4, 1), (9, 4, 3, -1), (12, 9, 4, 1), (4, 11, 3, -1), (8, 14, 2, 1)]
+    ripples = [(1, 3, 4, 1), (10, 7, 3, -1), (4, 12, 3, 1)]
     for rx, ry, ln, dv in ripples:
         sx = (rx + dv * f) % 16
         if y == ry:

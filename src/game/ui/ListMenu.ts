@@ -133,8 +133,7 @@ export class ListMenu implements Widget {
     }
     this.cursor.setY(this.y + 7 + (this.index - this.scrollTop) * this.rowH)
     this.cursor.setVisible(this.active)
-    this.upArrow.setText(this.scrollTop > 0 ? '▼' : '')
-    this.upArrow.main.setFlipY(true)
+    this.upArrow.setText(this.scrollTop > 0 ? '\u25b2' : '')
     this.downArrow.setText(this.scrollTop + this.visibleRows < this.items.length ? '▼' : '')
   }
 

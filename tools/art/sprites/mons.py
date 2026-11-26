@@ -274,8 +274,13 @@ def ink(rgb, mask, col=None):
     return out
 
 
-def reduce(src, box_w, box_h, colors=15, sharpen=0.5, thresh=0.5, min_island=6, sat=1.12):
-    """Fit `src` into box (keeping aspect); return RGBA uint8 array of that size."""
+def reduce(src, box_w, box_h, colors=15, sharpen=0.5, thresh=0.5, min_island=6, sat=1.12,
+           accents=()):
+    """Fit `src` into box (keeping aspect); return RGBA uint8 array of that size.
+
+    accents: list of (predicate(r,g,b arrays)->bool array, (x0,y0,x1,y1) box in
+    0..1 coords of the cropped source, coverage threshold). Matching detail
+    (eyes, gems) is re-painted after quantisation so it can't be merged away."""
     bb = src.getchannel('A').point(lambda v: 255 if v > 40 else 0).getbbox()
     src = src.crop(bb)
     s = min(box_w / src.width, box_h / src.height)
@@ -285,6 +290,24 @@ def reduce(src, box_w, box_h, colors=15, sharpen=0.5, thresh=0.5, min_island=6, 
     rgb = boost(rgb, mask, sharpen, sat)
     rgb = quantize(rgb, mask, colors)
     rgb = ink(rgb, mask)
+    sa = np.array(src).astype(int)
+    for pred, box, th_ in accents:
+        m = pred(sa[..., 0], sa[..., 1], sa[..., 2]) & (sa[..., 3] > 128)
+        H0, W0 = m.shape
+        x0, y0, x1, y1 = box
+        region = np.zeros_like(m)
+        region[int(y0 * H0):int(y1 * H0), int(x0 * W0):int(x1 * W0)] = True
+        m &= region
+        if not m.any():
+            continue
+        col = sa[m][:, :3].mean(0) / 255.0
+        cov = np.array(Image.fromarray((m * 255).astype(np.uint8)).resize((tw, th), Image.BOX)) / 255.0
+        hit = (cov >= th_) & mask
+        # brightest accent tone on top rows of each blob, a darker one below
+        for y, x in zip(*np.nonzero(hit)):
+            above = y > 0 and hit[y - 1, x]
+            rgb[y, x] = col * (0.78 if above else 1.0)
+            rgb[y, x] = np.clip(rgb[y, x] * 1.1, 0, 1)
     out = np.zeros((th, tw, 4), np.uint8)
     out[..., :3] = (rgb * 255).round().astype(np.uint8)
     out[..., 3] = mask * 255
@@ -307,6 +330,10 @@ def place(arr, W, H, anchor='bottom', margin_bottom=1, dx=0, dy=0):
 TUNE = {
     'default': {'box': (62, 60), 'colors': 15},
     'mistral_medium': {'dewisp': 6},
+    'claude_fable': {'accents': [(lambda r, g, b: (r > 190) & (g < 150) & (g > 40) & (b < 80),
+                                  (0.0, 0.38, 0.62, 0.64), 0.3)]},
+    'glm': {'accents': [(lambda r, g, b: (g > 150) & (b < 110) & (r > 70) & (r < 215) & (g > r + 20),
+                         (0.0, 0.30, 0.55, 0.52), 0.2)]},
     'claude_haiku': {'dewisp': 6, 'protect': [(0.2, 0.0, 0.85, 0.25)]},
     'kimi': {'dewisp': 3},
 }
@@ -321,7 +348,7 @@ def tune(sid):
 def make_front(sid, src):
     t = tune(sid)
     arr = reduce(src, *t['box'], colors=t['colors'], sharpen=t.get('sharpen', 0.5),
-                 thresh=t.get('thresh', 0.5), sat=t.get('sat', 1.12))
+                 thresh=t.get('thresh', 0.5), sat=t.get('sat', 1.12), accents=t.get('accents', ()))
     im = place(arr, 64, 64, margin_bottom=t.get('mb', 2), dx=t.get('dx', 0))
     for fn in t.get('touch', []):
         fn(im)

@@ -9,10 +9,10 @@ import {
 import { controls } from '../controls'
 import { audio } from '../audio'
 import { state } from '../state'
-import { ms, params } from '../params'
+import { ms } from '../params'
 import { rng, randInt, pick } from '../rng'
 import type { BattleRequest, BattleResult } from '../types'
-import { encounterRate, rollEncounter, trainerInfo, trainerRequest, wildRequest } from '../adapters/monInfo'
+import { encounterRate, rollEncounter, trainerInfo, wildRequest } from '../adapters/monInfo'
 import { GameMap, ensureMapLoaded, type MapObject } from '../world/TiledMap'
 import { Actor } from '../world/Actor'
 import { content, runScript, scriptsRunning } from '../script'
@@ -169,7 +169,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       }
     }
     this.refreshNpcVisibility()
-    this.updateCamera(true)
+    this.updateCamera()
     this.updateZone(true)
   }
 
@@ -211,7 +211,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       this.edgeStart = false
     }
     this.map.update(this.time.now)
-    this.updateCamera(false)
+    this.updateCamera()
     if (!this.transitioning) state.playTimeMs += delta
   }
 
@@ -794,7 +794,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
 
   // ================================================================ camera
 
-  private updateCamera(_snap: boolean): void {
+  private updateCamera(): void {
     const map = this.map
     if (!map) return
     const cam = this.cameras.main

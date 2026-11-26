@@ -1032,9 +1032,20 @@
    "xadvance": 8
   },
   {
+   "id": 9650,
+   "char": "▲",
+   "x": 9,
+   "y": 27,
+   "width": 7,
+   "height": 12,
+   "xoffset": 0,
+   "yoffset": 0,
+   "xadvance": 8
+  },
+  {
    "id": 9829,
    "char": "♥",
-   "x": 9,
+   "x": 17,
    "y": 27,
    "width": 5,
    "height": 12,
@@ -1045,7 +1056,7 @@
   {
    "id": 9834,
    "char": "♪",
-   "x": 15,
+   "x": 23,
    "y": 27,
    "width": 5,
    "height": 12,

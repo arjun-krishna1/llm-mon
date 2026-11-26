@@ -184,6 +184,16 @@ def defringe(spr):
     return Image.fromarray(a.astype(np.uint8))
 
 
+def lift_skin(spr, k=1.12):
+    """Generated faces come out a bit dark/pink after reduction; lift warm
+    mid-tones so they land on the palette's light skin ramp."""
+    a = np.array(spr).astype(float)
+    r, g, b, al = a[..., 0], a[..., 1], a[..., 2], a[..., 3]
+    m = (al > 0) & (r > 170) & (r > g + 25) & (g > b - 10) & (r - b > 40) & (r - b < 130)
+    a[m, :3] = np.clip(a[m, :3] * k + np.array([4, 10, 6]), 0, 255)
+    return Image.fromarray(a.astype(np.uint8))
+
+
 def remap_green(spr, ramp):
     """Map clearly green pixels onto a palette ramp by luminance."""
     a = np.array(spr).astype(int)
@@ -212,6 +222,7 @@ def fit_sprite(path, W, H, colors=20, margin=1, snap=True, anchor='bottom', gree
     spr = pixelize(path, width=W - 2 * margin, height=H - margin, colors=colors, snap=False)
     os.remove(path)
     spr = defringe(spr)
+    spr = lift_skin(spr)
     if green:
         spr = remap_green(spr, green)
     if snap:
@@ -224,8 +235,8 @@ def fit_sprite(path, W, H, colors=20, margin=1, snap=True, anchor='bottom', gree
 
 
 BASE = [P.OUTLINE, P.OUTLINE_SOFT] + P.SKIN + P.WHITE + [P.SKIN_DEEP[1]]
-PAL_PROF = BASE + P.HAIR_BROWN + P.CLOTH_GREEN + P.CLOTH_DARK + P.STONE + P.METAL + P.GLASS + P.WOOD[:3] + [P.CLOTH_RED[1]]
-PAL_TM = BASE + P.HAIR_BLOND + P.CLOTH_RED + P.CLOTH_DARK + P.CLOTH_BLUE + P.ROCK + [P.HAIR_BROWN[0]]
+PAL_PROF = BASE + P.HAIR_BROWN + P.CLOTH_GREEN + P.CLOTH_DARK + P.STONE + P.METAL + P.GLASS + P.WOOD[:3]
+PAL_TM = BASE + P.HAIR_BLOND[:2] + P.CLOTH_RED + P.CLOTH_DARK + P.CLOTH_BLUE + P.ROCK + [P.HAIR_BROWN[0]]
 PAL_TF = BASE + P.HAIR_BROWN + P.CLOTH_RED + P.CLOTH_BLUE + P.CLOTH_DARK + P.ROCK + P.CLOTH_PINK[1:]
 PAL_PLAYER = BASE + P.HAIR_DARK + P.CLOTH_ORANGE + P.ROOF_ORANGE + P.CLOTH_DARK + P.ROOF_TEAL + P.CLOTH_YELLOW + P.CLOTH_BLUE
 
