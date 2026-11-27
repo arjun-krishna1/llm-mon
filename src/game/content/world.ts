@@ -1,6 +1,7 @@
 // Hayes Valley, Route 101 and SoMa Node: townsfolk, signs, trainers.
 
 import { F, def, line, say, starterName, text, type S } from './util'
+import { eggLine } from './eggs'
 
 /** Pick a line by story progress: before the starter / after it. */
 function byProgress(s: S, before: string[], after: string[]): Promise<void> {
@@ -24,14 +25,24 @@ def('hayes.mover', (s) => say(s,
   'Mythos Movers, at your service!\fLast week we moved a whole data centre. This week, your couch.',
   'Careful with that box marked FRAGILE: WEIGHTS. Took four of us to lift it.'))
 
-def('hayes.woman', (s) => byProgress(s,
-  ['Welcome to Hayes Valley!\fIt’s a small town, but everyone here remembers everything.',
-    'Huge context window, this street. Gossip travels fast!'],
-  ['I heard you saved the professor from a HalluciHound! See? Gossip travels fast.']))
+def('hayes.woman', async (s) => {
+  if (s.flag('egg_tensor')) {
+    await say(s, 'Have you met Tensor? My dog. He\u2019s out back.', 'He has more dimensions than you\u2019d think. Mostly snack-related.')
+    s.clearFlag('egg_tensor')
+    return
+  }
+  s.setFlag('egg_tensor')
+  await byProgress(s,
+    ['Welcome to Hayes Valley!\fIt’s a small town, but everyone here remembers everything.',
+      'Huge context window, this street. Gossip travels fast!'],
+    ['I heard you saved the professor from a HalluciHound! See? Gossip travels fast.'])
+})
 
-def('hayes.elder', (s) => say(s,
-  'In my day, LLMMON had a hundred million parameters and we were GRATEFUL.',
-  'Now they come out of the grass able to write sonnets. Kids these days...'))
+def('hayes.elder', (s) => eggLine(s, 'elder', [
+  ['In my day, LLMMON had a hundred million parameters and we were GRATEFUL.',
+    'Now they come out of the grass able to write sonnets. Kids these days...'],
+  ['Karl\u2019s rolling in this afternoon.', 'Karl the Fog, kid. Bring a hoodie. Everyone in this town owns eleven.'],
+]))
 
 def('hayes.girl', async (s) => {
   if (!s.flag(F.rescueDone)) {
@@ -49,18 +60,23 @@ def('hayes.techie', (s) => say(s,
 text('route.sign_south', 'ROUTE 101\n▲ SoMa Node     ▼ Hayes Valley')
 text('route.sign_north', 'ROUTE 101\n▼ Hayes Valley')
 
-def('route.angler', (s) => say(s,
-  'Shh! You’ll scare the fish.',
-  '...There are no fish in this pond. I’m waiting for a LLMMON to hallucinate one.'))
+def('route.angler', (s) => eggLine(s, 'angler', [
+  ['Shh! You’ll scare the fish.',
+    '...There are no fish in this pond. I’m waiting for a LLMMON to hallucinate one.'],
+  ['This morning a driverless car stopped right there to let a goose cross.',
+    'It\u2019s still waiting. Very polite car. Very slow goose.'],
+]))
 
 def('route.grass_researcher', (s) => byProgress(s,
   ['I’m benchmarking this tall grass.\fSo far it scores 98% on Being Grass. State of the art!'],
   ['Wild LLMMON hide in tall grass. If your team needs a rest, walk around it!',
     'And if you hop down a ledge, it’s a one-way trip.\fGreat shortcut home, though.']))
 
-def('route.picnic_girl', (s) => say(s,
-  'I saw the whole thing from my picnic blanket!\fThat HalluciHound was SO sure it was a golden retriever.',
-  'It also told me the sky is a software update. It was very convincing.'))
+def('route.picnic_girl', (s) => eggLine(s, 'picnic', [
+  ['I saw the whole thing from my picnic blanket!\fThat HalluciHound was SO sure it was a golden retriever.',
+    'It also told me the sky is a software update. It was very convincing.'],
+  ['Have you seen a burrito anywhere? I lost one on this route.', 'Mission style. Foil-wrapped. Still warm, probably. Burritos are resilient.'],
+]))
 
 def('route.field_notes', (s) => say(s,
   'Pages of field notes are scattered round an old stump.',
@@ -73,6 +89,7 @@ def('route.hiker', async (s) => {
     await line(s, H, 'Cache still clear? Good.\fFor anything more, there\u2019s the Model Center in SoMa Node.')
     return
   }
+  await line(s, H, 'I\u2019m touching grass. Doctor\u2019s orders. Twice a day, after meals.')
   await line(s, H, 'Long walk, huh? Your LLMMON look like they\u2019re carrying a full context window.')
   if (!s.state.party.length) return
   await line(s, H, 'Here, let me clear their cache. Old hiker\u2019s trick.')
@@ -92,16 +109,28 @@ text('soma.road_closed', 'ROAD CLOSED\nSurvey team at work. Thanks for waiting!'
 text('soma.gym_door',
   'ALIGNMENT GYM\nThe doors are boarded up.',
   'A note on the door:\n“Leader away at a safety conference.”', '“Please stay aligned until we reopen!”')
-text('soma.apartment', 'NODE HEIGHTS APARTMENTS\nResidents only. Badge in, please.',
-  'A sticky note under the buzzer:\n\u201cAt a hackathon. Back in 48 hours. Or 72.\u201d')
-text('soma.cafe', 'CAFE LATENCY\nClosed for a menu fine-tune.', 'A chalkboard: \u201cToday\u2019s special: cold brew, served in under 200 ms.\u201d')
+def('soma.apartment', (s) => eggLine(s, 'apt', [
+  ['NODE HEIGHTS APARTMENTS\nResidents only. Badge in, please.',
+    'A sticky note under the buzzer:\n\u201cAt a hackathon. Back in 48 hours. Or 72.\u201d'],
+  ['A flyer on the door:\n\u201cROOFTOP COLD PLUNGE NOW OPEN\u201d', '\u201cResidents only. Screaming permitted 7-9 AM.\u201d'],
+]))
+def('soma.cafe', (s) => eggLine(s, 'cafe', [
+  ['CAFE LATENCY\nClosed for a menu fine-tune.', 'A chalkboard: \u201cToday\u2019s special: cold brew, served in under 200 ms.\u201d'],
+  ['The menu board: single-origin pour-over, low-latency drip, and toast.', 'The toast is eleven dollars. It is, apparently, very good toast.'],
+  ['A sign in the window: \u201cNOW SERVING BOBA\u201d', '\u201cWe are a cafe. We contain multitudes.\u201d'],
+]))
 def('soma.kiosk', async (s) => {
   s.sfx('pc_on')
-  await say(s, 'NODE PLAZA API STATUS\nModel Center: OK. Token Mart: OK.',
-    'Alignment Gym: DEGRADED\n(leader away at a conference)', 'Coffee: PARTIAL OUTAGE.')
+  await eggLine(s, 'kiosk', [
+    ['NODE PLAZA API STATUS\nModel Center: OK. Token Mart: OK.', 'Alignment Gym: DEGRADED\n(leader away at a conference)', 'Coffee: PARTIAL OUTAGE.'],
+    ['NODE PLAZA API STATUS\nFog: OPERATIONAL (as always).', 'Parking: 503 SERVICE UNAVAILABLE.\nCaltrain: RETRYING...'],
+  ])
   s.sfx('pc_off')
 })
-text('soma.billboard', 'A billboard: \u201cIS YOUR LLMMON TOO VERBOSE?\u201d', '\u201cTry SUMMARIZE! Now 40% shorter. Results may vary.\u201d')
+def('soma.billboard', (s) => eggLine(s, 'sbb', [
+  ['A billboard: \u201cIS YOUR LLMMON TOO VERBOSE?\u201d', '\u201cTry SUMMARIZE! Now 40% shorter. Results may vary.\u201d'],
+  ['The billboard flips:\n\u201cBENCHMARK CORP IS HIRING\u201d', '\u201cTop scores only. Menlo Park. Ask us about our test sets.\u201d'],
+]))
 text('soma.fountain', 'The Node Plaza fountain. A plaque reads:\n“All requests flow through here.”')
 
 def('soma.end_sign', async (s) => {
@@ -146,9 +175,11 @@ def('soma.woman', (s) => say(s,
   'The Model Center heals your LLMMON for free,\fand the Token Mart sells Prompt Orbs.',
   'Between the two of them, you’ve got the whole stack!'))
 
-def('soma.elder', (s) => say(s,
-  'SoMa Node used to be warehouses as far as the eye could see.',
-  'Now it’s warehouse-sized GPUs. Progress! It’s very warm in summer.'))
+def('soma.elder', (s) => eggLine(s, 'selder', [
+  ['SoMa Node used to be warehouses as far as the eye could see.',
+    'Now it’s warehouse-sized GPUs. Progress! It’s very warm in summer.'],
+  ['See that tall tower over the rooftops? You can see it from everywhere in the city.', 'It can see you too. Wave.'],
+]))
 
 def('soma.man', (s) => say(s,
   'Tokens are money around here. Spend them wisely.',

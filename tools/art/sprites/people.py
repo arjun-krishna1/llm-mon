@@ -795,15 +795,6 @@ class Person:
         g = blank()
         draw_body(g, self.geo, src, f, self.outfit, run=run)
         dx = draw_head(g, self.geo, src)
-        if run and src == 'left':
-            dx -= 1
-            # redraw head 1px forward for the lean
-            g2 = blank()
-            for y in range(H):
-                for x in range(W):
-                    if y <= self.geo.hy + self.geo.hrows and g[y][x] in 'sSen':
-                        pass
-            draw_head(g, self.geo, src)
         stamp_hair(g, HAIR[self.hair][src], self.geo, dx if self.geo.stoop and src == 'left' else 0)
         shade_hair(g)
         for fn in self.details:
@@ -943,7 +934,7 @@ GLASSES = [P.METAL[0], P.METAL[1], P.GLASS[3]]
 def define():
     C = {}
     C['player'] = Person('player', 'messy', P.HAIR_DARK, P.CLOTH_ORANGE, P.CLOTH_BLUE,
-                         skin=SKIN_WARM, shoes=[P.CLOTH_RED[0], P.CLOTH_RED[1]],
+                         skin=SKIN_FAIR, shoes=[P.CLOTH_RED[0], P.CLOTH_RED[1]],
                          acc2=[P.ROOF_TEAL[0], P.ROOF_TEAL[1], P.ROOF_TEAL[3]],
                          outfit={'top': 'shirt', 'legs': 'pants'},
                          details=[det_hoodie, det_headphones])

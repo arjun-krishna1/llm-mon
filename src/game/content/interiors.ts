@@ -1,12 +1,19 @@
 // Interior furniture, townsfolk indoors, Model Center heal, Token Mart shop.
 
 import { F, def, line, say, text } from './util'
+import { eggLine } from './eggs'
 
 // ============================================================================ home
 text('home.tv', 'The weather report is on.', '“Sunny all week, with a ten percent chance of hallucinations.”')
 text('home.console', 'Your old game console! The save file is from three houses ago.')
-text('home.fridge', 'Nearly empty. A note from Mom on the door says: GROCERIES (after unpacking).')
-text('home.kitchen', 'The kettle’s already on. Mom has her priorities straight.')
+def('home.fridge', (s) => eggLine(s, 'fridge', [
+  ['Nearly empty. A note from Mom on the door says: GROCERIES (after unpacking).'],
+  ['Inside: three cartons of oat milk. No other milk. No other anything.', 'Welcome to the neighbourhood.'],
+]))
+def('home.kitchen', (s) => eggLine(s, 'kitchen', [
+  ['The kettle’s already on. Mom has her priorities straight.'],
+  ['A jar of sourdough starter, labelled ADAM.', 'Mom feeds it every morning. Its learning rate is very slow but steady.'],
+]))
 text('home.boxes', 'Moving boxes, labelled MISC, MISC 2 and DEFINITELY NOT MISC.')
 text('home.table', 'A bowl of shiny apples. Welcome-home snacks!')
 def('home.pc', async (s) => {
@@ -63,8 +70,14 @@ text('neighbor.fridge', 'Full of croissants. Some of them might be cats. Better 
 text('neighbor.bed', 'A neatly made bed with a croissant-shaped pillow.')
 
 // ============================================================================ lab props
-text('lab.shelf', 'Rows of research papers. One is titled\n“LLMMON Are Few-Shot Learners”.')
-text('lab.whiteboard', 'A diagram of a LLMMON’s brain.\fIt’s mostly arrows pointing at other arrows.')
+def('lab.shelf', (s) => eggLine(s, 'lshelf', [
+  ['Rows of research papers. One is titled\n“LLMMON Are Few-Shot Learners”.'],
+  ['\u201cAttention Is All You Need\u201d. Annotated, dog-eared and very coffee-stained.'],
+]))
+def('lab.whiteboard', (s) => eggLine(s, 'wb', [
+  ['A diagram of a LLMMON’s brain.\fIt’s mostly arrows pointing at other arrows.'],
+  ['In the corner, in faded marker:\n\u201cDO NOT ERASE (since 2019)\u201d'],
+]))
 text('lab.console', 'Graphs of LLMMON sightings on Route 101.\fMost of the dots are labelled “probably real”.')
 text('lab.terminal', 'The professor’s terminal.\fA sticky note on the screen says:\n“Password: not my birthday”.')
 text('lab.core', 'A glass tank humming with soft blue light.\fA label reads:\nTRAINING IN PROGRESS. DO NOT TAP.')
@@ -107,10 +120,16 @@ def('center.woman', (s) => say(s,
 def('mart.clerk', async (s) => {
   await s.shop(['prompt_orb', 'patch', 'debugger', 'firewall'], 'Welcome to the Token Mart! How may I help you?')
 })
-def('mart.customer', (s) => say(s,
-  'Prompt Orbs work best when a wild LLMMON is already weak.',
-  'Kind of like asking someone for a favour after a long day.'))
-text('mart.shelf', 'Prompt Orbs, Patches and Debuggers.\fOne box says\n“Artisanal Hand-Typed Prompts”.')
+def('mart.customer', (s) => eggLine(s, 'mcust', [
+  ['Prompt Orbs work best when a wild LLMMON is already weak.',
+    'Kind of like asking someone for a favour after a long day.'],
+  ['I\u2019m in line for the GPU restock. The restock is a rumour.', 'The line is real, though. I\u2019ve made friends.'],
+]))
+def('mart.shelf', (s) => eggLine(s, 'mshelf', [
+  ['Prompt Orbs, Patches and Debuggers.\fOne box says\n“Artisanal Hand-Typed Prompts”.'],
+  ['A hand-written card: \u201cArtisanal context windows. Locally sourced.\u201d'],
+  ['An empty shelf with a sign:\n\u201cLIMIT 2 GPUs PER CUSTOMER. WE HAVE 0.\u201d'],
+]))
 text('mart.aisle', 'LLMMON snacks: bite-sized, byte-sized, and family size.')
 text('mart.apples', 'A crate of apples. Not that kind of Apple.')
 

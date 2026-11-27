@@ -277,6 +277,48 @@ def storage_screen():
     return scale(scr, 4)
 
 
+def interior_check():
+    """People at 1x inside ART-INT's room renders (downsampled from 3x), 4x."""
+    from common import ROOT
+    base = os.path.join(ROOT, 'tools', 'art', 'tiles_interior', 'preview')
+    out = []
+    def room(name):
+        p = os.path.join(base, name + '.png')
+        if not os.path.exists(p):
+            return None
+        im = Image.open(p).convert('RGBA')
+        return im.resize((im.width // 3, im.height // 3), Image.NEAREST)
+    def ch(im, cid, col, row, x, feet_y):
+        sh = L(SPRITES, 'chars', cid + '.png')
+        im.alpha_composite(sh.crop((col * 16, row * 24, col * 16 + 16, row * 24 + 24)), (x, feet_y - 22))
+    c = room('room_center')
+    if c:
+        ch(c, 'nurse', 0, 0, 95, 57)
+        ch(c, 'player', 0, 1, 95, 96)
+        ch(c, 'woman', 0, 2, 50, 108)
+        out.append(c)
+    h = room('room_home_1f')
+    if h:
+        ch(h, 'mom', 0, 0, 96, 100)
+        ch(h, 'player', 0, 1, 120, 120)
+        out.append(h)
+    lab = room('room_lab')
+    if lab:
+        ch(lab, 'prof', 0, 0, 100, 90)
+        ch(lab, 'aide', 1, 2, 60, 110)
+        out.append(lab)
+    if not out:
+        return None
+    W_ = sum(o.width for o in out) + 4 * len(out)
+    H_ = max(o.height for o in out)
+    sheet = new(W_, H_, (20, 20, 28, 255))
+    x = 0
+    for o in out:
+        sheet.alpha_composite(o, (x, 0))
+        x += o.width + 4
+    return scale(sheet, 3)
+
+
 # Orb centres on starter_select_bg (also documented in the catalog).
 STARTER_ORBS = [(72, 84), (120, 84), (168, 84)]
 
@@ -290,6 +332,9 @@ def build(char_ids, mon_ids):
     out['starter'] = save(starter_screen(), PREVIEW, 'starter_select_4x.png')
     out['dex'] = save(dex_screen(), PREVIEW, 'dex_4x.png')
     out['storage'] = save(storage_screen(), PREVIEW, 'storage_4x.png')
+    ic = interior_check()
+    if ic is not None:
+        out['interior'] = save(ic, PREVIEW, 'chars_in_interiors_3x.png')
     sc = scene_check()
     if sc is not None:
         out['scene'] = save(sc, PREVIEW, 'chars_in_scene_4x.png')

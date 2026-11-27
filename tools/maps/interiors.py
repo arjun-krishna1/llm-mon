@@ -239,6 +239,7 @@ def center():
     m.npc('ct_techie', 3, 6, 'techie', script='center.techie', facing='right')
     m.npc('ct_woman', 9, 7, 'woman', script='center.woman', facing='up', movement='look')
     signs(m, [(11, 7)], 'storage.open')
+    signs(m, [(1, 6), (2, 6)], 'egg.tokens_monthly')
     return m
 
 

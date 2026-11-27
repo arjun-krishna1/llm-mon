@@ -52,20 +52,43 @@ Never lecture. Each stop teaches in four beats:
 Optional "Office Hours" NPCs give a three-question check for a reward.
 Nothing gates progress on a quiz.
 
-## 3. Using real researchers' names
+## 3. Using real people's names
 
-Leaders and League members carry real names as an homage. Ground rules:
+Gym leaders and League members are named after real AI researchers, and
+well-known public figures of the AI world appear as cameos. Ground rules:
 
-- Each appears only in connection with the idea they are known for, and is
-  written warmly. No invented opinions on controversies, colleagues or
-  companies, and no jokes at their expense.
-- Their teams are built from their own work wherever possible.
+- Researchers appear only in connection with the idea they are known for.
+  Their teams are built from their own work wherever possible.
+- Cameos are built only on widely known, harmless public persona traits.
+  No politics, no personal or family life, no business disputes or
+  rivalries, and no invented quotes that could be mistaken for real
+  statements about real events.
+- Everyone is written warmly. If a line would embarrass the person were they
+  to play the game, it is cut.
 - **Villains stay fictional.** Director Norm and Team Overfit are invented;
   no real person or company is cast as an antagonist.
-- The credits carry a line that the game is an affectionate tribute and is
-  not endorsed by anyone named.
+- The credits carry a line that the game is an affectionate parody and
+  tribute, and is not endorsed by anyone named.
 - Some namesakes are no longer living (Shannon, Rumelhart, Turing). They are
   presented as tributes; the Notebook page says so.
+
+### Lab heads
+
+Each lab type (see §10) has its public face somewhere in the world as a
+**lab head**: a friendly cameo who teaches that lab's signature move once the
+player shows them a LLMMON of their type.
+
+| Lab type | Lab head | Found in |
+| --- | --- | --- |
+| Anthropic | Dario Amodei | SoMa Node café, finishing a very long essay |
+| OpenAI | Sam Altman | SoMa Node, passing through |
+| Google | Demis Hassabis | Mountain View, beside a Go board |
+| Meta | Mark Zuckerberg | Menlo Park campus |
+| Mistral | Arthur Mensch | Toronto airport lounge, between flights |
+| Microsoft | Satya Nadella | Redmond |
+| Compute (shop supplier) | Jensen Huang | Outside Token Marts, in a leather jacket |
+
+Heads for the remaining labs are added as those labs' creatures appear.
 
 ## 4. World
 

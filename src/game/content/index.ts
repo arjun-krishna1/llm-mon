@@ -7,6 +7,7 @@ import './story'
 import './world'
 import './interiors'
 import './rival'
+import './eggs'
 
 export { chooseStarter } from './story'
 

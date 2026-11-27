@@ -1,4 +1,5 @@
-"""Overworld character sheets: chars/<id>.png, 48x96 (3 cols x 4 rows of 16x24).
+"""Overworld character sheets (people are built by people.py; this module
+keeps the HalluciHound sheet and the legacy chibi templates for reference): chars/<id>.png, 48x96 (3 cols x 4 rows of 16x24).
 
 Rows: down, up, left, right. Cols: stand, step-A, step-B.
 Feet bottom (incl. outline) sits on y=21 of each 16x24 frame (2px above bottom).
@@ -1461,15 +1462,10 @@ def define():
 
 
 def build():
-    chars = define()
-    out = {}
-    for cid, ch in chars.items():
-        sh = ch.sheet()
-        save(sh, SPRITES, 'chars', cid + '.png')
-        out[cid] = sh
-    rs = player_run_sheet()
-    save(rs, SPRITES, 'chars', 'player_run.png')
-    out['player_run'] = rs
+    """People come from people.py (naturalistic GBA-style construction);
+    the legacy chibi Char classes above are kept only for reference/compare."""
+    import people
+    out = people.build()
     hs = hound_sheet()
     save(hs, SPRITES, 'chars', 'hallucihound.png')
     out['hallucihound'] = hs

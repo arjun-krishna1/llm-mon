@@ -212,7 +212,7 @@ def objects(m):
     m.prop('truck', 16, 96, 'fx/truck', w=3, h=2, hideIfFlag='arrived', script='hayes.truck')
     m.npc('hv_boy', 20, 93, 'boy', script='hayes.boy', facing='down', movement='look')
     m.npc('hv_mover', 19, 97, 'man', script='hayes.mover', facing='right', hideIfFlag='arrived')
-    m.npc('hv_woman', 18, 104, 'woman', script='hayes.woman', facing='down', movement='wander', radius=2)
+    m.npc('hv_woman', 19, 105, 'woman', script='hayes.woman', facing='down', movement='wander', radius=2)
     m.npc('hv_elder', 25, 102, 'elder', script='hayes.elder', facing='right', movement='look')
     m.npc('hv_girl', 30, 100, 'girl', script='hayes.girl', facing='left', movement='wander', radius=3)
     m.npc('hv_techie', 31, 97, 'techie', script='hayes.techie', facing='up')
@@ -273,6 +273,40 @@ def objects(m):
     m.npc('sn_woman', 26, 21, 'woman', script='soma.woman', facing='left', movement='look')
     m.npc('sn_elder', 16, 24, 'elder', script='soma.elder', facing='right', movement='look')
     m.npc('sn_man', 14, 27, 'man', script='soma.man', facing='right', movement='wander', radius=2)
-    m.npc('sn_boy', 27, 31, 'boy', script='soma.boy', facing='down', movement='wander', radius=2)
+    m.npc('sn_boy', 25, 32, 'boy', script='soma.boy', facing='down', movement='wander', radius=2)
     for x in (20, 21, 22):
         m.sign(x, 25, script='soma.fountain')
+    eggs(m)
+
+
+def eggs(m):
+    """Bay Area / AI-scene easter eggs (scripts in src/game/content/eggs.ts)."""
+    def post(x, y, script, tile='sign_wood'):
+        m.tile('detail', x, y, tile)
+        m.sign(x, y, script=script, anySide=True)
+    # ---- Hayes Valley
+    post(17, 90, 'egg.cerebral_valley')                       # hand-painted nickname sign
+    m.tile('detail', 24, 97, 'crate')                         # Blue Bottle pop-up cart: crate counter
+    m.tile('detail', 25, 97, 'crate')
+    m.sign(24, 97, script='egg.coffee_cart', anySide=True)
+    m.sign(25, 97, script='egg.coffee_cart', anySide=True)
+    post(23, 97, 'egg.coffee_sign')
+    m.npc('egg_barista', 24, 96, 'woman', script='egg.barista', facing='down')
+    m.npc('egg_queue1', 25, 98, 'techie', script='egg.queue1', facing='up')
+    m.npc('egg_queue2', 26, 98, 'man', script='egg.queue2', facing='left')
+    m.stamp('bike_rack', 17, 104)                              # next door: definitely not a hacker house
+    post(17, 103, 'egg.not_hacker_house')
+    m.sign(24, 101, script='egg.pocket_park', anySide=True)    # garden fence plaque
+    m.npc('egg_founder', 11, 100, 'man', script='egg.pigeon_pitch', facing='left')
+    # ---- Route 101
+    m.stamp('billboard', 28, 39)
+    for x in (28, 29, 30):
+        m.sign(x, 40, script='egg.route_billboard', anySide=True)
+    m.sign(10, 55, script='egg.scooter', anySide=True)          # e-scooter tangled in a bush
+    # ---- SoMa Node
+    m.npc('egg_vc', 17, 17, 'man', script='egg.vc_vest', facing='down')
+    m.npc('egg_vc2', 16, 17, 'woman', script='egg.vc_circle', facing='right')
+    m.npc('egg_stealth', 24, 26, 'techie', script='egg.stealth', facing='up')
+    m.npc('egg_busker', 23, 21, 'boy', script='egg.busker', facing='down', movement='look')
+    post(28, 31, 'egg.caltrain')
+    post(8, 18, 'egg.parking')

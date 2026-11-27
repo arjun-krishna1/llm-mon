@@ -204,7 +204,7 @@ def skin_remap(spr):
     sat = (mx - mn) / np.maximum(mx, 1)
     hue = np.degrees(np.arctan2(np.sqrt(3) * (g - b), 2 * r - g - b)) % 360
     lower = (np.arange(a.shape[0])[:, None] > a.shape[0] * 0.45)
-    m = (al > 0) & (hue >= 12) & ((hue <= 36) | (lower & (hue <= 46))) & (sat > 0.1) & (sat < 0.72) & (mx > 130)
+    m = (al > 0) & (hue >= 12) & ((hue <= 36) | (lower & (hue <= 46))) & (sat > 0.2) & (sat < 0.72) & (mx > 140)
     lum = (r * 3 + g * 4 + b * 2) / 9
     for y, x in zip(*np.nonzero(m)):
         L = lum[y, x]
@@ -217,7 +217,7 @@ def remap_green(spr, ramp):
     """Map clearly green pixels onto a palette ramp by luminance."""
     a = np.array(spr).astype(int)
     r, g, b, al = a[..., 0], a[..., 1], a[..., 2], a[..., 3]
-    m = (al > 0) & (g > r + 10) & (g > b + 40)
+    m = (al > 0) & (g > r - 4) & (g > b + 22)
     lum = (r * 3 + g * 4 + b * 2) / 9
     for y, x in zip(*np.nonzero(m)):
         k = min(len(ramp) - 1, int(lum[y, x] / 256 * len(ramp) * 1.25))
@@ -249,13 +249,34 @@ def chunky(path, w, h, colors=14):
     bb = src.getchannel('A').getbbox()
     src = src.crop(bb)
     k = max(src.width / w, src.height / h)
-    if k > 2:
-        # pre-shrink to 2x target with a soft filter so 1px source lines merge
-        src = src.resize((max(1, round(src.width / k * 2)), max(1, round(src.height / k * 2))),
+    if k > 4:
+        # pre-shrink to 4x target so isolated 1px source lines merge a little
+        src = src.resize((max(1, round(src.width / k * 4)), max(1, round(src.height / k * 4))),
                          Image.LANCZOS)
     arr = mreduce(src, w, h, colors=colors, sharpen=0.15, sat=1.12, min_island=4)
-    spr = clean_specks(Image.fromarray(arr))
-    return spr
+    # facial features (eyes/brows/mouth): dark source pixels surrounded by skin
+    sa = np.array(src).astype(int)
+    r, g, b, al = sa[..., 0], sa[..., 1], sa[..., 2], sa[..., 3]
+    mx = np.maximum(np.maximum(r, g), b).astype(float)
+    mn = np.minimum(np.minimum(r, g), b).astype(float)
+    sat = (mx - mn) / np.maximum(mx, 1)
+    hue = np.degrees(np.arctan2(np.sqrt(3) * (g - b), 2 * r - g - b)) % 360
+    skin = (al > 0) & (hue >= 8) & (hue <= 40) & (sat > 0.15) & (sat < 0.75) & (mx > 140)
+    dark = (al > 0) & ((r + g + b) / 3 < 95)
+    sk = Image.fromarray((skin * 255).astype(np.uint8)).filter(ImageFilter.BoxBlur(3))
+    near_skin = np.array(sk) > 110
+    feat = dark & near_skin
+    th_, tw_ = arr.shape[:2]
+    cov = np.array(Image.fromarray((feat * 255).astype(np.uint8)).resize((tw_, th_), Image.BOX)) / 255.0
+    skin_small = np.array(Image.fromarray((skin * 255).astype(np.uint8)).resize((tw_, th_), Image.BOX)) / 255.0
+    paint = (cov > 0.16) & (arr[..., 3] > 0) & (skin_small > 0.2)
+    arr = np.array(clean_specks(Image.fromarray(arr)))
+    if FACE_PAINT:
+        arr[paint, :3] = P.HAIR_DARK[0][:3]
+    return Image.fromarray(arr)
+
+
+FACE_PAINT = False
 
 
 def solid_outline(spr):
@@ -268,13 +289,15 @@ def solid_outline(spr):
 
 
 def fit_sprite(path, W, H, colors=20, margin=1, snap=True, anchor='bottom', green=None, pal=None):
-    spr = chunky(path, W - 2 * margin, H - margin, colors=min(colors, 16))
+    kp = prekey(path)
+    spr = pixelize(kp, width=W - 2 * margin, height=H - margin, colors=min(colors, 16), snap=False)
+    os.remove(kp)
     spr = defringe(spr)
     spr = skin_remap(spr)
     if green:
         spr = remap_green(spr, green)
     if snap:
-        spr = snap_img(spr, [c[:3] for c in pal] if pal else None, chroma_w=1.0 if pal else 1.6)
+        spr = snap_img(spr, [c[:3] for c in pal] if pal else None, chroma_w=1.0)
     spr = solid_outline(spr)
     im = new(W, H)
     x = (W - spr.width) // 2
@@ -294,17 +317,24 @@ PAL_RIVAL = BASE + [P.HAIR_BROWN[0], P.ROOF_ORANGE[0], P.ROOF_ORANGE[1], P.ROOF_
 
 
 def rival_front():
-    p = raw('spr_rival_front')
+    p = raw('spr_rival_front_v2') or raw('spr_rival_front')
     return fit_sprite(p, 64, 64, colors=16, pal=PAL_RIVAL) if p else new(64, 64)
 
 
+def player_front():
+    """Intro-stage portrait of the player, same scale/density as prof_front."""
+    p = raw('spr_player_front')
+    pal = PAL_PLAYER + [P.WHITE[1], P.WHITE[2]]
+    return fit_sprite(p, 64, 96, colors=16, pal=pal) if p else new(64, 96)
+
+
 def prof_front():
-    p = raw('spr_prof_front')
+    p = raw('spr_prof_front_v2') or raw('spr_prof_front')
     return fit_sprite(p, 64, 96, colors=22, green=P.CLOTH_GREEN, pal=PAL_PROF) if p else new(64, 96)
 
 
 def trainer_front(kind):
-    p = raw('spr_trainer_%s_front' % kind)
+    p = raw('spr_trainer_%s_front_v2' % kind) or raw('spr_trainer_%s_front' % kind)
     pal = PAL_TM if kind == 'm' else PAL_TF
     return fit_sprite(p, 64, 64, colors=20, pal=pal) if p else new(64, 64)
 
@@ -393,7 +423,7 @@ def fix_back_details(spr):
 
 
 def trainer_back():
-    p = raw('spr_trainer_back')
+    p = raw('spr_trainer_back_v2') or raw('spr_trainer_back')
     sheet = new(256, 64)
     if not p:
         return sheet
@@ -426,6 +456,7 @@ def build():
     save(trainer_front('f'), SPRITES, 'battle', 'trainer_f_front.png')
     save(trainer_back(), SPRITES, 'battle', 'trainer_back.png')
     save(rival_front(), SPRITES, 'battle', 'rival_front.png')
+    save(player_front(), SPRITES, 'battle', 'player_front.png')
 
 
 if __name__ == '__main__':
