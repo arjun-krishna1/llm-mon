@@ -102,11 +102,6 @@ def('center.techie', (s) => say(s,
 def('center.woman', (s) => say(s,
   'My LLMMON caught context rot on the route. It smelled like old log files!',
   'All better now. The nurse here is a miracle worker.'))
-def('center.terminal', async (s) => {
-  s.sfx('pc_on')
-  await say(s, 'A storage terminal. The screen reads:\n\u201cModel Storage System is syncing...\u201d', 'A spinner goes round and round. Better come back later.')
-  s.sfx('pc_off')
-})
 
 // ============================================================================ Token Mart
 def('mart.clerk', async (s) => {

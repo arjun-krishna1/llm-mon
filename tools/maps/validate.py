@@ -24,6 +24,11 @@ DIRS = {'up': (0, -1), 'down': (0, 1), 'left': (-1, 0), 'right': (1, 0)}
 
 def registered_scripts():
     ids = set()
+    # engine-provided scripts (e.g. storage.open) registered outside content/
+    for dp, _, fs in os.walk(os.path.join(ROOT, 'src', 'game')):
+        for f in fs:
+            if f.endswith('.ts') and 'content' not in dp:
+                ids |= set(re.findall(r"registerScript\(\s*['\"]([\w.]+)['\"]", open(os.path.join(dp, f)).read()))
     if not os.path.isdir(CONTENT):
         return ids
     for dp, _, fs in os.walk(CONTENT):

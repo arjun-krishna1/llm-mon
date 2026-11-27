@@ -238,7 +238,7 @@ def center():
     m.npc('nurse', 6, 3, 'nurse', script='center.nurse', facing='down')
     m.npc('ct_techie', 3, 6, 'techie', script='center.techie', facing='right')
     m.npc('ct_woman', 9, 7, 'woman', script='center.woman', facing='up', movement='look')
-    signs(m, [(11, 7)], 'center.terminal')
+    signs(m, [(11, 7)], 'storage.open')
     return m
 
 

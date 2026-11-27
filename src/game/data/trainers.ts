@@ -76,7 +76,7 @@ function rival(starter: string, starterLevel: number, starterMoves: string[] | u
 TRAINER_LIST.push(
   rival('gpt_5_5', 8, undefined, 'gemma_4', 6, ['autocomplete', 'small_talk', 'fork_strike']), // vs Claude Fable
   rival('glm', 6, ['graph_paw', 'pattern_guard', 'logic_spark'], 'gpt_5_4_mini', 4), // vs GPT 5.5
-  rival('claude_fable', 5, ['warm_nudge', 'guardrail', 'tiny_myth'], 'mistral_medium', 2), // vs GLM
+  rival('claude_fable', 5, ['warm_nudge', 'tiny_myth'], 'mistral_medium', 2), // vs GLM
 )
 
 export const TRAINERS: Record<string, TrainerDef> = Object.fromEntries(TRAINER_LIST.map((t) => [t.id, t]))

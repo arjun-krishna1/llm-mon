@@ -229,7 +229,9 @@ module.exports = async function world(ctx) {
     await g.talkTo('rt_tiana')
     await g.readAt(23, 38)
     await g.shot('route_north_sign', 'Route 101 north sign')
-    // rival Dana ambushes you at the north end of the route (trigger row 36)
+    // rival Dana ambushes you at the north end of the route (trigger row 36). Harness: top up
+    // HP first (a player would visit the hiker / Mom); the run checks the fight, not attrition.
+    await g.page.evaluate(() => window.__llmmon.heal())
     g.handlers = { ...battleShooter('rival'), onText: shootOn(g, [[/Took you long enough/, 'rival_ambush'], [/You won\. Fair and square/, 'rival_after']]) }
     await g.walkTo({ x: 21, y: 33 }, { run: true })
     s = await g.snap()
@@ -261,7 +263,7 @@ module.exports = async function world(ctx) {
   // ======================================================== SoMa Node
   await seg('soma_node', async () => {
     g.handlers = {}
-    await g.readAt(18, 32)
+    await g.readAt(18, 34) // town sign by the south gate
     for (const id of ['sn_boy', 'sn_man', 'sn_elder', 'sn_woman']) await g.talkTo(id, { walk: { run: true } })
     await g.readAt(21, 25, { onText: shootOn(g, [[/fountain|plaque/i, 'soma_fountain']]) })
     await g.shot('soma_plaza', 'SoMa plaza')
@@ -276,7 +278,8 @@ module.exports = async function world(ctx) {
     check(!!s.flags.healed_at_center, 'healed at Model Center')
     await g.talkTo('ct_techie')
     await g.talkTo('ct_woman')
-    await g.readAt(11, 7)
+    // Model Storage System terminal (pc_storage): open it, look, back out with B
+    await g.readAt(11, 7, { onOpen: async () => { await sleep(FAST ? 300 : 1200); await g.shot('storage', 'Model Storage System'); for (let i = 0; i < 4; i++) { await g.press('B'); await sleep(350) } } })
     await g.takeWarp('overworld')
   })
 
@@ -322,20 +325,28 @@ module.exports = async function world(ctx) {
     await g.readAt(32, 18, { walk: { run: true } }) // apartment door (locked)
     await g.talkTo('sn_techie', { walk: { run: true } })
     await g.talkTo('sn_girl', { walk: { run: true } })
+    await g.talkTo('dana', { walk: { run: true } }) // rival at the fountain (after the Route 101 battle)
     await g.talkTo('sn_guard', { walk: { run: true } })
     await g.readAt(21, 9)
     await g.readAt(23, 10, { onText: shootOn(g, [[/THANK YOU/, 'end_sign']]) })
     let s = await g.snap()
     check(!!s.flags.saw_end_sign, 'read the end sign')
-    await g.talkTo('dana', { walk: { run: true } })
-    // stepping away from the closed road: save prompt, then the end card, then the title
-    await g.walkTo({ x: 22, y: 11 }, { run: true })
+    // stepping away from the closed road (row 12): save prompt, then the end card, then the title
     g.endSave = null
-    await g.walkTo({ x: 22, y: 12 }, { onInterrupt: async () => 'stop' })
-    await g.waitIdle({ choice: async () => { g.endSave = { info: (await g.snap()).info }; return 0 } }, 12000).catch(() => {})
+    await g.walkTo({ x: 22, y: 13 }, { stopOnInterrupt: true })
+    await g.waitIdle({ choice: async () => { g.endSave = await g.snap(); return 0 } }, 12000).catch(() => {})
     await sleep(FAST ? 300 : 1500)
     await g.shot('end_card', 'End card')
-    await g.page.waitForFunction(() => window.__ptSnap && window.__ptSnap() && window.__ptSnap().title === 'press', null, { timeout: 180000 })
+    await sleep(FAST ? 500 : 9000)
+    await g.shot('end_credits', 'End credits roll')
+    // the card waits for A at the end of the roll, then returns to the title
+    for (let i = 0; i < 60; i++) {
+      const t = await g.page.evaluate(() => window.__ptSnap && window.__ptSnap() && window.__ptSnap().title)
+      if (t === 'press') break
+      await g.press('A')
+      await sleep(3000)
+    }
+    await g.page.waitForFunction(() => window.__ptSnap && window.__ptSnap() && window.__ptSnap().title === 'press', null, { timeout: 20000 })
     s = await g.snap()
     check(!!s.flags.saw_end_card, 'end card shown, back at the title')
   })
