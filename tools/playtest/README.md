@@ -32,6 +32,7 @@ node tools/playtest/run.cjs --fast
 # targeted tests (white-out, level-up/learn, full party, Hayes escape/edges, mashing,
 # NPC-walk menu/talk, resize, reload mid-cutscene, animation strips)
 node tools/playtest/tests.cjs [--only whiteout,levelup,fullparty,escape,mash,npcwalk,resize,reload,anims,saves,menus,grass4]
+node tools/playtest/tests3.cjs [--only nameentry,nickname,options,battletextspeed,touch,dex,storage,storage_refuse,rival,rival_smart,rival_loss,city,endcard,sfxwire,cries] [--dist DIR]   # round-3 features (needs a probe build: vite.playtest.config.mjs)
 
 # contact sheets (12 beats per sheet, 2x, labelled) + animation strip sheets
 python3 tools/playtest/sheets.py tools/playtest/out/run --out tools/playtest/out --prefix sheet

@@ -20,7 +20,7 @@ export default defineConfig({
   w.__llmmonAudio = audio
   w.__audioLog = []
   const t0 = performance.now()
-  for (const k of ['playMusic', 'stopMusic', 'sfx']) {
+  for (const k of ['playMusic', 'stopMusic', 'sfx', 'cry', 'sfxLoop', 'stopSfx']) {
     const f = audio[k].bind(audio)
     audio[k] = (...a) => { w.__audioLog.push({ t: Math.round(performance.now() - t0), k, id: a[0] }); if (w.__audioLog.length > 5000) w.__audioLog.shift(); return f(...a) }
   }

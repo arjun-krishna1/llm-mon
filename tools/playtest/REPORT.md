@@ -300,3 +300,240 @@ genre features and a thin climax, not bugs.
     wilds only use neutral moves — the rival fight fixes the showcase; also
     give route trainers one type move each.
 13. Capital W in the dialogue font is legible but blocky.
+
+---
+
+# Round 3 QA
+
+Build: snapshot of commit 893e506. Paths are relative to `tools/playtest/out/`.
+
+## Runs
+
+**Normal-speed full run** (seed 5, GLM, fresh save, no debug hooks):
+- Completed in **27:42** with 0 failed checks and 0 console errors (`run/result.json`,
+  `sheet_01..13.png`).
+- The rival heal crutch was **removed**. The natural party reached Dana's ambush with
+  **GLM Lv8 at 5/29 HP** plus a Lv2 Gemma 4, and **lost**.
+- After the loss: white-out to Mom (money 3216 → 1608), walk back up the route (2 wild battles),
+  then won the rematch.
+- Then: SoMa, Model Center, mart, end sign, save offer, credits, title, Continue. Continue
+  restored the position, party, bag, money and flags; the end card did not trigger again.
+
+**`--fast` end to end:**
+- GLM: completed in 6:42 (rival lost once, rematch won). The rescue completes in fast mode.
+- Claude Fable: lost to Dana **twice**, the second time at full HP after the white-out heal, so the
+  harness could not continue (`run_fast_claude_fable/`).
+
+**Regression, all pass:**
+- `trainer_sight.cjs`: 6/6.
+- White-out at home and at the Model Center, with Mom's and the Nurse's lines.
+- 7th catch: nickname prompt, then "sent to storage."
+- Save and Continue in 7 interiors plus 3 outdoor spots.
+- `npm test` / `eslint` / `tsc --noEmit` were clean in round 2; not re-run.
+
+**Feature tests**: `tests3.cjs` (new). Results are in `tests3/results_*.json`.
+
+## Round-3 additions: status
+
+| # | Feature | Status | Evidence |
+|---|---|---|---|
+| 1 | Rival Dana | **Works, but too hard** (P1-R3-1). See the rival section below for the full results. | `evidence_r3/rival_*`, `tests3/results_rival*.json` |
+| 2 | Name entry | **Good.** Typed "Zoe.Qx", B deleted the x, START jumped to OK → "Zoe.Q", used in dialogue. Presets row works. An empty name + OK falls back to "Arjun" (by design). | `evidence_r3/name_entry.png` |
+| 2b | Nickname prompt | **Works.** YES → 10 characters ("HALLUCINAT") shows in the party and summary. But the summary's species line renders as **"G 4"** (P2-R3-1). | `evidence_r3/summary_species_G4.png` |
+| 3 | PromptDex | **Good.** List, scroll, unseen "------" and seen-only greyed out. The detail page shows stats, area, blurb and a cry. Counts (6 seen / 3 caught) match the trainer card. | `evidence_r3/dex_detail.png`, `tests3/dex/` |
+| 4 | Model Storage | **Works.** Deposit and withdraw both work; mons are healed on the way in and out; changes persist across save/reload; "That's your last LLMMON!" refusal; `pc_on`/`pc_off` play. MOVE and SUMMARY were not exercised. **Confirmed flaw**: the party column cuts names off: "Mistral Me", "Claude Fab", "DeepSeek" (DeepSeek Flash), "GPT-5.4 mi" (P2-R3-2). | `evidence_r3/storage_party_names_cut.png` |
+| 5 | Options | **Good.** Dialogue page typing: slow 3.9 s / mid 1.9 s / fast 1.0 s. The battle line also changes: 1.37 s slow vs 0.35 s fast. Music 3 / sfx 6 persist across reload (written when the screen closes). OPTIONS is on the title and start menus. | `tests3/options_*` |
+| 6 | Touch | **Good.** See the touch section below. Fractional scale (P2-R3-3); START pill only 30 px tall (P2-R3-4). | `evidence_r3/touch_phone_layouts.png` |
+| 7 | Cries | **Fire** on send-out, faint, starter select and dex detail. They don't stack; a faint cry (145 ms) overlaps one text blip (fine). The ending tune plays. | `tests3/results_cries.json` |
+| 8 | End card | **Good.** "Save your progress before the credits roll?" → `ending` music → title / "To be continued…" with play time and catches → a short credits roll (~6 s) → "THANK YOU FOR PLAYING" + PRESS A → title. Continue works and does not re-trigger the card. | `evidence_r3/end_card.png`, `sheet_12.png` |
+| 9 | Title screen | Title menu = CONTINUE / NEW GAME / OPTIONS. Not reviewed in motion. | `sheet_01.png` |
+| 10 | SoMa as a city | **Good**, matches `scene_city_3x.png`: paved plaza, fountain, cafe, apartment, kiosk, billboard, bollards, planters, hedges. All 22 sample street tiles reachable; signs and kiosk/billboard text read fine; z-order behind roofs correct. Nits are in P3. | `sheet_city_01.png`, `sheet_city_02.png` |
+| 11 | Wide bed, sofa, emblems, storage terminal | Look right; nothing blocks movement unexpectedly in the save-test interiors. | `sheet_02.png`, `sheet_12.png` |
+| 12 | Route trainers' type moves | Calvin's Gemma uses Fork Strike; "It's super effective!" appears in every rival fight (3–6 times). | — |
+
+**Rival details** (row 1):
+- **Counter pick is correct for all three starters** (type chart myth > logic > tool > myth):
+
+| Your starter | Dana picks | Why |
+|---|---|---|
+| GLM | Claude Fable | myth beats logic |
+| Claude Fable | GPT 5.5 | tool beats myth |
+| GPT 5.5 | GLM | logic beats tool |
+
+- The scenes work: intro outside the house, lab scene, ambush at row 36 (`rival_encounter` →
+  `battle_rival`), white-out to Mom, "Back for a rematch?", win line, and Dana at the fountain
+  (19,26) with rotating lines.
+
+**Touch details** (row 6): tested on iPhone 13 portrait and landscape, Galaxy S5 and desktop
+`?touch=1`.
+- A whole session using only touch events: title → NEW GAME → name entry (START → OK) → intro →
+  arrival → phone call → walk out of the door.
+- Holding the D-pad walks continuously (5 tiles in 1.2 s).
+- B + D-pad multi-touch runs (10 tiles in 1.07 s vs 4 walking).
+- START opens the menu and B closes it.
+- The controls never overlap the canvas.
+- Gamepad was skipped.
+
+**New sfx wiring:**
+
+| sfx | wired? |
+|---|---|
+| `truck` | yes (arrival) |
+| `phone` | yes (lab call) |
+| `pc_on` / `pc_off` | yes (home PC, storage) |
+| `dex_register` | yes in code (BattleScene, on the first catch of a species) |
+| `buy` | **no**: defined, but never called; the mart plays `stat_up` (P3) |
+
+## Round-2 open items
+- **P2-A rescue framing:** fixed. The player, prof and hound are above the box, and the hound is
+  visibly running on "Look at it run!".
+- **P2-B field notes:** fixed. Pages are drawn by the stump.
+- **Tutorial track:** now `battle_trainer` (no longer `battle_wild`).
+- **Start-menu cursor memory, run dust, tall-grass contrast:** not re-checked.
+
+## New issues (round 3)
+
+### P0
+None. No soft-locks, crashes or console errors in the full run, both fast runs or ~40 targeted
+cases.
+
+### P1-R3-1 — BATTLE-CORE / CONTENT: the rival climax is a near-certain loss for a first-time player
+
+**Why players arrive weak.** The ambush comes right after Tiana, and there is no heal in between:
+the hiker's heal is once only and sits before Calvin. So the party arrives at 15–45 % HP. Party on
+arrival at the ambush in each run:
+
+| run | starter | partner | result |
+|---|---|---|---|
+| normal | GLM Lv8, 5/29 HP | Gemma Lv2 | lost |
+| fast (GLM) | GLM Lv7, 12 HP | Gemma Lv2 | lost |
+| fast (Claude Fable) | Claude Fable Lv8, 15 HP | GPT-5.4 mini Lv3 | lost |
+| fast (Claude Fable), after the white-out heal | Claude Fable, full HP | — | lost again |
+
+**Controlled fights.** A "careful player" policy (avoids moves it has seen resisted, uses Patches
+below 40 % HP, has 3 Patches) with the natural party shape (starter Lv8 + a Lv3 catch):
+
+| starting HP | GLM | Claude Fable | GPT 5.5 |
+|---|---|---|---|
+| ~30 % | lost | lost | lost |
+| full | won (starter fainted; the Lv3 catch finished) | **lost** | won (starter fainted; the Lv3 catch finished) |
+
+Fights took 5–9 turns and 39–60 s.
+
+**Why it's uneven.**
+- Dana's party depends on your starter:
+
+| your starter | Dana's party |
+|---|---|
+| Claude Fable | GPT 5.5 Lv8 + Gemma Lv6 |
+| GPT 5.5 | GLM Lv6 + GPT-mini Lv4 |
+| GLM | Claude Fable Lv5 + Mistral Lv2 |
+
+- On top of that, your starter has no move that hits her starter for neutral-or-better damage
+  except its weakest one.
+- Each loss halves your money and costs ~2–4 min of walking back.
+
+**Expected**: a hard-but-winnable climax at the HP a player actually has.
+
+**Suggested fixes**:
+- Dana offers a heal first ("Let's make it fair") or there is a heal spot before row 36;
+- same-level parties for all starters (starter Lv7, catch Lv3–4);
+- the Claude Fable route needs the most help.
+
+**Evidence**: `evidence_r3/rival_arrival_13hp.png` (round-3 first attempt), `run/116_rival_after_4x.png`,
+`tests3/results_rival_smart.json`, `tests3/results_rival_rival_loss_endcard.json`,
+`run_fast_claude_fable/`.
+
+### P2
+- **P2-R3-1 — ENGINE / BATTLE-UI: species line under a nickname.** The summary screen's species
+  line uses `font_mini` (caps + digits only), so "Gemma 4" renders as **"G 4"** under the nickname.
+  Probably the same for every species with lowercase letters. Repro: nickname a catch, open
+  Summary. Evidence: `evidence_r3/summary_species_G4.png`.
+- **P2-R3-2 — ENGINE (StorageScreen): party column cuts names off.** It clips at a fixed width:
+  "Mistral Me", "Claude Fab", "DeepSeek", "GPT-5.4 mi". Use the 8-px HUD-style condensed name, a
+  wider column, or `font_mini` caps. Evidence: `evidence_r3/storage_party_names_cut.png`.
+- **P2-R3-3 — ENGINE: touch layout scales the game by a fractional factor.** 1.333× on iPhone 13
+  and Galaxy S5 portrait, 1.667× in landscape, so pixels come out uneven, against pillar 1. Desktop
+  `?touch=1` is 3× (integer). Consider integer 1×/2× with the controls sized around it, or at least
+  a `pixelated` downscale from the next integer up.
+- **P2-R3-4 — ENGINE: the START pill is only 30 px tall** (73–96 px wide), below the 44 px touch
+  minimum. A, B and the D-pad are 69–190 px (fine).
+
+### P3
+- **Dana's ambush line hard-codes "eleven whole minutes"** whatever the real play time
+  (`evidence_r3/rival_arrival_13hp.png` round-3 attempt shows it).
+- **Mart purchases play `stat_up`, not the `buy` sfx** that already exists.
+- **The nickname YES/NO box covers the player's HP numbers** (`tests3/nickname/001`).
+- **The phone-call box covers the player** standing on the 1F exit mat (`sheet_01`/`run/012`).
+- **The name grid's lowercase page replaces "." with "-"**, so typing a name with a period means
+  switching case.
+- **SoMa:**
+  - zebra crossings painted on an all-pedestrian plaza;
+  - the techie (`sn_techie`) stands against a lamp post that draws through him;
+  - the north back lots behind the gym and apartment are bare grass.
+- **The PromptDex detail's ▶ wraps** from #004 to #001 rather than to the next seen entry.
+- **Storage with an empty box** shows an empty dark info bar; a help line would be better.
+- **Credits are very short** (~6 s of names) and then hold on a mostly empty frame.
+
+## Pacing (round 3, normal speed, reading everything)
+
+| segment | time |
+|---|---:|
+| title | 0:04 |
+| intro + name entry | 0:53 |
+| arrival | 0:38 |
+| home 1F (phone rings on first steps) | 1:20 |
+| home 2F (optional) | 1:37 |
+| Hayes Valley | 1:42 |
+| neighbour (Rosa, Milo) | 0:49 |
+| lab + aide | 1:41 |
+| rescue + lab | 2:55 |
+| Fast Tokens | 1:07 |
+| Route south (+ Debugger) | 1:05 |
+| grass | 1:00 |
+| mid (hiker, Calvin) | 2:07 |
+| ledge | 0:22 |
+| north (Tiana, **rival lost**, walk back, rival won) | 4:24 |
+| start menu | 0:16 |
+| SoMa | 0:55 |
+| center | 0:54 |
+| mart | 0:47 |
+| SoMa house | 0:54 |
+| north end + end card | 1:52 |
+| continue | 0:05 |
+| **total** | **27:42** |
+
+Without the rival loss the total would be about 24:30.
+
+First free control is at about 1:35 (the phone now rings on your first steps, so the 2F errand is
+optional). The starter comes at about 9:30 when reading everything.
+
+## Verdict against plan §7
+
+| §7 requirement | status |
+|---|---|
+| Playable start → SoMa → end card without debug hooks | ✔ |
+| No soft-locks | ✔ |
+| No console errors | ✔ |
+| Save/continue mid-way and after the end card | ✔ |
+| lint / test | ✔ (round 2) |
+| Every screen holds up at 1× | ✔, except two text bugs (species line "G 4", storage name clipping) and fractional scale on phones |
+| Handheld feel | ✔ |
+
+**Ready to show the owner: YES, with caveats.**
+- The game is complete, robust and genuinely charming.
+- The caveat that matters is the rival. A first-time player will almost certainly lose the climax
+  the first time, and a Claude Fable player can get stuck in a loss loop without grinding. Fix
+  that before showing it, or tell the owner to pick GLM or GPT 5.5 and heal first.
+
+## 5 highest-value remaining changes
+1. **Rebalance the rival.** A pre-fight heal or heal spot, equal levels across starters
+   (starter Lv7, catch Lv3–4), and test the Claude Fable route at natural HP (P1-R3-1).
+2. **Fix the two text bugs**: the summary species line "G 4" and the storage party-name clipping
+   (P2-R3-1/2).
+3. **Touch polish**: integer (or pixel-correct) scaling on phones and a ≥44 px START button
+   (P2-R3-3/4).
+4. **Small audio/text polish**: wire the `buy` sfx; make Dana's "eleven minutes" use the real play
+   time; give the lowercase grid a ".".
+5. **SoMa finishing touches**: drop the crosswalks or add a road for them, move the techie off the
+   lamp post, dress the north back lots; and lengthen the credits a little.

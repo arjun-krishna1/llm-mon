@@ -289,7 +289,17 @@ class Game {
       c.last = s.battle
       if (s.battle.foe && !c.foe) c.foe = s.battle.foe
       c.texts = c.texts || []
-      if (s.battle.text && c.texts[c.texts.length - 1] !== s.battle.text) c.texts.push(s.battle.text)
+      if (s.battle.text && c.texts[c.texts.length - 1] !== s.battle.text) {
+        // learn type effectiveness like a player reading the box
+        const prev = c.texts[c.texts.length - 1] || ''
+        const um = /^(.+?) used (.+?)!$/.exec(prev.replace(/\n/g, ' '))
+        if (um && s.battle.me && um[1] === s.battle.me.name) {
+          c.eff = c.eff || {}
+          if (/not very effective/i.test(s.battle.text)) c.eff[um[2]] = 0.5
+          else if (/super effective/i.test(s.battle.text)) c.eff[um[2]] = 2
+        }
+        c.texts.push(s.battle.text)
+      }
       if (s.battle.foe) c.foeEnd = s.battle.foe
       if (s.battle.me) c.meEnd = s.battle.me
     }
@@ -319,11 +329,17 @@ class Game {
     if (c.plan === 'catch' && (s.bag.prompt_orb || 0) === 0) c.plan = 'run' // out of orbs: give up on this one
     if (c.plan === 'run' && b.canRun) return { action: 'run' }
     if (c.plan === 'lose') { const st = moves.findIndex((m) => !m.power && m.pp > 0); return { action: 'fight', move: st >= 0 ? st : 0 } }
-    if (c.plan !== 'lose' && me.hp / me.maxHp < 0.25 && (s.bag.patch || 0) > 0 && !c.healed) { c.healed = true; return { action: 'bag', item: 'Patch' } }
+    if (c.plan !== 'lose' && me.hp / me.maxHp < (this.o.smart ? 0.4 : 0.25) && (s.bag.patch || 0) > 0 && (this.o.smart ? (c.healed || 0) < 2 : !c.healed)) { c.healed = (c.healed || 0) + 1; return { action: 'bag', item: 'Patch' } }
     if (c.plan === 'catch' && b.canCatch && (s.bag.prompt_orb || 0) > 0) {
       if (foe.hp / foe.maxHp <= 0.6 || c.turns > 3) return { action: 'bag', item: 'Prompt Orb' }
       dmg.sort((a, b2) => a.power - b2.power)
       return { action: 'fight', move: dmg.length ? dmg[0].i : 0 }
+    }
+    if (this.o.smart) {
+      const eff = c.eff || {}
+      let bi = 0; let bv = -1
+      moves.forEach((m, i) => { const v = m.pp > 0 ? (m.power || 0) * (eff[m.name] ?? 1) : -1; if (v > bv) { bv = v; bi = i } })
+      return { action: 'fight', move: bi }
     }
     return { action: 'fight' }
   }
@@ -698,6 +714,16 @@ class Game {
     const warps = map.objectsOfType('warp').filter((w) => (typeof match === 'function' ? match(w) : w.props.toMap === match))
     if (!warps.length) throw new Error('no warp ' + match + ' on ' + map.id)
     const goal = (x, y) => warps.some((w) => x >= w.tx && y >= w.ty && x < w.tx + w.tw && y < w.ty + w.th)
+    if (goal(s.info.x, s.info.y)) {
+      // already standing on the warp (e.g. respawned on the exit mat): warps fire on stepping ONTO them,
+      // so walk into it (exit mats: press down) or step off and back on
+      await this.press('down', 400)
+      await this.page.waitForFunction((m) => window.__llmmon.info().map !== m, map.id, { timeout: 2500 }).catch(() => {})
+      if ((await this.info()).map === map.id) {
+        await this.walkTo((x, y) => !goal(x, y), { ...opts })
+      }
+    }
+    if ((await this.info()).map !== map.id) return this.waitIdle(opts)
     const r = await this.walkTo(goal, { ...opts, stopOnInterrupt: false })
     if (!r.mapChanged) {
       // standing on the arrival tile of a warp — step off and back
@@ -718,4 +744,4 @@ function bestMove(b) {
 function firstAlive(s, cur) { const i = s.party.findIndex((m, k) => k !== 0 && m.hp > 0); return i < 0 ? cur : i }
 function summ(s) { return { info: { ...s.info, npcs: undefined }, ui: s.ui, battle: s.battle && { ...s.battle, me: undefined, foe: undefined }, starter: s.starter, title: s.title } }
 
-module.exports = { Game, serve, sleep, KEY, OPP, bestMove, summ }
+module.exports = { Game, serve, sleep, KEY, OPP, bestMove, summ, PROBE }

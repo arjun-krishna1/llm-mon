@@ -243,8 +243,15 @@ module.exports = async function world(ctx) {
     if (!s.flags.rival_beaten) {
       // lost (white-out): walk back from the respawn point like a player would, and try again
       g.note('P1', `rival battle LOST on first attempt with the natural party (${JSON.stringify(g.rivalPre.party)})`)
+      await g.waitIdle({}, 60000).catch(() => {})
+      await sleep(1500)
+      s = await g.snap()
+      g.rivalFirst.respawn = `${s.info.map} ${s.info.x},${s.info.y}`
+      await g.shot('rival_whiteout', 'After losing to Dana')
       if (s.info.map !== 'overworld') await g.takeWarp('overworld')
+      const tBack = Date.now()
       await g.walkTo({ x: 21, y: 33 }, { run: true })
+      g.rivalFirst.walkBackMs = Date.now() - tBack
       s = await g.snap()
     }
     check(!!s.flags.rival_beaten, 'rival Dana battled + beaten at the north end of Route 101')
