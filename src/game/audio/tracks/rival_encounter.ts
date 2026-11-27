@@ -16,7 +16,7 @@ export const rival_encounter: SongDef = {
   mood: 'short, strutting',
   key: 'F mixolydian',
   bpm: 116,
-  gain: 1,
+  gain: 1.55,
   echo: { beats: 0.75, feedback: 0.25, wet: 0.22 },
   channels: { p1: { inst: 'stac' }, p2: { inst: 'arp' }, w: { inst: 'bassstac' } },
   chords: { intro: 'F7', loop: L },

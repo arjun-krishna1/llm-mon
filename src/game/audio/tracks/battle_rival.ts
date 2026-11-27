@@ -29,7 +29,7 @@ export const battle_rival: SongDef = {
   mood: 'energetic, cocky, major-minor swagger',
   key: 'F mixolydian',
   bpm: 156,
-  gain: 0.95,
+  gain: 0.99,
   echo: { beats: 0.5, feedback: 0.22, wet: 0.2 },
   channels: { p1: { inst: 'lead12' }, p2: { inst: 'arpfast' }, w: { inst: 'bass' } },
   chords: { intro: I, loop: `${A} | ${B} | ${C} | ${A}` },

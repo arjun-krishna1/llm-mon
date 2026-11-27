@@ -219,7 +219,10 @@ class MapDef:
             tid = blob[key]
             cv = ts.cat['autotiles'][kind].get('c_variants')
             if key == '11111111' and cv:
-                tid = cv[h32(x, y, 11) % len(cv)]
+                if kind == 'pavement':   # [plain, cracked, manhole, drain]: mostly plain, a few cracks
+                    tid = cv[1] if h32(x, y, 11) % 9 == 0 else cv[0]
+                else:
+                    tid = cv[h32(x, y, 11) % len(cv)]
             self.set(layer, x, y, first + tid)
 
     def forest(self, cells, layer='detail', yparity=1):
@@ -263,7 +266,7 @@ class MapDef:
 
     def fence(self, style, cells, layer='detail'):
         ts, first = self.ts('exterior')
-        by = ts.cat['autotiles']['fence_' + style]['byConnection']
+        by = ts.cat['autotiles'][style if style == 'hedge' else 'fence_' + style]['byConnection']
         cells = set(cells)
         for (x, y) in cells:
             conn = ''.join(d for d, (dx, dy) in (('n', (0, -1)), ('e', (1, 0)), ('s', (0, 1)), ('w', (-1, 0)))

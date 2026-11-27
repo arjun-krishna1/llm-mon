@@ -13,6 +13,9 @@ Legend
   #  stamp footprint  H house_orange  N house_blue  L lab  C model_center  M token_mart
   G gym  D shed  S sign_town  t tree  Y tree_b  B rock_big  n bench  l lamp (post cell; head above)
   Q fountain  R signal_tower  *  water + lilypad  |  reeds  q flowering bush  u stump  P planter  x crate
+  City: _ pavement (- under a stamp)  + plaza inlay  Z crosswalk  j bollard  @ planter  ! streetlight (post)
+        ? kiosk (post)  W bike rack  $ bench  O fountain (all on pavement)  h hedge
+        A apartment  K cafe  E house_green  V billboard
 """
 from mapdsl import MapDef
 
@@ -32,6 +35,18 @@ LEGEND = {
     'l': ('stamp', 'lamp', 0, -1), 'Y': ('stamp', 'tree_b'), 'Q': ('stamp', 'fountain'), 'R': ('stamp', 'signal_tower'),
     '*': ('multi', ('area', 'water'), ('tile', 'lilypad', 'detail')), '|': ('tile', 'reeds'),
     'q': ('tile', 'bush_flower'), 'u': ('tile', 'stump'), 'P': ('tile', 'planter'), 'x': ('tile', 'crate'),
+    # SoMa city kit (pavement never touches dirt path: keep a grass cell between them)
+    '_': ('area', 'pavement'), '-': ('area', 'pavement'), 'h': ('fence', 'hedge'),
+    '+': ('multi', ('area', 'pavement'), ('tile', 'plaza_inlay', 'ground')),
+    'Z': ('multi', ('area', 'pavement'), ('tile', 'crosswalk', 'ground')),
+    'j': ('multi', ('area', 'pavement'), ('tile', 'bollard')),
+    '@': ('multi', ('area', 'pavement'), ('tile', 'planter')),
+    '!': ('multi', ('area', 'pavement'), ('stamp', 'streetlight_modern', 0, -1)),
+    '?': ('multi', ('area', 'pavement'), ('stamp', 'kiosk', 0, -1)),
+    'W': ('multi', ('area', 'pavement'), ('stamp', 'bike_rack')),
+    '$': ('multi', ('area', 'pavement'), ('stamp', 'bench')),
+    'O': ('multi', ('area', 'pavement'), ('stamp', 'fountain')),
+    'A': ('stamp', 'apartment'), 'K': ('stamp', 'cafe'), 'E': ('stamp', 'house_green'), 'V': ('stamp', 'billboard'),
 }
 
 # Interior columns x=8..35 (28 chars); PAD forest is added on both sides.
@@ -39,31 +54,31 @@ SOMA = [
     # rows 0-8: forest, the closed road north
     *['TTTTTTTTTTTT.==.TTTTTTTTTTTT'] * 9,
     'TTTTTTTTTTTTfggfTTTTTTTTTTTT',  # 9  road-closed fence
-    '.G######ryr..==s.......H####',  # 10 gym / end sign / locked house
-    '.#######wpw#.==#.......#####',  # 11
-    '.#######...l.==lC#####.#####',  # 12
-    '.#######.....==.######.#####',  # 13
-    '.#######.....==.######.#####',  # 14
-    '.#######n#...==.######.#####',  # 15
-    '.#######.....==P######P#####',  # 16
-    '.#######.....==.######..y=y.',  # 17 gym door / center doors
-    '.==========================.',  # 18 main street
-    '.==========================.',  # 19
-    '..N####P.==========..M####..',  # 20 soma_house / plaza / mart
-    '..#####..==========..#####..',  # 21
-    '..#####.#==r,,,,y==#P#####..',  # 22
-    '..#####.l==,Q##,r==l.#####..',  # 23 fountain
-    '..#####..==,###,,==..#####x.',  # 24
-    '..#####n#==,###,w==n######x.',  # 25
-    '..#####..==p,,,,w==..#####..',  # 26
-    '....====================....',  # 27
-    '.........==========.........',  # 28
-    'TTTTTT.y..b.#==#.b..y.TTTTTT',  # 29
-    'TTTTTT.r....l==l...r..TTTTTT',  # 30
-    'TTTTTT....S#.==.......TTTTTT',  # 31 town sign
-    'TTTTTT....##.==..n#...TTTTTT',  # 32
-    'TTTTTT.w.r...==...p.w.TTTTTT',  # 33
-    'TTTTTT.......==.......TTTTTT',  # 34
+    '.G######K####..s......A#####',  # 10 gym / cafe / end sign / apartment
+    '.############___......######',  # 11
+    '.############___C###########',  # 12 model center
+    '.############__!############',  # 13
+    '.############___############',  # 14
+    '.############___############',  # 15
+    '.############__!############',  # 16 cafe door x18
+    '.#######________############',  # 17 gym door x12 / center doors
+    '.____________ZZ_______######',  # 18 main street / apartment doors x32-33
+    '.____________ZZ____________.',  # 19
+    '..E####.____________.M####..',  # 20 soma_house (green) / plaza / mart
+    '..#####._____+______.#####..',  # 21
+    '..#####._?______$___.#####..',  # 22 kiosk / bench
+    '..#####.!___O--____!.#####..',  # 23 fountain
+    '..#####._@__---__@__.#####..',  # 24
+    '..#####.____---_____.#####..',  # 25
+    '..#####._j________j_.#####..',  # 26 house door x12 / mart door x31
+    '...._________+__________....',  # 27
+    '........____________........',  # 28
+    'TTTTTThh____________hhTTTTTT',  # 29 south square
+    'TTTTTTh,V##______,n#,hTTTTTT',  # 30 billboard
+    'TTTTTThr###!____!,yr,hTTTTTT',  # 31
+    'TTTTTTh,y,,W-____,P,,hTTTTTT',  # 32 bike rack
+    'TTTTTThhhS#______hhhhhTTTTTT',  # 33 town sign
+    'TTTTTThhh##,,,,,,hhhhhTTTTTT',  # 34 hedge gate: grass between paving and the dirt road
 ]
 
 ROUTE = [
@@ -233,16 +248,22 @@ def objects(m):
     m.spawn('soma_south', 21, 33, facing='up')
     m.sign(12, 17, script='soma.gym_door')
     m.block(12, 17)
-    m.sign(33, 16, script='soma.locked_house')
-    m.block(33, 16)
+    for x in (32, 33):
+        m.sign(x, 18, script='soma.apartment')
+        m.block(x, 18)
+    m.sign(18, 16, script='soma.cafe')
+    m.block(18, 16)
+    m.sign(17, 22, script='soma.kiosk', anySide=True)
+    for x in (16, 17, 18):
+        m.sign(x, 31, script='soma.billboard', anySide=True)
     m.sign(23, 10, script='soma.end_sign')
-    m.sign(18, 32, script='soma.town_sign')
-    m.sign(19, 32, script='soma.town_sign')
+    m.sign(17, 34, script='soma.town_sign', anySide=True)
+    m.sign(18, 34, script='soma.town_sign', anySide=True)
     m.sign(21, 9, script='soma.road_closed')
     m.npc('sn_guard', 22, 10, 'man', script='soma.guard', facing='down')
-    m.npc('sn_girl', 18, 14, 'girl', script='soma.girl', facing='down', movement='wander', radius=2)
+    m.npc('sn_girl', 16, 19, 'girl', script='soma.girl', facing='down', movement='wander', radius=2)
     m.npc('sn_techie', 23, 15, 'techie', script='soma.techie', facing='left')
-    m.npc('sn_woman', 25, 22, 'woman', script='soma.woman', facing='left', movement='look')
+    m.npc('sn_woman', 26, 21, 'woman', script='soma.woman', facing='left', movement='look')
     m.npc('sn_elder', 16, 24, 'elder', script='soma.elder', facing='right', movement='look')
     m.npc('sn_man', 14, 27, 'man', script='soma.man', facing='right', movement='wander', radius=2)
     m.npc('sn_boy', 27, 31, 'boy', script='soma.boy', facing='down', movement='wander', radius=2)

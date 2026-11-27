@@ -19,7 +19,7 @@ export const ending: SongDef = {
   mood: 'warm reprise of the title theme',
   key: 'D major',
   bpm: 80,
-  gain: 0.9,
+  gain: 0.86,
   echo: { beats: 0.75, feedback: 0.35, wet: 0.32 },
   channels: { p1: { inst: 'flute' }, p2: { inst: 'brokensoft' }, w: { inst: 'basssoft' }, n: { gain: 0.8 } },
   chords: { loop: `${A} | ${E}` },
