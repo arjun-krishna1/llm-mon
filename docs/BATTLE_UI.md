@@ -34,11 +34,13 @@ What the battle scene does with state (do not repeat it in scripts):
 - `result.prize` is added with `state.addMoney`;
 - a caught mon goes to `state.addMon` (party, or box when full) + `markSeen` / `markCaught`;
 - every enemy sent out is `markSeen`;
+- with a full party the catch adds "X was sent to storage." (`addMon` puts it in `state.box`);
 - `lose` is just reported: the engine white-outs unless `request.safety`.
 
 Kinds: `wild` (darkened slide-in, lights up, can run/catch), `trainer` (trainer slides
 in with party pips, throws; reappears with the lose line + prize), `scripted`
-(wild-style intro, `introText`, no run/catch, `safety` = can't lose).
+(wild-style intro, `introText`, no run/catch, `safety` = can't lose; with
+`fleeOnDefeat` the defeated enemy staggers and dashes off right, and `defeatText` replaces "X fainted!").
 
 Playtest hook: with `?debug=1`, `__llmmon.battleInfo()` returns `{ phase, text, box,
 prompt, outcome, view }` while a battle runs. `phase` is one of `intro`, `text`,
@@ -81,20 +83,23 @@ Add a regex to `WAIT_LINES` in `BattleScene.ts` to make a new core line wait for
 
 | knob | default | effect |
 | --- | --- | --- |
-| `slideIn` | 1050 | platforms + sprites slide in |
-| `litUp` | 260 | wild mon brightens from its dark intro tint |
-| `hudSlide` | 260 | HUD plates / pips slide |
-| `textHold` | 560 | auto line hold after it finishes typing |
-| `hpMsPerPx`, `hpMinMs` | 20, 260 | HP drain speed (48 px bar) |
-| `expFullMs`, `expMinMs` | 1150, 300 | EXP fill for a full bar |
-| `hitBlinks`, `faintMs` | 3, 360 | hit blink count; faint slide |
-| `throwMs`, `popMs` | 520, 220 | orb arc; mon pop-out |
-| `shakeGapMs`, `shakeMs` | 520, 360 | catch wobble rhythm |
-| `trainerSlide`, `fadeOut`, `screenFade` | 420, 380, 140 | trainer slides, end fade, bag/party fades |
+| `slideIn` | 720 | platforms + sprites slide in (enemy side from the right edge, player side from the left, staggered: they never cross) |
+| `litUp` | 220 | wild mon brightens from its dark intro tint |
+| `hudSlide` | 220 | HUD plates / pips slide |
+| `textHold` | 390 | auto line hold after it finishes typing |
+| `hpMsPerPx`, `hpMinMs` | 15, 200 | HP drain speed (48 px bar) |
+| `expFullMs`, `expMinMs` | 900, 300 | EXP fill for a full bar |
+| `hitBlinks`, `faintMs` | 3, 320 | hit blink count; faint slide |
+| `throwMs`, `popMs` | 460, 220 | orb arc; mon pop-out |
+| `shakeGapMs`, `shakeMs` | 430, 360 | catch wobble rhythm |
+| `trainerSlide`, `fadeOut`, `screenFade` | 300, 320, 140 | trainer slides, end fade, bag/party fades |
 
-Measured (seed 3, ~350 ms human reaction per input): 3-turn wild battle with a level-up
-≈ 35 s; the tutorial ≈ 25 s; catch sequence (3 shakes) ≈ 6 s. With `?fast=1` the same
-battles take 1.5–4.5 s.
+Battle text types 1.5x faster than field dialogue (an extra typewriter tick every other
+frame) and "What will X do?" appears instantly. A move animation, faint drop or orb throw
+starts as its line ("X used Y!", "X fainted!", "You threw…") begins typing.
+
+Measured (seed 7, 350 ms input cadence): 3-turn wild ≈ 20 s; two-mon trainer (7 turns)
+≈ 49 s; catch sequence ≈ 5 s. With `?fast=1`: 1.5–4.5 s.
 
 `LAYOUT` holds every screen position (sprites, platforms, plates, menus) and matches
 `tools/art/sprites/preview/battle_0_*_4x.png`. HUD text anchors are in `Hud.ts` (`SPEC`).

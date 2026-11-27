@@ -249,7 +249,9 @@ Items: `prompt_orb` (200, catch ×1), `great_orb` (600, ×1.5), `patch` (300, +2
 `promptdex`, `fast_tokens`.
 
 Shared type additions (`src/game/types.ts`): `BattleRequest.introText?`,
-`BattleResult.prize?`.
+`BattleResult.prize?`, `BattleRequest.fleeOnDefeat?` / `defeatText?` (the defeated enemy
+runs off: `defeatText` replaces "X fainted!" and the `faint` event has `fled: true`; set by
+`tutorialBattleRequest`).
 
 ## 8. Roster
 
