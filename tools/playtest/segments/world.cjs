@@ -82,7 +82,7 @@ module.exports = async function world(ctx) {
     let starterShots = new Set()
     g.handlers = {
       ...sh,
-      onText: shootOn(g, [[/H-help/, 'rescue_help'], [/NOT a chew toy/, 'rescue_hound'], [/Is that my satchel|grab a LLMMON/, 'rescue_satchel'], [/scampered back/, 'rescue_after'], [/Phew/, 'rescue_prof'], [/Welcome to my lab/, 'lab_thanks'], [/PromptDex! It records/, 'lab_dex'], [/received 5 Prompt Orbs|5 Prompt Orbs/, 'lab_orbs']]),
+      onText: shootOn(g, [[/H-help/, 'rescue_help'], [/NOT a chew toy/, 'rescue_hound'], [/Is that my satchel|grab a LLMMON/, 'rescue_satchel'], [/Look at it run/, 'rescue_after'], [/Phew/, 'rescue_prof'], [/Welcome to my lab/, 'lab_thanks'], [/PromptDex! It records/, 'lab_dex'], [/received 5 Prompt Orbs|5 Prompt Orbs/, 'lab_orbs']]),
       onStarterBrowse: async (s) => { const k = 'ss_' + s.starter.index; if (!starterShots.has(k)) { starterShots.add(k); await sleep(FAST ? 0 : 500); await g.shot(`starter_${s.starter.id}`, `Starter select: ${s.starter.id}`) } },
       onStarterConfirm: async () => { await g.shot('starter_confirm', 'Starter confirm') },
     }
