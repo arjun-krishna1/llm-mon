@@ -141,10 +141,10 @@ describe('items, encounters, trainers', () => {
   })
 
   it('trainers reference valid species and sprites', () => {
-    for (const id of ['route_101_a', 'route_101_b']) {
+    for (const id of ['route_101_a', 'route_101_b', 'rival_dana_gpt_5_5', 'rival_dana_glm', 'rival_dana_claude_fable']) {
       const t = TRAINERS[id]
       expect(t).toBeDefined()
-      expect(['trainer_m_front', 'trainer_f_front']).toContain(t.sprite)
+      expect(['trainer_m_front', 'trainer_f_front', 'rival_front']).toContain(t.sprite)
       expect(t.preBattle.length).toBeGreaterThan(0)
       expect(t.postBattle.length).toBeGreaterThan(0)
       expect(t.prize).toBeGreaterThan(0)

@@ -15,9 +15,9 @@ export interface TrainerDef {
   trainerClass: string
   name: string
   /** Battle front sprite key (64x64). */
-  sprite: 'trainer_m_front' | 'trainer_f_front'
+  sprite: 'trainer_m_front' | 'trainer_f_front' | 'rival_front'
   /** Overworld sprite id (chars/<id>.png). */
-  overworldSprite: 'trainer_m' | 'trainer_f'
+  overworldSprite: 'trainer_m' | 'trainer_f' | 'rival'
   party: TrainerPartyEntry[]
   preBattle: string[]
   loseText: string
@@ -33,7 +33,7 @@ const TRAINER_LIST: TrainerDef[] = [
     name: 'Calvin',
     sprite: 'trainer_m_front',
     overworldSprite: 'trainer_m',
-    party: [{ speciesId: 'gemma_4', level: 4 }],
+    party: [{ speciesId: 'gemma_4', level: 4, moves: ['autocomplete', 'small_talk', 'fork_strike'] }],
     preBattle: ['Hey! You look like a seed-stage trainer.', 'Let me demo my LLMMON. No slides, just vibes!'],
     loseText: 'My demo crashed on stage...',
     postBattle: ['Investors say losing is "valuable signal".', 'I am collecting a LOT of signal today.'],
@@ -47,7 +47,7 @@ const TRAINER_LIST: TrainerDef[] = [
     overworldSprite: 'trainer_f',
     party: [
       { speciesId: 'gpt_5_4_mini', level: 3 },
-      { speciesId: 'mistral_medium', level: 4 },
+      { speciesId: 'mistral_medium', level: 4, moves: ['autocomplete', 'jailbreak', 'low_latency'] },
     ],
     preBattle: ['Stop right there! I need one more data point.', 'Your score goes on my leaderboard!'],
     loseText: 'Okay, that result is NOT going in the paper.',
@@ -55,5 +55,28 @@ const TRAINER_LIST: TrainerDef[] = [
     prize: 120,
   },
 ]
+
+// The rival: neighbour Dana takes the starter that beats yours (myth > logic >
+// tool > myth) plus one Route 101 catch. Id = rival_dana_<her starter>; CONTENT
+// picks the id from the player's starter. Lines are in src/game/content (rival.ts).
+function rival(starter: string, catchId: string, catchMoves?: string[]): TrainerDef {
+  return {
+    id: `rival_dana_${starter}`,
+    trainerClass: 'Rival',
+    name: 'Dana',
+    sprite: 'rival_front',
+    overworldSprite: 'rival',
+    party: [{ speciesId: catchId, level: 5, moves: catchMoves }, { speciesId: starter, level: 7 }],
+    preBattle: ['Ready or not, here I come!'],
+    loseText: 'What?! I had the type advantage! I checked the chart TWICE!',
+    postBattle: ['Next time I\u2019m reading the whole chart.'],
+    prize: 300,
+  }
+}
+TRAINER_LIST.push(
+  rival('gpt_5_5', 'gemma_4', ['autocomplete', 'small_talk', 'fork_strike']), // vs Claude Fable
+  rival('glm', 'gpt_5_4_mini'), // vs GPT 5.5
+  rival('claude_fable', 'mistral_medium'), // vs GLM
+)
 
 export const TRAINERS: Record<string, TrainerDef> = Object.fromEntries(TRAINER_LIST.map((t) => [t.id, t]))
