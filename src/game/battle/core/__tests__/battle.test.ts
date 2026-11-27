@@ -71,16 +71,16 @@ describe('turn order', () => {
 
 describe('damage events', () => {
   it('report hp before/after consistently', () => {
-    const { battle } = setup([mon('glm', 7, ['logic_spark'])], [mon('gpt_5_4_mini', 4, ['small_talk'])], fixed(0.99))
+    const { battle } = setup([mon('glm', 7, ['graph_reason'])], [mon('gpt_5_4_mini', 4, ['small_talk'])], fixed(0.99))
     const ev = battle.submit({ type: 'fight', moveIndex: 0 })
     const dmg = ofType(ev, 'damage')[0]
     expect(dmg.side).toBe('enemy')
     expect(dmg.hpBefore - dmg.hpAfter).toBe(dmg.amount)
-    expect(dmg.effectiveness).toBe(2) // logic vs speed/tool: speed 1 x tool 2
+    expect(dmg.effectiveness).toBe(2) // zhipu beats openai
   })
 
   it('super effective text follows damage', () => {
-    const { battle } = setup([mon('glm', 7, ['logic_spark'])], [mon('command_a', 7, ['small_talk'])], fixed(0.99))
+    const { battle } = setup([mon('glm', 7, ['graph_reason'])], [mon('gpt_5_5', 7, ['small_talk'])], fixed(0.99))
     const ev = battle.submit({ type: 'fight', moveIndex: 0 })
     expect(ofType(ev, 'damage')[0].effectiveness).toBe(2)
     expect(texts(ev)).toContain("It's super effective!")
@@ -253,31 +253,31 @@ describe('EXP, level-up and learning moves', () => {
     const ups = ofType(ev, 'level_up')
     expect(ups[0].level).toBe(6)
     expect(ups[0].deltas.hp).toBe(ups[0].statsAfter.hp - ups[0].statsBefore.hp)
-    expect(ofType(ev, 'move_learned').map((m) => m.moveId)).toContain('tiny_myth')
-    expect(p.moves.map((m) => m.id)).toContain('tiny_myth')
+    expect(ofType(ev, 'move_learned').map((m) => m.moveId)).toContain('artifact')
+    expect(p.moves.map((m) => m.id)).toContain('artifact')
     expect(ev[ev.length - 1].type).toBe('battle_end')
   })
 
   it('prompts for a 5th move and supports replace and give-up', () => {
     for (const answer of [0, null] as const) {
-      const p = mon('glm', 6, ['graph_paw', 'pattern_guard', 'summarize', 'chain_of_thought'])
+      const p = mon('glm', 6, ['graph_paw', 'pattern_guard', 'summarize', 'thinking_mode'])
       p.exp = expForLevel('medium_slow', 7) - 1
       const e = mon('gemma_4', 3, ['small_talk'])
       e.hp = 1
       const { battle } = setup([p], [e], fixed(0.99))
       const ev = battle.submit({ type: 'fight', moveIndex: 0 })
       const prompt = ofType(ev, 'learn_move_prompt')[0]
-      expect(prompt).toMatchObject({ moveId: 'logic_spark', currentMoves: ['graph_paw', 'pattern_guard', 'summarize', 'chain_of_thought'] })
+      expect(prompt).toMatchObject({ moveId: 'graph_reason', currentMoves: ['graph_paw', 'pattern_guard', 'summarize', 'thinking_mode'] })
       expect(ev.indexOf(prompt)).toBeLessThan(ev.findIndex((x) => x.type === 'battle_end'))
-      expect(battle.getPrompt()).toMatchObject({ kind: 'learn_move', moveId: 'logic_spark', promptId: prompt.promptId })
+      expect(battle.getPrompt()).toMatchObject({ kind: 'learn_move', moveId: 'graph_reason', promptId: prompt.promptId })
       expect(battle.validate({ type: 'fight', moveIndex: 0 })).not.toBeNull()
       const res = battle.submit({ type: 'learn_move', forgetSlot: answer })
       if (answer === 0) {
-        expect(ofType(res, 'move_learned')[0]).toMatchObject({ moveId: 'logic_spark', forgotMoveId: 'graph_paw' })
-        expect(p.moves[0].id).toBe('logic_spark')
+        expect(ofType(res, 'move_learned')[0]).toMatchObject({ moveId: 'graph_reason', forgotMoveId: 'graph_paw' })
+        expect(p.moves[0].id).toBe('graph_reason')
       } else {
         expect(ofType(res, 'move_not_learned')).toHaveLength(1)
-        expect(p.moves.map((m) => m.id)).not.toContain('logic_spark')
+        expect(p.moves.map((m) => m.id)).not.toContain('graph_reason')
       }
       expect(battle.getPrompt().kind).toBe('end')
       expect(battle.result?.outcome).toBe('win')
@@ -337,7 +337,7 @@ describe('trainers', () => {
     const rng = createRng(3)
     const req = trainerBattleRequest('route_101_b', rng)
     expect(req.trainer?.name).toBe('Benchmarker Tiana')
-    const p = mon('glm', 30, ['proof_step'])
+    const p = mon('glm', 30, ['blank_infill'])
     const battle = new Battle({ request: req, party: [p], rng })
     const intro = battle.start()
     expect(texts(intro)[0]).toBe('Benchmarker Tiana would like to battle!')
@@ -365,7 +365,7 @@ describe('trainers', () => {
           selfHpFraction: 1,
           options: [
             { index: 0, moveId: 'autocomplete', expectedDamage: 5, effectUseful: false },
-            { index: 1, moveId: 'tool_tap', expectedDamage: 12, effectUseful: false },
+            { index: 1, moveId: 'function_call', expectedDamage: 12, effectUseful: false },
             { index: 2, moveId: 'small_talk', expectedDamage: 0, effectUseful: true },
           ],
         },

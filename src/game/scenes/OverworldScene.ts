@@ -890,7 +890,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     const key = `fx/emote_${kind === 'music' ? 'note' : kind}` // 'music' is an alias of 'note'
     if (kind === 'exclaim') audio.sfx('exclaim')
     const x = a.px
-    const y = a.py + TILE - 24 - 16
+    const y = a.py + TILE - 24 - 15 // bubble sits 1px into the frame top (new, smaller heads)
     const img = this.add.image(x, y + 4, this.textures.exists(key) ? key : 'fx/emote_exclaim').setOrigin(0, 0).setDepth(DEPTH.fx)
     const pop = ms(60)
     if (pop) {

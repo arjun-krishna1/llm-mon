@@ -41,3 +41,4 @@ export {
   STATUSES,
   type TypeId,
 } from '../../data/index.ts'
+export { BATTLE_DATA_VERSION, migrateMon, migrateSave, type MigrationReport } from './migrate.ts'

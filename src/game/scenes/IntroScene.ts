@@ -26,7 +26,8 @@ export class IntroScene extends Phaser.Scene implements IntroStage {
     this.drawSpotlight()
     this.prof = this.add.image(W / 2, 18, ensureTexture(this, 'battle/prof_front', 64, 96)).setOrigin(0.5, 0).setAlpha(0)
     this.mon = this.add.image(W / 2 + 56, 50, '__WHITE').setOrigin(0.5, 0).setVisible(false)
-    this.playerImg = this.add.image(W / 2, 70, 'chars/player', 0).setOrigin(0.5, 0).setAlpha(0)
+    // player portrait (64x96, same scale/placement as the professor), not the overworld sprite
+    this.playerImg = this.add.image(W / 2, 18, ensureTexture(this, 'battle/player_front', 64, 96)).setOrigin(0.5, 0).setAlpha(0)
     audio.playMusic('intro')
     void this.play()
   }

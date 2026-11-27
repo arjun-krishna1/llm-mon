@@ -79,16 +79,16 @@ describe('stats + exp curves', () => {
     expect(steps.map((s) => s.level)).toEqual([6, 7, 8])
     expect(mon.level).toBe(8)
     expect(mon.hp).toBeGreaterThan(hpBefore)
-    expect(steps.find((s) => s.level === 7)!.newMoves).toEqual(['tiny_myth'])
+    expect(steps.find((s) => s.level === 7)!.newMoves).toEqual(['artifact'])
   })
 
   it('learnMove appends, replaces and refuses duplicates', () => {
     const mon = createMon('glm', 5, createRng(1))
-    expect(learnMove(mon, 'logic_spark').learned).toBe(true)
-    expect(learnMove(mon, 'logic_spark').learned).toBe(false)
+    expect(learnMove(mon, 'graph_reason').learned).toBe(true)
+    expect(learnMove(mon, 'graph_reason').learned).toBe(false)
     learnMove(mon, 'summarize')
-    expect(learnMove(mon, 'proof_step').learned).toBe(false)
-    expect(learnMove(mon, 'proof_step', 0)).toEqual({ learned: true, forgot: 'graph_paw' })
+    expect(learnMove(mon, 'blank_infill').learned).toBe(false)
+    expect(learnMove(mon, 'blank_infill', 0)).toEqual({ learned: true, forgot: 'graph_paw' })
   })
 
   it('exp yield', () => {

@@ -4,6 +4,7 @@ import type { MonInstance, SaveData } from './types'
 import type { Dir } from './config'
 import { DEFAULT_PLAYER_NAME, SAVE_KEY, SAVE_VERSION } from './config'
 import { createMon, healMon } from './adapters/monInfo'
+import { migrateSave } from './battle/core/migrate'
 
 export type FlagValue = boolean | number | string
 
@@ -158,6 +159,7 @@ class GameState {
       if (!raw) return null
       const d = JSON.parse(raw) as SaveData
       if (!d || typeof d.version !== 'number' || !d.map) return null
+      migrateSave(d) // BATTLE-CORE: renamed move ids etc. (v1 -> v2); never throws
       return d
     } catch {
       return null

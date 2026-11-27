@@ -111,6 +111,7 @@ export function imageManifest(): ImageAsset[] {
     { key: 'battle/platform_player', w: 128, h: 32 },
     { key: 'battle/trainer_back', w: 256, h: 64, fw: 64, fh: 64 },
     { key: 'battle/prof_front', w: 64, h: 96 },
+    { key: 'battle/player_front', w: 64, h: 96 },
     { key: 'battle/trainer_m_front', w: 64, h: 64 },
     { key: 'battle/trainer_f_front', w: 64, h: 64 },
     { key: 'battle/rival_front', w: 64, h: 64 },

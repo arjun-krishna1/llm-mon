@@ -80,9 +80,9 @@ describe('species data', () => {
   })
 
   it('starters form a type triangle through their primary types', () => {
-    expect(getSpecies('claude_fable').types[0]).toBe('myth')
-    expect(getSpecies('gpt_5_5').types[0]).toBe('tool')
-    expect(getSpecies('glm').types[0]).toBe('logic')
+    expect(getSpecies('claude_fable').types[0]).toBe('anthropic')
+    expect(getSpecies('gpt_5_5').types[0]).toBe('openai')
+    expect(getSpecies('glm').types[0]).toBe('zhipu')
     expect(getSpecies('hallucihound').types).toEqual(['glitch'])
   })
 
