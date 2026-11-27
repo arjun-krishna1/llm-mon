@@ -36,6 +36,9 @@ tools/maps/testmap.py         public/assets/game/maps/_test.tmj
 | `&fast=1` | instant text, no fades/slides (automated playtests) |
 | `&new=1` | ignore the save (Continue is hidden; the debug map boot starts fresh) |
 | `?audiotest=1` | AUDIO's test harness (`src/game/audio/dev/audiotest`) |
+| `?touch=1` / `?touch=0` | force the on-screen touch controls on / off (default: shown on coarse-pointer devices) |
+
+`__llmmon.runScript(id)` runs a registered script (returns a Promise).
 
 With `?debug=1`, `window.__llmmon` exposes:
 
@@ -79,6 +82,8 @@ export const content: ContentConfig = {
   namePresets: ['Arjun', 'Maya', 'Kai', 'Noor'],
   startMoney: 3000,
   whiteOutScript: 'center.after_whiteout',  // optional line(s) after a white-out respawn (player faces up)
+  endCard: { title: 'LLMMON MYTHOS', subtitle: 'Vertical Slice', continued: 'To be continued…',
+    credits: ['DESIGN', 'Someone', '', 'THANK YOU FOR PLAYING'] }, // ALL-CAPS lines render as headings
 }
 
 registerScript('hv.old_man', async (s: ScriptApi) => {
@@ -100,7 +105,9 @@ Text and choices
 | `say(text, opts?)` | 2-line box, typewriter, ▼, A/B advance, hold A to speed up. `\n` line break, `\f` page break, auto word-wrap, long pages scroll up line by line. `{player}`, `{money}` and `opts.vars` substitution. `opts`: `{ speaker?, color?: 'default'|'blue'|'red'|'grey'|'accent', silent?, autoMs?, keepOpen? }`. `say(text, 'Mom')` = speaker shorthand (name plate). |
 | `choice(prompt, options, opts?)` → index | prompt stays on screen, list in the bottom-right. B returns the last option (or `opts.cancelIndex`; `null` disables B). |
 | `yesNo(prompt)` → boolean | |
-| `chooseName(prompt, presets)` → string | sets `state.playerName` |
+| `chooseName(prompt, presets?)` → string | letter-grid naming screen (icon: player; presets via a "PICK A NAME FOR ME" row); sets `state.playerName` |
+| `nameEntry({ title, initial?, max = 8, icon?, presets? })` → string | the same screen for anything else (nicknames). Empty input confirms `initial`. |
+| `endCard()` | fade out, stop the overworld, show the end card (title, "To be continued…", play time, caught, credit roll from `content.endCard`), music `ending` if registered else `title`, then the title screen. The save is untouched — save first if wanted. |
 | `banner(text)` | area-name banner |
 
 World
@@ -267,6 +274,38 @@ the screen are centred.
 Depths: tile layers 0..n, shadows 50, characters 100 + feet y, `over` layers
 10000+, fx 20000. UI scene above, Battle scene above that.
 
+## 5a. Input devices, scaling, options
+
+- **Keyboard**, **touch** and **gamepad** all go through `controls.pressCode(code)` /
+  `releaseCode(code)` (`KeyboardEvent.code`, `V:<button>` for touch, `G:<button>` for pads).
+- **Touch** (`src/game/touch.ts`): DOM D-pad, A, B, START outside the canvas, in the UI frame
+  colours. Landscape: D-pad left / A-B right of the canvas; portrait: canvas on top, controls
+  below (handheld). Multi-touch (D-pad + B to run), sliding between D-pad directions.
+- **Gamepad** (standard mapping, polled each frame): d-pad / left stick, A = button 0,
+  B = 1 or 2, START = 9 or 8.
+- **Scaling**: the largest whole number of *device* pixels per game pixel that fits
+  (desktop: integer CSS scale; a phone at dpr 3 gets e.g. 4 device px = 320 CSS px wide),
+  after reserving the touch-control area. Canvas placed on whole device pixels.
+- **iframes**: any pointerdown focuses the window + canvas (keyboard works in sandboxed previews)
+  and unlocks audio.
+- **Options** (`src/game/options.ts`, localStorage `llmmon_mythos_options_v1`, separate from the
+  save, applied at boot): `textSpeed` slow/mid/fast (4/2/1 frames per char; hold A still speeds
+  up), `music` / `sfx` 0–10 → `audio.setVolume`. Screen: `OptionsScreen`, reachable from the title
+  menu and the start menu (`ui.openOptions()`).
+
+## 5b. Start menu entries (extension point)
+
+`src/game/ui/startMenu.ts` → `START_MENU_ENTRIES`. Add one object (or call
+`registerStartMenuEntry` from an imported module):
+
+```ts
+{ id: 'dex', label: () => 'PROMPTDEX', order: 5, when: () => state.flag('got_dex'),
+  screen: (ui) => new PromptDexScreen(ui, ui.stack).run() }
+```
+
+`screen` entries open full-screen with fades and come back to the menu; `action` entries run a
+flow and close the menu. Built-in orders: party 10, bag 30, card 40, save 50, options 60, exit 99.
+
 ## 5. UI kit (for BATTLE-UI and screens)
 
 All UI is bitmap text + 9-slice windows at 1×. Everything below can be used
@@ -339,6 +378,10 @@ From any scene you can also use the global UI scene:
 `Battle`, so from the battle scene prefer constructing `PartyScreen` /
 `BagScreen` (in `ui/screens/`) on your own stack — they take `(scene, stack, opts)`
 and have `.run()`.
+
+Naming screen from any scene (e.g. a nickname after a catch in BattleScene):
+`await new NameEntryScreen(this, this.stack, { title: 'Nickname for Gemma 4?', initial: 'Gemma 4', max: 10, icon: 'mons/gemma_4_icon' }).run()`
+(resolves with the text; `initial` if confirmed empty). Overworld/scripts: `getUI(game).nameEntry(opts)` / `s.nameEntry(opts)`.
 
 Drawing helpers (`ui/draw.ts`): `drawHpBar(g, x, y, w, frac, h?)` (green →
 yellow ≤50% → red ≤20%), `drawExpBar`, `drawPanel`, `drawStripes`.
