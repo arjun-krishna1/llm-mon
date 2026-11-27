@@ -143,13 +143,13 @@ Typical text around events:
 
 ```
 A wild Gemma 4 appeared! / Go! GLM!
-GLM used Logic Spark! [move_used][move_anim][damage] A critical hit! It's super effective!
+GLM used Graph Reason! [move_used][move_anim][damage] A critical hit! It's super effective!
 Wild Gemma 4's Defense harshly fell!          Claude Fable's Defense won't go any higher!
 Wild Gemma 4 fainted! [faint]  GLM gained 23 EXP! [exp_gain]
-[level_up] GLM grew to Lv. 7!  GLM learned Logic Spark! [move_learned]
-   or: GLM wants to learn Logic Spark! / But GLM already knows four moves. [learn_move_prompt]
-       -> answer: 1, 2 and... Poof! / GLM forgot Graph Paw. [move_learned] / And GLM learned Logic Spark!
-       -> null:   [move_not_learned] GLM did not learn Logic Spark.
+[level_up] GLM grew to Lv. 7!  GLM learned Graph Reason! [move_learned]
+   or: GLM wants to learn Graph Reason! / But GLM already knows four moves. [learn_move_prompt]
+       -> answer: 1, 2 and... Poof! / GLM forgot Graph Paw. [move_learned] / And GLM learned Graph Reason!
+       -> null:   [move_not_learned] GLM did not learn Graph Reason.
 You threw a Prompt Orb! [catch_throw][catch_shake]x3[catch_result] Gotcha! Gemma 4 was caught!
 You defeated Young Founder Calvin! [trainer_reappear] My demo crashed on stage... / You got 96 tokens for winning!
 You're out of LLMMON that can battle! / You hurried back to safety...
@@ -159,41 +159,117 @@ You're out of LLMMON that can battle! / You hurried back to safety...
 
 ## 4. Types
 
-Ids (also the chip ids: `public/assets/game/ui/type_<id>.png`, 32×12):
+Types are the **labs** that make the models, plus `classic` and `glitch`. One type
+per species. Ids (also the chip ids: `public/assets/game/ui/type_<id>.png`, 32×12):
 
-`neutral` `myth` `logic` `tool` `speed` `open` `vision` `glitch`
+`anthropic` `openai` `google` `zhipu` `deepseek` `mistral` `moonshot` `cohere` `classic` `glitch`
 
-| id | name | short | suggested colour | flavour |
-| --- | --- | --- | --- | --- |
-| neutral | Neutral | NEU | #a8a29a | plain completions |
-| myth | Myth | MYT | #e08a3c | stories, character, persuasion |
-| logic | Logic | LOG | #3fae8a | proofs, graphs, reasoning |
-| tool | Tool | TOL | #3a8fd8 | function calls, search |
-| speed | Speed | SPD | #f2c94c | low latency, small models |
-| open | Open | OPN | #7bbf4a | open weights, sturdy |
-| vision | Vision | VIS | #b86fd6 | multimodal eyes |
-| glitch | Glitch | GLT | #d6456a | hallucinations, corruption |
+| id | name | code | chip colour |
+| --- | --- | --- | --- |
+| anthropic | Anthropic | ANT | #d0642a (ROOF_ORANGE) |
+| openai | OpenAI | OAI | #2a9490 (ROOF_TEAL) |
+| google | Google | GGL | #3f6cc0 (ROOF_BLUE) |
+| zhipu | Zhipu | ZHP | #6c54bc (ROOF_VIOLET) |
+| deepseek | DeepSeek | DSK | #40507c (UI_FRAME) |
+| mistral | Mistral | MST | #e8b830 (CLOTH_YELLOW) |
+| moonshot | Moonshot | MSH | #58b257 (GRASS) |
+| cohere | Cohere | COH | #946240 (WOOD) |
+| classic | Classic | CLS | #84808e (ROCK) |
+| glitch | Glitch | GLT | #c83c44 (CLOTH_PINK/RED) |
 
-Starter triangle: **myth > logic > tool > myth** (Claude Fable > GLM > GPT 5.5 > Claude Fable).
-"A good story beats a proof; reasoning outsmarts a tool loop; grounding with tools debunks a myth."
+`TYPES[id]` has `name`, `short` (code), `color`, `blurb`.
+
+**The whole rule:** every lab beats exactly two labs and is beaten by exactly two.
+If A beats B, A's moves are 2× on B and B's moves are ½× on A. Nothing else among
+labs. `classic` is 1× both ways (basic moves; later the component/historic
+creatures like Perceptron and SGD). `glitch` is weak to every lab ("any real lab
+can fact-check a hallucination"), hits `classic` 2× and resists itself. No immunities.
+
+Starter triangle: **Anthropic > Zhipu > OpenAI > Anthropic** (Claude Fable > GLM > GPT 5.5 > Claude Fable).
+
+The 16 arrows (`LAB_BEATS`, with Notebook reasons; `matchupReason(atk, def)` returns them):
+
+| arrow | reason |
+| --- | --- |
+| Anthropic > Zhipu | A good story beats a proof: GLM gets lost in the plot. |
+| Anthropic > Google | Claude asks Gemini for a source, and Gemini stops to search. |
+| OpenAI > Anthropic | GPT fact-checks Claude's fable with a tool call mid-story. |
+| OpenAI > Mistral | Function calls cut straight through the wind. |
+| Google > DeepSeek | Search goes so deep it finds the bottom of any sea. |
+| Google > Moonshot | A big telescope spots every moonshot before launch. |
+| Zhipu > OpenAI | GLM maps the call graph before GPT finishes calling. |
+| Zhipu > Moonshot | GLM graphs the moon's orbit and waits where Kimi lands. |
+| DeepSeek > OpenAI | It thinks out loud for so long GPT runs out of effort. |
+| DeepSeek > Cohere | A deep dive surfaces the answer before the rerank. |
+| Mistral > Zhipu | A cool mistral breeze scatters the carefully drawn graph. |
+| Mistral > DeepSeek | Wind from Paris whips the deep water into waves. |
+| Moonshot > Anthropic | Claude stops mid-sentence to admire the moon. |
+| Moonshot > Cohere | Kimi reads every document before Command can sort them. |
+| Cohere > Mistral | Clear commands: even the wind follows instructions. |
+| Cohere > Google | Rerank shuffles Google's results and it gets flustered. |
 
 Chart (row = attacking move type, column = defender; blank = 1×):
 
-| atk \ def | neu | myth | logic | tool | speed | open | vision | glitch |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| **neutral** | | | | | | | | |
-| **myth** | | ½ | 2 | ½ | | 2 | | |
-| **logic** | | ½ | ½ | 2 | | | | 2 |
-| **tool** | | 2 | ½ | | 2 | ½ | | |
-| **speed** | | | | | ½ | ½ | 2 | 2 |
-| **open** | | | | 2 | 2 | | ½ | |
-| **vision** | | 2 | | | ½ | | | 2 |
-| **glitch** | 2 | | 2 | | | ½ | 2 | ½ |
+| atk \ def | ANT | OAI | GGL | ZHP | DSK | MST | MSH | COH | CLS | GLT |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **Anthropic** |  | ½ | 2 | 2 |  |  | ½ |  |  | 2 |
+| **OpenAI** | 2 |  |  | ½ | ½ | 2 |  |  |  | 2 |
+| **Google** | ½ |  |  |  | 2 |  | 2 | ½ |  | 2 |
+| **Zhipu** | ½ | 2 |  |  |  | ½ | 2 |  |  | 2 |
+| **DeepSeek** |  | 2 | ½ |  |  | ½ |  | 2 |  | 2 |
+| **Mistral** |  | ½ |  | 2 | 2 |  |  | ½ |  | 2 |
+| **Moonshot** | 2 |  | ½ | ½ |  |  |  | 2 |  | 2 |
+| **Cohere** |  |  | 2 |  | ½ | 2 | ½ |  |  | 2 |
+| **Classic** |  |  |  |  |  |  |  |  |  |  |
+| **Glitch** |  |  |  |  |  |  |  |  | 2 | ½ |
 
-Mnemonics: open weights wear down tools and sprinters; speed outruns vision and
-glitches; vision sees through myths and glitches; glitch corrupts plain models,
-logic and vision but can't fool inspectable open weights. Dual types multiply
-(0.25×–4×). No immunities in the chart.
+**Adding a lab later** (Meta, xAI, Alibaba, Microsoft): pick two arrows A > B and
+C > D among four different labs and replace them with A > X > B and C > X > D.
+X beats two and loses to two; every other lab keeps its own two-and-two.
+
+### Moves by type
+
+| type | moves (power; status moves have none) |
+| --- | --- |
+| Anthropic | Artifact 40, Extended Thinking 70, Constitution |
+| OpenAI | Function Call 40, Reasoning Effort 75, Custom Instruction |
+| Google | Multimodal Beam 40, Grounding 65, Long Context, TPU Slam 80 |
+| Zhipu | Graph Reason 40, Blank Infill 70, Thinking Mode |
+| DeepSeek | Expert Mix 50, Deep Think 75, Distill |
+| Mistral | Tailwind 40 (+1), Le Chat 60, Cool Breeze |
+| Moonshot | Agent Swarm 50, Moonshot 85, Orbit |
+| Cohere | Retrieval 50, Rerank 65, Command |
+| Classic | Warm Nudge 40, Prompt Pulse 40, Graph Paw 40, Autocomplete 40, Quick Reply 40 (+1), Small Talk, Pattern Guard, Jailbreak, Guardrail, Focus Token, Summarize, Long Preamble, Rate Limit, Retry Loop 50 |
+| Glitch | Glitch Bite 40, Static Howl, Confabulate 40, Fake Citation, Prompt Injection, Token Flood 80 |
+
+Each lab's top move is its family signature (Extended Thinking, Reasoning Effort,
+Grounding, Blank Infill, Deep Think, Le Chat, Moonshot, Rerank).
+
+### Renamed in data v2 (save migration)
+
+`migrateSave(save)` (called by `GameState.readSave`, SAVE_VERSION 2) maps these ids
+for saves with `version < 2`, drops unknown ids, clamps PP/HP/IVs/level, clears
+non-persistent statuses and relearns level-appropriate moves if none are left.
+It never throws. Types are not stored in saves.
+
+| old id | new id | name |
+| --- | --- | --- |
+| `tiny_myth` | `artifact` | Artifact |
+| `fable_flame` | `extended_thinking` | Extended Thinking |
+| `logic_spark` | `graph_reason` | Graph Reason |
+| `proof_step` | `blank_infill` | Blank Infill |
+| `chain_of_thought` | `thinking_mode` | Thinking Mode |
+| `tool_tap` | `function_call` | Function Call |
+| `function_call` | `reasoning_effort` | Reasoning Effort |
+| `web_search` | `grounding` | Grounding |
+| `low_latency` | `tailwind` | Tailwind |
+| `burst_decode` | `le_chat` | Le Chat |
+| `overclock` | `cool_breeze` | Cool Breeze |
+| `fork_strike` | `expert_mix` | Expert Mix |
+| `weight_drop` | `tpu_slam` | TPU Slam |
+| `community_patch` | `long_context` | Long Context |
+| `pixel_beam` | `multimodal_beam` | Multimodal Beam |
+| `flash_frame` | `grounding` | Grounding |
 
 ## 5. Statuses
 
@@ -255,24 +331,35 @@ runs off: `defeatText` replaces "X fainted!" and the `faint` event has `fled: tr
 
 ## 8. Roster
 
-| # | id | name | types | BST | catch | growth | Lv1 moves → notable later |
+| # | id | name | type | HP/Atk/Def/SpA/SpD/Spe | BST | catch | Lv1 moves → later |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | claude_fable | Claude Fable | myth | 312 | 45 | medium_slow | Warm Nudge, Guardrail → Tiny Myth (7), Constitution (11) |
-| 2 | gpt_5_5 | GPT 5.5 | tool | 310 | 45 | medium_slow | Autocomplete, Focus Token → Tool Tap (7), Jailbreak (11) |
-| 3 | glm | GLM | logic | 310 | 45 | medium_slow | Graph Paw, Pattern Guard → Logic Spark (7), Chain of Thought (11) |
-| 4 | gemma_4 | Gemma 4 | open | 252 | 190 | medium_fast | Autocomplete, Small Talk → Fork Strike (5) |
-| 5 | gpt_5_4_mini | GPT-5.4 mini | speed/tool | 242 | 200 | fast | Autocomplete, Small Talk → Low Latency (5) |
-| 6 | mistral_medium | Mistral Medium | speed/open | 260 | 170 | medium_fast | Autocomplete, Jailbreak → Low Latency (5) |
-| 7 | gemini_flash | Gemini Flash | speed/vision | 284 | 75 | medium_fast | Prompt Pulse, Small Talk → Low Latency (5), Pixel Beam (7) |
-| 8 | claude_haiku | Claude Haiku | myth/speed | 298 | 60 | medium_slow | Warm Nudge, Quick Reply → Tiny Myth (6) |
-| 9 | hallucihound | HalluciHound | glitch | 252 | 190 | medium_fast | Glitch Bite, Static Howl → Confabulate (5), Fake Citation (9) |
-| 10-16 | claude_opus, command_a, deepseek_flash, deepseek_pro, glm_max, gpt_5_5_xhigh, kimi | | later-game, BST 350-512 | | | | |
+| 1 | claude_fable | Claude Fable | Anthropic | 52/42/55/62/60/41 | 312 | 45 | Warm Nudge, Guardrail → Artifact (7), Constitution (11), Summarize (15) |
+| 2 | gpt_5_5 | GPT 5.5 | OpenAI | 46/60/46/52/45/61 | 310 | 45 | Autocomplete, Focus Token → Function Call (7), Jailbreak (11), Custom Instruction (15) |
+| 3 | glm | GLM | Zhipu | 53/44/52/62/52/50 | 313 | 45 | Graph Paw, Pattern Guard → Graph Reason (7), Thinking Mode (11), Summarize (15) |
+| 4 | gemma_4 | Gemma 4 | Google | 52/36/50/40/50/28 | 256 | 190 | Autocomplete, Small Talk → Multimodal Beam (4), Long Context (8), Grounding (12) |
+| 5 | gpt_5_4_mini | GPT-5.4 mini | OpenAI | 34/40/30/36/30/68 | 238 | 200 | Autocomplete, Small Talk → Function Call (4), Quick Reply (7), Custom Instruction (11) |
+| 6 | mistral_medium | Mistral Medium | Mistral | 42/40/40/42/38/56 | 258 | 170 | Autocomplete, Jailbreak → Tailwind (4), Le Chat (8), Cool Breeze (12) |
+| 7 | gemini_flash | Gemini Flash | Google | 38/34/34/54/40/78 | 278 | 75 | Prompt Pulse, Small Talk → Multimodal Beam (4), Quick Reply (7), Grounding (11) |
+| 8 | claude_haiku | Claude Haiku | Anthropic | 40/40/38/56/46/74 | 294 | 60 | Warm Nudge, Quick Reply → Artifact (4), Constitution (9), Extended Thinking (14) |
+| 9 | hallucihound | HalluciHound | Glitch | 44/46/36/44/32/50 | 252 | 190 | Glitch Bite, Static Howl → Confabulate (5), Fake Citation (9), Prompt Injection (13) |
+| 10 | claude_opus | Claude Opus | Anthropic | 92/68/85/112/100/55 | 512 | 25 | Warm Nudge, Guardrail, Artifact, Constitution → Extended Thinking (34), Summarize (40) |
+| 11 | command_a | Command A | Cohere | 80/70/82/70/74/50 | 426 | 90 | Autocomplete, Focus Token, Retrieval, Command → Rerank (26), Summarize (32) |
+| 12 | deepseek_flash | DeepSeek Flash | DeepSeek | 56/56/50/62/48/80 | 352 | 120 | Autocomplete, Quick Reply, Expert Mix → Distill (16), Deep Think (22) |
+| 13 | deepseek_pro | DeepSeek Pro | DeepSeek | 88/70/84/100/84/48 | 474 | 45 | Expert Mix, Graph Paw, Pattern Guard → Distill (28), Deep Think (33), Summarize (42) |
+| 14 | glm_max | GLM Max | Zhipu | 82/70/82/102/84/66 | 486 | 45 | Graph Paw, Graph Reason, Thinking Mode → Blank Infill (30), Summarize (36) |
+| 15 | gpt_5_5_xhigh | GPT 5.5 xhigh | OpenAI | 82/110/76/106/76/45 | 495 | 25 | Function Call, Focus Token, Custom Instruction → Reasoning Effort (32), Quick Reply (40) |
+| 16 | kimi | Kimi | Moonshot | 76/78/72/82/70/62 | 440 | 60 | Agent Swarm, Orbit, Small Talk → Summarize (29), Moonshot (34) |
 
 Route 101 (`route_101`, 10% per grass step): Gemma 4 35%, GPT-5.4 mini 35%,
-Mistral Medium 25% (Lv2-4), Gemini Flash 5% (Lv3-4). Route wilds only know
-neutral moves below Lv5, so the starter's type advantage is what changes.
-Trainers: `route_101_a` Young Founder Calvin (Gemma 4 Lv4, 96 tokens),
-`route_101_b` Benchmarker Tiana (GPT-5.4 mini Lv3, Mistral Medium Lv4, 120 tokens).
+Mistral Medium 25% (Lv2-4), Gemini Flash 5% (Lv3-4). Every wild learns its lab move
+at Lv4, so the chart matters on the route: Claude Fable beats Gemma/Gemini, GLM
+beats GPT-5.4 mini, GPT 5.5 beats Mistral; GPT-5.4 mini threatens Claude Fable and
+Mistral threatens GLM.
+Trainers (each shows every starter a super-effective interaction):
+`route_101_a` Young Founder Calvin (Gemma 4 Lv3, Mistral Medium Lv4, 96 tokens),
+`route_101_b` Benchmarker Tiana (Mistral Medium Lv3, GPT-5.4 mini Lv4, 120 tokens).
+Rival Dana (`rival_dana_<her starter>`): her counter-starter Lv5 (rematch Lv4) at
+full PP + a Lv4 catch your starter beats.
 
 Expected progression: tutorial (+15 EXP) + ~4 wilds or one trainer → Lv7
-(type move); both trainers + a few wilds → Lv8-9 at SoMa Node.
+(lab move); both trainers + a few wilds → Lv8-9 at SoMa Node.

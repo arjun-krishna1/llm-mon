@@ -9,6 +9,7 @@ import {
   STATUSES,
   TRAINERS,
   TYPE_IDS,
+  LAB_TYPE_IDS,
   getMove,
   getSpecies,
 } from '../index.ts'
@@ -77,6 +78,22 @@ describe('species data', () => {
       const stab = s.learnset.find((e) => e.level >= 7 && e.level <= 8 && getMove(e.move).type === s.types[0])
       expect(stab, id).toBeDefined()
     }
+  })
+
+  it('every Route 101 wild knows a move of its own lab by Lv4', () => {
+    for (const slot of ENCOUNTER_TABLES.route_101.slots) {
+      const sp = getSpecies(slot.speciesId)
+      expect(defaultMovesAt(sp, 4).some((id) => getMove(id).type === sp.types[0]), sp.id).toBe(true)
+    }
+  })
+
+  it('every lab type has 3-4 moves and every species is single-typed', () => {
+    for (const lab of LAB_TYPE_IDS) {
+      const n = Object.values(MOVES).filter((m) => m.type === lab).length
+      expect(n, lab).toBeGreaterThanOrEqual(3)
+      expect(n, lab).toBeLessThanOrEqual(4)
+    }
+    for (const s of Object.values(SPECIES)) expect(s.types).toHaveLength(1)
   })
 
   it('starters form a type triangle through their primary types', () => {
