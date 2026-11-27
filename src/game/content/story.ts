@@ -365,13 +365,13 @@ def('route.rescue', async (s) => {
   await s.emote('hound', 'dots')
   s.resumeMapMusic()
   // follow it for a beat while the professor reacts
-  const flee = s.move('hound', 'up 3')
-  void s.cameraPan(0, -3, 700)
+  const flee = s.move('hound', 'up 2', { speed: 'slow' })
+  void s.cameraPan(0, -4, 700)
   await s.wait(250)
   s.face('prof', 'up')
   await line(s, PROF, 'Phew... Look at it run!')
   await flee
-  await Promise.all([s.move('hound', 'up 3', { speed: 'run' }), s.cameraPan(0, -2, 600)])
+  await Promise.all([s.move('hound', 'up 4', { speed: 'run' }), s.cameraPan(0, -2, 600)])
   s.despawn('hound')
   await s.wait(200)
   // the professor collects his satchel

@@ -419,8 +419,10 @@ class MapDef:
         return self.obj('npc', x, y, name=id, id=id, sprite=sprite, script=script, facing=facing,
                         movement=movement, **kw)
 
-    def sign(self, x, y, text=None, script=None, name=''):
-        return self.obj('sign', x, y, name=name, text=text, script=script)
+    def sign(self, x, y, text=None, script=None, name='', anySide=None):
+        """Readable object. The engine reads signs only when facing up (from below)
+        unless `anySide` is set (furniture, stumps, machines...)."""
+        return self.obj('sign', x, y, name=name, text=text, script=script, anySide=anySide)
 
     def trigger(self, x, y, w, h, script=None, once=None, ifFlag=None, unlessFlag=None, name=''):
         return self.obj('trigger', x, y, w, h, name=name or script or once, script=script, once=once,

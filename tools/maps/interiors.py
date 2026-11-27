@@ -80,7 +80,7 @@ def counter(m, kind, x0, x1, y, register_at=None):
 
 def signs(m, cells, script):
     for (x, y) in cells:
-        m.sign(x, y, script=script)
+        m.sign(x, y, script=script, anySide=True)
 
 
 # ----------------------------------------------------------------------------- rooms

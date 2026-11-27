@@ -186,8 +186,8 @@ def run(maps, strict_scripts=False):
                     W(m, 'conditional npc %r not reachable (check)' % o['name'])
                 else:
                     E(m, 'npc %r at %d,%d cannot be talked to' % (o['name'], x, y))
-            elif t == 'sign' and not near(m, x, y):
-                E(m, 'sign at %d,%d cannot be read' % (x, y))
+            elif t == 'sign' and not (near(m, x, y) if o['props'].get('anySide') else reach(m.id, x, y + 1)):
+                E(m, 'sign at %d,%d cannot be read%s' % (x, y, '' if o['props'].get('anySide') else ' from below (set anySide)'))
             elif t == 'item' and not near(m, x, y) and not reach(m.id, x, y):
                 E(m, 'item %r unreachable' % o['name'])
             elif t == 'trigger' and not any(reach(m.id, cx, cy) for cx, cy in cells(o)):

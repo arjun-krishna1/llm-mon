@@ -206,7 +206,7 @@ def objects(m):
     m.trigger(20, 86, 4, 1, 'route.rescue', unlessFlag='rescue_done')
 
     # ---------------------------------------------------------------- Route 101
-    m.sign(19, 84, script='route.sign_south')
+    m.sign(19, 84, script='route.sign_south', anySide=True)
     m.sign(23, 38, script='route.sign_north')
     m.npc('rt_tiana', 24, 39, 'trainer_f', facing='left', sight=4,
           trainer='route_101_b')
@@ -220,7 +220,7 @@ def objects(m):
     m.item(21, 49, 'patch', 'item_route_hidden_patch', hidden=True)
     m.item(10, 65, 'patch', 'item_route_patch')
     m.item(29, 79, 'debugger', 'item_route_debugger')
-    m.sign(18, 82, script='route.field_notes')   # on the stump itself
+    m.sign(18, 82, script='route.field_notes', anySide=True)   # on the stump itself
     m.tile('detail2', 19, 82, 'notes', tileset='props')
     m.tile('detail2', 18, 83, 'notes', tileset='props')
     m.npc('rt_hiker', 31, 57, 'man', script='route.hiker', facing='left', movement='look')

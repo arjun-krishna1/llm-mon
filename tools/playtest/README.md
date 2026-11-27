@@ -23,7 +23,7 @@ node tools/playtest/run.cjs --fast
   --seed N            RNG seed (default 7)            --starter glm|claude_fable|gpt_5_5
   --no-build          reuse tools/playtest/out/dist   --dist DIR   --port 5191
   --out DIR           output dir (default out/run, out/run_quick, out/run_fast)
-  --until SEGMENT     stop after a segment (title, intro, arrival, home_1f, home_2f, mom_lab_call,
+  --until SEGMENT     stop after a segment (title, intro, arrival, home_1f, home_2f, leave_home,
                       hayes_valley, neighbor, lab_aide, rescue, lab_after, route_101_south,
                       route_101_grass, route_101_mid, route_101_ledge, route_101_north,
                       start_menu, soma_node, model_center, token_mart, soma_house, soma_north,
