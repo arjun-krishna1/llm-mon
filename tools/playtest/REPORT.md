@@ -272,3 +272,31 @@ the hero in the story's key scene) and a slow-ish first 4 minutes.
    - start-menu cursor memory;
    - bigger run dust;
    - a touch more contrast between tall grass and short grass at 1×.
+
+# Round 3 — lead playthrough review and build list
+
+Reviewed every beat of the latest full run (seed 3, GLM; `out/fsheet_*.png`).
+The slice is solid; what separates it from a GBA-era release now is missing
+genre features and a thin climax, not bugs.
+
+## Additions
+1. Rival: neighbour Dana gets the starter that beats yours and fights you at the
+   north end of Route 101 — the slice's climax and the first battle where type
+   matchups matter.
+2. Name entry screen (letter grid) for the player, and nickname prompt after a catch.
+3. PromptDex screen in the start menu (seen/caught list, entry page).
+4. Model Storage System: working deposit/withdraw at the Model Center terminal.
+5. Options (text speed, music/sfx volume) from the title and start menus.
+6. Touch controls (D-pad, A, B, Start) and gamepad support — the live site is opened on phones.
+7. Per-species cries on send-out and faint; an ending tune.
+8. End card after the end-of-slice sign (short credits, "To be continued").
+9. Title screen life: drifting clouds, logo shine, blinking PRESS START.
+
+## Improvements
+10. SoMa Node should read as a city: paved plaza/streets, two more building
+    types, street props; less open lawn in its southern half.
+11. Home bed is one tile wide; make it 2 tiles.
+12. Trainer battles: "super effective" moments are rare before Lv7 because
+    wilds only use neutral moves — the rival fight fixes the showcase; also
+    give route trainers one type move each.
+13. Capital W in the dialogue font is legible but blocky.

@@ -16,7 +16,7 @@ node tools/playtest/run.cjs
 # same, but the harness does not pause to "read" (game still runs at normal speed)
 node tools/playtest/run.cjs --quick
 
-# game in ?fast=1 (instant text, no fades). NOTE: currently breaks at the rescue, see REPORT.md
+# game in ?fast=1 (instant text, no fades).
 node tools/playtest/run.cjs --fast
 
 # options
