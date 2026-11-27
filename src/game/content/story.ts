@@ -383,3 +383,13 @@ def('route.rescue', async (s) => {
   await s.warp('lab', 'prof_talk', 'up')
   await labDex(s)
 })
+
+// ============================================================================ white-out
+// Runs after the engine has healed the party and respawned the player (facing up).
+def('story.after_whiteout', async (s) => {
+  if (s.mapId === 'center') {
+    await line(s, 'Nurse', 'Oh my, you look like you ran out of tokens!', 'We\u2019ve restored your LLMMON. Take it slow out there, okay?')
+  } else {
+    await line(s, MOM, 'Oh, {player}! You look like you\u2019ve been rate-limited.', 'Sit down, sweetie. I\u2019ve already patched everyone up.')
+  }
+})

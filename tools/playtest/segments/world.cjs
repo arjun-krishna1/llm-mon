@@ -40,8 +40,7 @@ module.exports = async function world(ctx) {
     g.handlers = {}
     await g.readAt(14, 98) // mailbox
     await g.shot('hayes_mailbox_read', 'Read the mailbox')
-    await g.readAt(17, 97) // truck
-    await g.talkTo('hv_mover')
+    // the truck and hv_mover leave during the arrival (hidden by flag 'arrived'), so neither is visited here
     await g.readAt(18, 91) // town sign
     await g.shot('hayes_sign', 'Hayes Valley sign')
     await g.talkTo('hv_boy')

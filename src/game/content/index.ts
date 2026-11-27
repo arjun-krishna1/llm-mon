@@ -18,4 +18,5 @@ export const content: ContentConfig = {
   newGameScript: 'story.arrival',
   namePresets: ['Arjun', 'Maya', 'Kai', 'Noor', 'Theo'],
   startMoney: 3000,
+  whiteOutScript: 'story.after_whiteout',
 }
