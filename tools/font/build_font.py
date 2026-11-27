@@ -49,7 +49,7 @@ DIALOG = {
     'T': '##### ..#.. ..#.. ..#.. ..#.. ..#.. ..#.. ..#.. ..#..',
     'U': '#...# #...# #...# #...# #...# #...# #...# #...# .###.',
     'V': '#...# #...# #...# #...# #...# .#.#. .#.#. .#.#. ..#..',
-    'W': '#.....# #.....# #.....# #..#..# #..#..# #..#..# #.#.#.# #.#.#.# .#...#.',
+    'W': '#.....# #.....# #.....# #.....# #..#..# #..#..# #.#.#.# ##...## #.....#',
     'X': '#...# #...# .#.#. .#.#. ..#.. .#.#. .#.#. #...# #...#',
     'Y': '#...# #...# #...# .#.#. .#.#. ..#.. ..#.. ..#.. ..#..',
     'Z': '##### ....# ...#. ...#. ..#.. .#... .#... #.... #####',
@@ -319,7 +319,7 @@ def preview(name, meta, img, sample_lines, scale=4):
 def main():
     img, meta = build('dialog', DIALOG, ascent=9, descent=2, line_height=16, space_adv=4, kerning=kern_pairs(DIALOG))
     preview('dialog', meta, img, [
-        'Welcome! Wow, Tall Yaks. MAKE QUIRKS',
+        'Welcome! Wild What will WHM Wow MAKE',
         'GROWN wow WW ww Mom & Kai? Rosa',
         'The quick brown fox jumps over',
         'THE LAZY DOG! 0123456789',
