@@ -80,6 +80,29 @@ PROMPTS = {
     'ext_bench': ("A single park bench for a GBA-era RPG overworld, 2 tiles wide and 1 tile tall, seen "
         "from the front at a slight top-down angle: three warm wooden slats for the seat and a "
         "backrest, dark iron legs and armrests.", []),
+    'ext_fountain': ("A round town-plaza stone fountain for a GBA-era RPG overworld, seen from the front at a "
+        "top-down 3/4 angle, 3 tiles wide and 3 tiles tall: a low circular light-grey stone basin rim "
+        "with a visible inner pool of bright blue water, a short central stone pillar with a small "
+        "upper bowl and a little spout of white-blue water, symmetric, dark warm outline.", []),
+    'ext_tree_b': ("A single conifer pine tree for a GBA-era RPG overworld, seen from the front, exactly 2 "
+        "tiles wide and 3 tiles tall: layered triangular tiers of deep blue-green needles, each tier lit "
+        "on its top-left edge with lighter green, darker underneath, dark outline, a short brown trunk "
+        "at the bottom centre.", []),
+    'ext_bush_flower': ("A single small round flowering shrub for a GBA-era RPG overworld, 1 tile wide and 1 "
+        "tile tall, front view at a slight top-down angle: a dome of green leaf clumps dotted with "
+        "small pink-and-white blossoms, lit top-left, dark outline, flat bottom.", []),
+    'ext_stump': ("A single cut tree stump for a GBA-era RPG overworld, 1 tile wide, front view at a slight "
+        "top-down angle: short wide brown bark stump with a pale tan top showing growth rings and two "
+        "small roots, dark outline.", []),
+    'ext_planter': ("A single square stone flower planter box for a GBA-era RPG town, 1 tile wide, front view "
+        "at a slight top-down angle: light grey stone box filled with green leaves and red and yellow "
+        "flowers, dark outline.", []),
+    'ext_crate': ("A single wooden shipping crate for a GBA-era RPG town, 1 tile wide, front view at a slight "
+        "top-down angle: light wood planks with darker cross braces, top face visible, dark outline.", []),
+    'ext_signal_tower': ("A small friendly signal relay mast for a GBA-era RPG town, 2 tiles wide and 3 tiles "
+        "tall, front view: a slim white-and-teal lattice antenna tower on a small square concrete base "
+        "with a tiny equipment box, two small dish antennas on the sides, a round red beacon light at "
+        "the very top, dark outline.", []),
 }
 
 
