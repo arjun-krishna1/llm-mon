@@ -47,11 +47,18 @@ without extension (matches `src/game/assets.ts`).
   shade, pink cheeks, a 2px mouth; side view: 2px eye + glint, mouth, cheek.
   Hair is auto-shaded in 3 tones (light rim top-left, shadow right/bottom).
 - `hallucihound` — same 48×96 layout, a quadruped for the Route 101 rescue
-  cutscene: slate-black fur with magenta glitch streaks, cream mask, red
-  eyes, white fangs/claws. Fills the full 16px width; side rows are a dog in
-  profile (4 legs, near legs lighter), steps A/B are a diagonal-pair prowl
-  with a flickering glitch tail; down/up show the masked face / rear with
-  alternately lifted paws. Same 1px bob on step frames.
+  cutscene. Reads as a near-black glitch hound: dark slate fur
+  (`#20222e`/`#363a4c`), magenta glitch streaks (`#e06c98`/`#a83c6c`),
+  red/magenta eye glow, only a small cream muzzle/brow accent, white fangs and
+  claws. Fills the 16px width; side rows are a dog in profile (raised head,
+  4 legs, near legs lighter); steps A/B are a diagonal-pair prowl. 2–3 stray
+  magenta glitch pixels change every frame, so it flickers while prowling
+  (and when cycling stand/A/B in place). Same 1px bob on step frames.
+- `player_run` (key `chars/player_run`, 48×96, same layout/rows/cols as
+  `player`): running variant — upper body leans 1px forward on side views,
+  wider stride (feet up to ±5px), feet lifted higher on front/back views,
+  arms pumping. Col 0 = passing pose, cols 1/2 = full strides; cycle
+  0→1→0→2 at the run speed. Same baked 1px bob on cols 1/2.
 
 ## Creatures — `sprites/mons/`
 
@@ -104,6 +111,12 @@ steel equator ring with a teal prompt-gem. Original — not a red/white ball.
 | `trainer_back.png` | 256×64 | 4 frames 64×64: 0 idle, 1 wind-up (orb in hand), 2 release, 3 follow-through |
 | `prof_front.png` | 64×96 | intro portrait, full body, bottom-anchored |
 | `trainer_m_front.png`, `trainer_f_front.png` | 64×64 | opponent trainer fronts, full body |
+
+`prof_front`, `trainer_m_front` and `trainer_f_front` are reduced with the
+same pipeline as the creature sprites, so they share their pixel density:
+sub-pixel linework softened before a box downscale, ≤16 colours, specks
+removed, a solid 1px `#28222e` outline, skin forced onto the SKIN ramp, then
+snapped to the master palette.
 
 ## UI — `ui/`
 

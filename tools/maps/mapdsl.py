@@ -216,7 +216,11 @@ class MapDef:
                 if not (nb[a] and nb[b]):
                     nb[d] = False
             key = ''.join('1' if nb[k] else '0' for k in ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'))
-            self.set(layer, x, y, first + blob[key])
+            tid = blob[key]
+            cv = ts.cat['autotiles'][kind].get('c_variants')
+            if key == '11111111' and cv:
+                tid = cv[h32(x, y, 11) % len(cv)]
+            self.set(layer, x, y, first + tid)
 
     def forest(self, cells, layer='detail', yparity=1):
         """Fill a set of cells with a forest wall. Trees sit on a lattice

@@ -22,7 +22,7 @@ Symbols:
 """
 from PIL import Image
 
-from common import P, OUT, new, outline, save, SPRITES, grid_to_image
+from common import P, OUT, new, outline, save, SPRITES, grid_to_image, put
 
 W, H = 16, 24
 
@@ -1409,6 +1409,9 @@ def build():
         sh = ch.sheet()
         save(sh, SPRITES, 'chars', cid + '.png')
         out[cid] = sh
+    rs = player_run_sheet()
+    save(rs, SPRITES, 'chars', 'player_run.png')
+    out['player_run'] = rs
     hs = hound_sheet()
     save(hs, SPRITES, 'chars', 'hallucihound.png')
     out['hallucihound'] = hs
@@ -1421,72 +1424,77 @@ if __name__ == '__main__':
 
 # ------------------------------------------------------------ HalluciHound --
 # Overworld quadruped for the Route 101 rescue cutscene. Same 48x96 sheet
-# layout as the people. Colours follow mons/hallucihound_front: near-black fur,
-# magenta glitch streaks, cream mask with red eyes.
+# layout as the people. Reads as a near-black glitch hound: dark slate fur,
+# magenta glitch streaks, red/magenta eye glow, only a small cream muzzle/brow
+# accent; stray magenta "glitch pixels" change every frame (flicker).
 HOUND_CM = {
-    'B': P.CLOTH_DARK[1], 'b': P.CLOTH_DARK[2], 'n': P.ROCK[1],
-    'm': P.WALL_CREAM[3], 'M': P.WALL_CREAM[1], 'r': P.CLOTH_RED[2], 'R': P.CLOTH_RED[0],
+    'B': P.CLOTH_DARK[0], 'b': P.CLOTH_DARK[1], 'n': P.CLOTH_DARK[2],
+    'm': P.WALL_CREAM[2], 'M': P.WALL_CREAM[0],
+    'r': P.HP_RED[1], 'R': P.CLOTH_PINK[1],
     'g': P.CLOTH_PINK[1], 'G': P.CLOTH_PINK[0], 'w': P.WHITE[2], 'o': OUT,
 }
 
-# side view, facing left; rows y5..y15 (legs are drawn in code below)
+HOUND_DOWN = T('''
+|..b..........b..
+|..bb........bb..
+|..bnb.gGGg.bbb..
+|..bnbbbbbbbbbb..
+|.bnbbbbbbbbbbbb.
+|.bbrRbbbbbbRrbb.
+|gbbbbmbbbbmbbbbG
+|.bbbbbbmmbbbbbb.
+|Gbbbbbmoombbbbbg
+|.bBbbbwbbwbbbBb.
+|.bbgGbbbbbbbbbb.
+|..bbbbbbbbGgbb..
+''')
+HOUND_UP = T('''
+|..b..........b..
+|..bb........bb..
+|..bnb......bbb..
+|..bnbbbbbbbbbb..
+|.bnbbbbbbbbbbbb.
+|.bbbbbbgGbbbbbb.
+|gbbbbbbbgbbbbbbG
+|.bbbbbbgGbbbbbb.
+|.bnbbbgbbbbbbbb.
+|.bbbbbbGgbbbbbB.
+|.bbgbbbbgbbbBbb.
+|..bbbbbbbbbbbb..
+''')
+# side view, facing left, rows y6..y14 (legs drawn below)
 HOUND_SIDE = T('''
-|.....m..m.......
-|.....mm.mm......
-|....mmmmmmb..gg.
-|...mmmrmmbbb.gG.
-|.mmmmmmmmbbbbg..
-|.MMMmmMMbbbbgbb.
-|..wMwMbbbbbbbGbB
-|....bbbnbbbbbbBB
-|....bbbbbbgbbbBB
+|....b.b.........
+|...bbbbb........
+|..bnbbbbb.....g.
+|..bbrRbbb....gG.
+|.mmbbbbbbb...gb.
+|.wMbbbbbbbbbbbbG
+|...bnbbbbbbbbbbB
+|...bbgGbbbbbbbbB
+|...bbbbbbbbGgbB.
 |....bbbbbbbbbbB.
 ''')
-# legs: (x, near?) top at y15, 5 rows to the paw on y20
-SIDE_LEGS = [(4, True), (7, False), (10, True), (13, False)]  # near=2px, far=1px
+SIDE_LEGS = [(3, True), (6, False), (10, True), (13, False)]  # near=2px, far=1px
 
 
 def _leg(g, x, swing, near):
-    """2px leg from y16 to y20; swing shifts the paw forward(-)/back(+)."""
     for i, y in enumerate(range(15, 21)):
         xx = x + round(swing * i / 5)
         cells = ((0, 'n'), (1, 'b')) if near else ((0, 'B'),)
         for dx, cc in cells:
             if 0 <= xx + dx < W:
                 g[y][xx + dx] = cc
-    if near:
-        paw = x + swing
-        if 0 <= paw < W:
-            g[20][paw] = 'w'  # claws toward the front
+    if near and 0 <= x + swing < W:
+        g[20][x + swing] = 'w'
 
 
-HOUND_DOWN = T('''
-|..mm........mm..
-|..mmm......mmm..
-|..mmmmbbbbmmmm..
-|.bmmmmmmmmmmmmb.
-|.bmmrrmmmmrrmmb.
-|gbbmmmMmmMmmmbbg
-|.bbbmmmmmmmmbbb.
-|gbbbbmmMMmmbbbbg
-|.bbbbbwooWbbbbb.
-|..bbbbbmmbbbbb..
-|..bbnbbbbbbnbb..
-''').copy()
-HOUND_DOWN = [r.replace('W', 'w') for r in HOUND_DOWN]
-HOUND_UP = T('''
-|..mm........mm..
-|..mbb......bbm..
-|...bbbbbbbbbb...
-|..bbbbbbbbbbbb..
-|..bbbbbbbbbbbb..
-|.bbbbbbggbbbbbb.
-|.bbbbbbgGbbbbbb.
-|.bbbbbggbbbbbbb.
-|.bbbbbgGbbbbbbb.
-|..bbbbbggbbbbb..
-|..bbnbbbbbbnbb..
-''')
+# stray glitch pixels per frame (drawn after outlining, unoutlined)
+GLITCH = {
+    'down': [((0, 9), (15, 14), (4, 3)), ((15, 8), (1, 15), (11, 3)), ((0, 13), (14, 5), (9, 2))],
+    'up': [((0, 9), (15, 13), (7, 3)), ((15, 7), (0, 15), (8, 2)), ((1, 12), (14, 4), (6, 2))],
+    'left': [((15, 7), (1, 13), (12, 4)), ((14, 5), (0, 15), (15, 11)), ((15, 9), (2, 7), (11, 3))],
+}
 
 
 def hound_frame(d, f):
@@ -1494,49 +1502,39 @@ def hound_frame(d, f):
     src = 'left' if d == 'right' else d
     if src == 'left':
         stamp(g, HOUND_SIDE, 5)
-        # prowl: stand = legs straight; A/B = diagonal pairs swing opposite
-        sw = {0: (0, 0), 1: (-2, 2), 2: (2, -2)}[f]
-        for x, near in SIDE_LEGS:
-            front = x < 8
-            # diagonal pairs: near-front with far-back, far-front with near-back
-            pair_a = (front and near) or (not front and not near)
-            s = sw[0] if pair_a else sw[1]
-            if f == 0:
-                s = {4: 0, 7: -1, 10: 1, 13: 1}[x]  # natural splay when standing
-            if not near:
-                _leg(g, x, s, near)
-        for x, near in SIDE_LEGS:
-            front = x < 8
-            pair_a = (front and near) or (not front and not near)
-            s = sw[0] if pair_a else sw[1]
-            if f == 0:
-                s = {4: 0, 7: -1, 10: 1, 13: 1}[x]
-            if near:
+        sw = {0: None, 1: (-2, 2), 2: (2, -2)}[f]
+        for near_pass in (False, True):
+            for x, near in SIDE_LEGS:
+                if near != near_pass:
+                    continue
+                if sw is None:
+                    s = {3: 0, 6: -1, 10: 1, 13: 1}[x]
+                else:
+                    front = x < 8
+                    pair_a = (front and near) or (not front and not near)
+                    s = sw[0] if pair_a else sw[1]
                 _leg(g, x, s, near)
         if f:
-            # glitch tail flickers
-            g[7][13], g[8][14] = ('G', 'g') if f == 1 else ('g', 'G')
+            g[7][14], g[8][15] = ('G', 'g') if f == 1 else ('g', 'G')
+            g[6][14] = '.' if f == 1 else 'g'
     else:
-        rows = HOUND_DOWN if src == 'down' else HOUND_UP
-        stamp(g, rows, 5)
-        # four legs seen end-on: front pair outside, hind pair inside
+        stamp(g, HOUND_DOWN if src == 'down' else HOUND_UP, 4)
         lift = {0: (0, 0), 1: (1, 0), 2: (0, 1)}[f]
-        # front view shows the two front legs (hind legs hidden behind the
-        # chest); rear view shows the two hind legs. Paws peek in the gap.
-        for i, x in enumerate((3, 11)):
+        for i, x in enumerate((2, 12)):
             up = lift[i]
             for y in range(16, 21 - up):
                 g[y][x] = 'n' if i == 0 else 'b'
                 g[y][x + 1] = 'b' if i == 0 else 'B'
-            if src == 'down':
-                g[20 - up][x] = 'w'
-                g[20 - up][x + 1] = 'w'
-        for x in (6, 9):
-            g[20][x] = 'B'
-            g[19][x] = 'B'
+            g[20 - up][x] = 'w' if src == 'down' else 'B'
+            g[20 - up][x + 1] = 'w' if src == 'down' else 'B'
+        for x in (5, 10):
+            for y in (18, 19, 20):
+                g[y][x] = 'B'
     rows = [''.join(r) for r in g]
     im = grid_to_image(rows, HOUND_CM, W, H)
     im = outline(im)
+    for i, (x, y) in enumerate(GLITCH[src][f]):
+        put(im, x, y, HOUND_CM['g'] if i != 1 else HOUND_CM['R'])
     if f in (1, 2):
         b2 = new(W, H)
         b2.paste(im.crop((0, 1, W, H)), (0, 0))
@@ -1552,3 +1550,109 @@ def hound_sheet():
         for c in range(3):
             sh.paste(hound_frame(d, c), (c * W, r * H))
     return sh
+
+
+# ------------------------------------------------------------ player run ---
+# chars/player_run.png: same 48x96 layout; lean-forward body, bigger stride,
+# arms pumping. Col 0 = passing pose, cols 1/2 = full strides.
+LEGS['run'] = {
+    ('down', 0): T('''
+|....pppppppp....
+|....ppp..ppp....
+|....pPp..pPp....
+|....kkk..kkk....
+'''),
+    ('down', 1): T('''
+|....pppppppp....
+|....ppp..kkk....
+|....pPp.........
+|....kkk.........
+'''),
+    ('down', 2): T('''
+|....pppppppp....
+|....kkk..ppp....
+|.........pPp....
+|.........kkk....
+'''),
+    ('left', 0): T('''
+|.....pppppp.....
+|.....pppPPP.....
+|......pp..PKk...
+|.....kkK........
+'''),
+    ('left', 1): T('''
+|....ppppppp.....
+|...ppp...PPP....
+|..ppp......PPk..
+|.kkK.........K..
+'''),
+    ('left', 2): T('''
+|....ppppppp.....
+|...PPP...ppp....
+|..PPP......ppk..
+|.kkK.........k..
+'''),
+}
+TORSO['kid_run'] = {
+    ('down', 0): TORSO['kid'][('down', 0)],
+    ('down', 1): T('''
+|....cccccccc....
+|..scccccccccc...
+|..sdcccccccccC..
+|...dccccccccCs..
+|....pppppppp.s..
+'''),
+    ('down', 2): T('''
+|....cccccccc....
+|...cccccccccs...
+|..dcccccccccCs..
+|..sdccccccccC...
+|..s.pppppppp....
+'''),
+    ('left', 0): T('''
+|....cccccc......
+|....cdddcc......
+|....csdddcC.....
+|.....ccsscC.....
+|.....pppppp.....
+'''),
+    ('left', 1): T('''
+|....cccccc......
+|..ssdddcccCC....
+|....dd.ccccCs...
+|.......cccC.....
+|.....pppppp.....
+'''),
+    ('left', 2): T('''
+|....cccccc......
+|..CCcccddddss...
+|..s.ccccdd......
+|.....cccC.......
+|.....pppppp.....
+'''),
+}
+TORSO['kid_run'][('up', 0)] = TORSO['kid'][('up', 0)]
+TORSO['kid_run'][('up', 1)] = [r[::-1] for r in TORSO['kid_run'][('down', 2)]]
+TORSO['kid_run'][('up', 2)] = [r[::-1] for r in TORSO['kid_run'][('down', 1)]]
+
+
+class RunChar(Char):
+    """Running variant: lean the head 1px forward on side views."""
+
+    def frame_grid(self, d, f):
+        g = super().frame_grid(d, f)
+        src_d = 'left' if d == 'right' else d
+        if src_d == 'left':
+            # shift everything above the waist (y<=13) one pixel forward
+            for y in range(0, 14):
+                g[y] = g[y][1:] + ['.']
+        return g
+
+
+def player_run_sheet():
+    base = define()['player']
+    rc = RunChar('player_run', 'messy', P.HAIR_DARK, P.CLOTH_ORANGE, P.CLOTH_BLUE,
+                 shoes=[P.CLOTH_RED[0], P.CLOTH_RED[1]],
+                 acc2=[P.ROOF_TEAL[1], P.CLOTH_DARK[1], P.ROOF_TEAL[3]],
+                 body='kid_run', legs='run', extras=dict(PLAYER_EXTRAS))
+    return rc.sheet()

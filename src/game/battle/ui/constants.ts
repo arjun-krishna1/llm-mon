@@ -33,7 +33,7 @@ export const DEPTH = {
   playerTrainer: 32,
   fx: 50,
   hud: 60,
-  fxTop: 70,
+  fxTop: 56,
   frame: 990,
   box: 1000,
   menu: 1100,
@@ -46,29 +46,29 @@ export const DEPTH = {
 export const TIMING = {
   fadeIn: 220,
   /** Platforms + sprites sliding in from opposite sides. */
-  slideIn: 1050,
+  slideIn: 800,
   /** Wild mon brightening from its dark intro tint. */
-  litUp: 260,
-  hudSlide: 260,
+  litUp: 220,
+  hudSlide: 220,
   /** Auto-advancing battle chatter: hold after the line is fully typed. */
-  textHold: 560,
+  textHold: 430,
   /** Shorter hold for lines that lead straight into an animation. */
   textHoldShort: 350,
   /** HP drain speed: ms per bar pixel (48 px bar). */
-  hpMsPerPx: 20,
-  hpMinMs: 260,
+  hpMsPerPx: 15,
+  hpMinMs: 200,
   /** EXP bar: ms for a full bar (scaled by the fraction gained). */
-  expFullMs: 1150,
+  expFullMs: 900,
   expMinMs: 300,
   hitBlinks: 3,
   hitBlinkMs: 60,
-  faintMs: 360,
-  throwMs: 520,
+  faintMs: 320,
+  throwMs: 460,
   popMs: 220,
-  shakeGapMs: 520,
+  shakeGapMs: 430,
   shakeMs: 360,
-  trainerSlide: 420,
-  fadeOut: 380,
+  trainerSlide: 340,
+  fadeOut: 320,
   screenFade: 140,
 }
 

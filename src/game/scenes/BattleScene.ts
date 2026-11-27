@@ -301,7 +301,7 @@ export class BattleScene extends Phaser.Scene {
     }
     await this.box.say(text, { keepOpen: true })
     if (mode === 'auto') {
-      this.pendingHold = /fainted!$/.test(text) ? TIMING.textHold + 300 : TIMING.textHold
+      this.pendingHold = /fainted!$/.test(text) ? TIMING.textHold + 150 : TIMING.textHold
       this.holdFrom = this.time.now
     }
   }
@@ -321,8 +321,31 @@ export class BattleScene extends Phaser.Scene {
         await this.play(this.battle.submit({ type: 'learn_move', forgetSlot: slot }))
         continue
       }
+      if (e.type === 'text') {
+        // Sync text with action: the move animation / faint drop / orb throw starts as
+        // its line begins typing, not after it has been read.
+        let j = i + 1
+        while (events[j]?.type === 'move_used') j++
+        const act = events[j]
+        const mode = this.peekMode(e.text, events[i + 1])
+        if (act && mode === 'auto' && (act.type === 'move_anim' || act.type === 'faint' || act.type === 'catch_throw')) {
+          await this.flushText()
+          await Promise.all([
+            this.present(e, events[i + 1], events.slice(i + 1)),
+            this.present(act, events[j + 1], events.slice(j + 1)),
+          ])
+          i = j
+          continue
+        }
+      }
       await this.present(e, events[i + 1], events.slice(i + 1))
     }
+  }
+
+  /** classify() without consuming one-shot overrides (for look-ahead). */
+  private peekMode(text: string, next: BattleEvent | undefined): TextMode {
+    if (this.nextTextMode || this.firstText || this.trainerTalk) return 'wait'
+    return this.classify(text, next)
   }
 
   private async present(e: BattleEvent, next: BattleEvent | undefined, rest: BattleEvent[]): Promise<void> {
@@ -358,17 +381,16 @@ export class BattleScene extends Phaser.Scene {
         if (e.side === 'enemy') {
           state.markSeen(e.mon.speciesId)
           if (!e.fromOrb) {
-            await wait(this, 80)
             await st.litUp()
           } else {
             void st.hidePips('enemy')
-            await wait(this, 200)
+            await wait(this, 100)
             await st.enemySendOut(e.mon.speciesId)
           }
           hud.setMon(e.mon)
           await hud.slideIn()
         } else {
-          await wait(this, 220)
+          await wait(this, 120)
           void st.hidePips('player')
           await st.playerSendOut(e.mon.speciesId, st.playerTrainer.visible)
           hud.setMon(e.mon, this.expFrac(e.partyIndex))
@@ -382,13 +404,13 @@ export class BattleScene extends Phaser.Scene {
         audio.stopSfx('low_hp')
         this.lowHpOn = false
         await Promise.all([st.withdraw(e.side), st.hud[e.side].slideOut()])
-        await wait(this, 200)
+        await wait(this, 100)
         return
       }
       case 'move_used':
         return
       case 'move_anim': {
-        await wait(this, 150)
+        await wait(this, 120)
         this.phase = 'anim'
         await playMoveAnim(this, st, e)
         return
@@ -410,7 +432,6 @@ export class BattleScene extends Phaser.Scene {
         await st.hit(e.side, e.source === 'move' ? e.effectiveness : 1, e.crit)
         await st.hud[e.side].animateHp(e.hpBefore, e.hpAfter, e.maxHp)
         if (e.side === 'player') this.updateLowHp()
-        await wait(this, 80)
         return
       }
       case 'heal': {
@@ -450,7 +471,8 @@ export class BattleScene extends Phaser.Scene {
           audio.stopSfx('low_hp')
           this.lowHpOn = false
         }
-        await Promise.all([st.faint(e.side), wait(this, 160).then(() => st.hud[e.side].slideOut())])
+        if (e.fled) await Promise.all([st.flee(e.side), wait(this, 200).then(() => st.hud[e.side].slideOut())])
+        else await Promise.all([st.faint(e.side), wait(this, 120).then(() => st.hud[e.side].slideOut())])
         return
       }
       case 'exp_gain': {
@@ -483,7 +505,7 @@ export class BattleScene extends Phaser.Scene {
         return
       case 'catch_throw':
         this.phase = 'catch'
-        await wait(this, 150)
+        await wait(this, 100)
         await st.catchThrow()
         return
       case 'catch_shake':
@@ -512,6 +534,10 @@ export class BattleScene extends Phaser.Scene {
         if (e.outcome === 'caught' && e.caught && !this.wasCaughtBefore) {
           await this.text(`${getSpecies(e.caught.speciesId).name}'s data was added to the PromptDex.`, 'wait')
         }
+        if (e.outcome === 'caught' && e.caught && state.party.length >= 6) {
+          // finish() hands it to state.addMon, which stores it in state.box when the party is full
+          await this.text(`${e.caught.nickname ?? getSpecies(e.caught.speciesId).name} was sent to storage.`, 'wait')
+        }
         return
     }
   }
@@ -519,7 +545,7 @@ export class BattleScene extends Phaser.Scene {
   private async levelFlash(): Promise<void> {
     const hud = this.stage.hud.player
     const g = this.add.graphics().setDepth(DEPTH.hud + 1)
-    await tween(this, { k: 0 }, 420, {
+    await tween(this, { k: 0 }, 300, {
       k: 1,
       onUpdate: (tw: Phaser.Tweens.Tween) => {
         const k = tw.progress

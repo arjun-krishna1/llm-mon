@@ -134,14 +134,22 @@ export class Stage {
       e.setVisible(true).setTint(DARK_TINT)
     }
     pt.setFrame(0).setVisible(true)
-    const D = 256
+    // Separate lanes: the enemy side enters from the right edge, the player's side from
+    // the left edge (slightly later), so the two never cross paths.
+    const DE = W - LAYOUT.enemyPlatform.x
+    const DP = 136
+    const lag = 0.18
     const place = (k: number) => {
-      const off = Math.round((1 - k) * D)
-      this.platE.x = LAYOUT.enemyPlatform.x - off
-      e.x = LAYOUT.enemyMon.x - off
-      et.x = LAYOUT.enemyTrainer.x - off
-      this.platP.x = LAYOUT.playerPlatform.x + off
-      pt.x = LAYOUT.playerTrainer.x + off
+      const ke = Math.min(1, k / (1 - lag))
+      const kp = Math.max(0, (k - lag) / (1 - lag))
+      const ease = (t: number) => 1 - (1 - t) * (1 - t)
+      const offE = Math.round((1 - ease(ke)) * DE)
+      const offP = Math.round((1 - ease(kp)) * DP)
+      this.platE.x = LAYOUT.enemyPlatform.x + offE
+      e.x = LAYOUT.enemyMon.x + offE
+      et.x = LAYOUT.enemyTrainer.x + offE
+      this.platP.x = LAYOUT.playerPlatform.x - offP
+      pt.x = LAYOUT.playerTrainer.x - offP
     }
     place(0)
     await animate(this.scene, TIMING.slideIn, place, 'Linear')
@@ -366,6 +374,19 @@ export class Stage {
     if (side === 'player') this.playerResting = true
   }
 
+  /** Scripted defeat: the mon staggers, then dashes off to the right. */
+  async flee(side: Side): Promise<void> {
+    const m = this.mon[side]
+    const x0 = m.x
+    audio.sfx('run')
+    await frames(this.scene, 20, (f) => (m.x = x0 + [0, -2, 0, 2][Math.floor(f / 3) % 4]))
+    m.setFlipX(side === 'enemy')
+    await tween(this.scene, m, 380, { x: W + 48, ease: 'Quad.In' })
+    m.setVisible(false).setFlipX(false)
+    this.home(side)
+    this.setHallucinating(side, false)
+  }
+
   // ---------------------------------------------------------------- stats + statuses
 
   async statChange(side: Side, up: boolean): Promise<void> {
@@ -450,13 +471,13 @@ export class Stage {
   /** Orb arcs to the wild mon, opens, the mon is drawn in, the orb drops and bounces. */
   async catchThrow(): Promise<void> {
     const e = this.mon.enemy
-    const start = { x: 8, y: 96 }
+    const start = { x: 20, y: 104 }
     const end = { x: LAYOUT.enemyMon.x, y: 30 }
     audio.sfx('orb_throw')
     const o = this.orb(start.x, start.y)
     this.catchOrb = o
     await animate(this.scene, TIMING.throwMs + 120, (k) => {
-      o.setPosition(Math.round(bez(start.x, 110, end.x, k)), Math.round(bez(start.y, -24, end.y, k)))
+      o.setPosition(Math.round(bez(start.x, 150, end.x, k)), Math.round(bez(start.y, 40, end.y, k)))
       o.setFrame([0, 1, 0, 2][Math.floor(k * 10) % 4])
     })
     // open + suck in

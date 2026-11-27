@@ -3,7 +3,7 @@
 import { F, def, line, say, text } from './util'
 
 // ============================================================================ home
-text('home.tv', 'The weather report is on.\n“Sunny,\fwith a 10% chance of hallucinations.”')
+text('home.tv', 'The weather report is on.', '“Sunny all week, with a ten percent chance of hallucinations.”')
 text('home.console', 'Your old game console! The save file is from three houses ago.')
 text('home.fridge', 'Nearly empty. A note from Mom on the door says: GROCERIES (after unpacking).')
 text('home.kitchen', 'The kettle’s already on. Mom has her priorities straight.')
@@ -87,7 +87,7 @@ def('center.techie', (s) => say(s,
 def('center.woman', (s) => say(s,
   'My LLMMON caught context rot on the route. It smelled like old log files!',
   'All better now. The nurse here is a miracle worker.'))
-text('center.terminal', 'A storage terminal.\n“LLMMON STORAGE:\fcoming in the next build.”')
+text('center.terminal', 'A storage terminal. The screen reads:\n“Model Storage System is syncing...”', 'A spinner goes round and round. Better come back later.')
 
 // ============================================================================ Token Mart
 def('mart.clerk', async (s) => {

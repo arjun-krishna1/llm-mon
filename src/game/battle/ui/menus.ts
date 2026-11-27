@@ -150,7 +150,7 @@ export function moveMenu(scene: Phaser.Scene, stack: WidgetStack, moves: MoveVie
     chip.setTexture(`ui/type_${mv.type}`)
   }
   const grid = new Grid2x2(scene, stack, {
-    ...m, frame: 'ui/frame_dialog', labels: labels.map((l, i) => (moves[i] ? l : '-')), colors,
+    ...m, frame: 'ui/frame_dialog', labels: labels.map((l, i) => (moves[i] ? l : '')), colors,
     cols: [14, 95], rows: [8, 24], colW: [70, 74], initial, cancel: true, onMove,
   })
   return grid.result().then((i) => {

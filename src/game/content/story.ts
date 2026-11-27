@@ -234,6 +234,12 @@ async function labDex(s: S): Promise<void> {
   await line(s, PROF,
     'Welcome to my lab! And thank you, again.\fI’d still be explaining backprop to that HalluciHound if you hadn’t shown up.',
     `${starterName(s)} seems to like you. Keep it!\fA LLMMON learns best from a trainer it trusts.`,
+    'Oh, but it took a few hits back there. Let me defrag your partner.')
+  await s.fadeOut(300)
+  await s.healParty()
+  await s.fadeIn(300)
+  await line(s, PROF,
+    `There! ${starterName(s)} is good as new. Fresh weights, clean context.`,
     'And please, take this. It’s my latest invention!')
   await s.giveItem('promptdex', 1)
   await line(s, PROF,
@@ -356,7 +362,6 @@ def('route.rescue', async (s) => {
   await s.emote('hound', 'dots')
   await s.move('hound', 'up 5', { speed: 'run' })
   s.despawn('hound')
-  await s.say('The HalluciHound yelped and bolted back into the tall grass!')
   s.resumeMapMusic()
   await s.wait(300)
   // the professor collects his satchel
@@ -368,7 +373,8 @@ def('route.rescue', async (s) => {
   s.face('prof', 'left')
   s.face('player', 'right')
   await line(s, PROF,
-    'Phew... Thank you! You must be the new kid from the moving truck.\f{player}, right? I\u2019m Professor Karpathy!',
+    'Phew... Look at it run! Thank you!\fYou must be the new kid from the moving truck.',
+    '{player}, right? I\u2019m Professor Karpathy!',
     'That was a wild HalluciHound. They make things up with total confidence,\fand get VERY upset when you check their sources.',
     'Come back to my lab with me. I\u2019d like to thank you properly!')
   await s.fadeOut(400)

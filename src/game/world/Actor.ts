@@ -107,6 +107,7 @@ export class Actor {
 
   /** Begin a one-tile step. `frames` = frames per tile. Resolves when it lands. */
   step(dir: Dir, frames: number): Promise<void> {
+    this.settlePending()
     this.facing = dir
     const v = DIR_VEC[dir]
     this.fromX = this.tx
@@ -124,6 +125,7 @@ export class Actor {
 
   /** Two-tile ledge hop with an arc. */
   hop(dir: Dir): Promise<void> {
+    this.settlePending()
     this.facing = dir
     const v = DIR_VEC[dir]
     this.fromX = this.tx
@@ -153,9 +155,19 @@ export class Actor {
     return this.bumpT > 0
   }
 
+  /** Resolve a step promise that is about to be replaced (a new step started before the old one landed). */
+  private settlePending(): void {
+    const r = this.resolveStep
+    this.resolveStep = undefined
+    r?.()
+  }
+
   /** Queue several steps; they chain with no idle frame between tiles. */
   walk(dirs: Dir[], frames: number): Promise<void> {
     if (!dirs.length) return Promise.resolve()
+    const prevWalk = this.resolveWalk
+    this.resolveWalk = undefined
+    prevWalk?.()
     this.queue = dirs.slice(1)
     this.queueFrames = frames
     const done = new Promise<void>((r) => (this.resolveWalk = r))

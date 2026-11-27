@@ -151,16 +151,6 @@ const beam: AnimFn = async (c) => {
 const burst: AnimFn = async (c) => {
   const a = c.stage.center(c.side)
   const b = c.stage.center(c.target)
-  // charge: particles converge on the attacker
-  const ch = particles(c, 8)
-  await animate(c.scene, 300, (k) => {
-    ch.forEach((p, i) => {
-      const ang = (i / 8) * Math.PI * 2 + k
-      const r = 26 * (1 - k)
-      p.setPosition(Math.round(a.x + Math.cos(ang) * r), Math.round(a.y + Math.sin(ang) * r))
-    })
-  })
-  ch.forEach((p) => p.destroy())
   // shot
   const orb = c.scene.add.image(a.x, a.y, 'bfx/orb').setDepth(DEPTH.fx).setTint(c.color)
   await animate(c.scene, 240, (k) => {

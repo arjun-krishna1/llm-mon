@@ -91,6 +91,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
   private particles: Particle[] = []
   private runSteps = 0
   private doorFx?: Phaser.GameObjects.Graphics
+  private spotting = false
   private fxs: Fx[] = []
   private ui!: UIScene
   private ready = false
@@ -126,6 +127,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     this.items = []
     this.fxs = []
     this.lockCount = 0
+    this.spotting = false
     this.transitioning = false
     this.lastBanner = ''
     this.currentMusic = ''
@@ -716,12 +718,18 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     return state.flag(this.trainerFlag(npc))
   }
 
-  /** After a player step / turn: does any trainer see the player? */
+  /**
+   * After a player step / turn (or a trainer turning): does any trainer see the player?
+   * Only while the player stands still on a tile and nothing else is running, so one
+   * sighting can never start a second approach (QA P0: double flows over-walked onto the
+   * player and leaked a lock).
+   */
   private checkTrainerSight(): boolean {
     const p = this.player
+    if (p.moving || this.spotting || this.lockCount > 0 || scriptsRunning() > 0 || this.transitioning) return false
     for (const n of this.npcs.values()) {
       const sight = Number(n.data.sight ?? 0)
-      if (!sight || n.hidden || !n.data.trainer || this.trainerDefeated(n) || n.moving) continue
+      if (!sight || n.hidden || !n.data.trainer || this.trainerDefeated(n) || n.moving || n.data.talking) continue
       const v = DIR_VEC[n.facing]
       for (let k = 1; k <= sight; k++) {
         const x = n.tx + v.x * k
@@ -737,17 +745,25 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
   }
 
   private async trainerSpotted(npc: Actor, steps: number): Promise<void> {
+    this.spotting = true
     this.lockCount++
     try {
       npc.data.talking = true
       while (this.player.moving) await this.nextFrame()
       audio.playMusic('encounter_trainer')
       await this.emote(npc.id, 'exclaim')
-      if (steps > 0) await npc.walk(Array(steps).fill(npc.facing), WALK_FRAMES)
+      // Walk until adjacent, re-measured every step; never onto the player or through a blocker.
+      const v = DIR_VEC[npc.facing]
+      for (let i = 0; i < steps + 1; i++) {
+        const dist = Math.abs(this.player.tx - npc.tx) + Math.abs(this.player.ty - npc.ty)
+        if (dist <= 1 || this.blocked(npc, npc.tx + v.x, npc.ty + v.y)) break
+        await npc.step(npc.facing, WALK_FRAMES)
+      }
       this.player.face(OPPOSITE[npc.facing])
       await this.trainerBattleFlow(npc)
     } finally {
       npc.data.talking = false
+      this.spotting = false
       this.lockCount--
     }
   }

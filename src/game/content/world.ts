@@ -1,6 +1,6 @@
 // Hayes Valley, Route 101 and SoMa Node: townsfolk, signs, trainers.
 
-import { F, def, say, starterName, text, type S } from './util'
+import { F, def, line, say, starterName, text, type S } from './util'
 
 /** Pick a line by story progress: before the starter / after it. */
 function byProgress(s: S, before: string[], after: string[]): Promise<void> {
@@ -62,15 +62,36 @@ def('route.picnic_girl', (s) => say(s,
   'I saw the whole thing from my picnic blanket!\fThat HalluciHound was SO sure it was a golden retriever.',
   'It also told me the sky is a software update. It was very convincing.'))
 
+def('route.field_notes', (s) => say(s,
+  'Pages of field notes are scattered round an old stump.',
+  '“Wild HalluciHound, day 3. Claims to be a golden retriever.”',
+  '“Now claims to be a lawyer. Do NOT ask it for sources.”'))
+
+def('route.hiker', async (s) => {
+  const H = 'Hiker'
+  if (s.flag('route_hiker_heal')) {
+    await line(s, H, 'Cache still clear? Good.\fFor anything more, there\u2019s the Model Center in SoMa Node.')
+    return
+  }
+  await line(s, H, 'Long walk, huh? Your LLMMON look like they\u2019re carrying a full context window.')
+  if (!s.state.party.length) return
+  await line(s, H, 'Here, let me clear their cache. Old hiker\u2019s trick.')
+  await s.fadeOut(300)
+  await s.healParty()
+  await s.fadeIn(300)
+  s.setFlag('route_hiker_heal')
+  await line(s, H, 'Good as new! Only works once, mind. My trick, not your LLMMON.')
+})
+
 // ---- trainers (rt_calvin / rt_tiana): the engine's default trainer flow shows
 // preBattle / postBattle from src/game/data/trainers.ts; no script needed.
 
 // ============================================================================ SoMa Node
 text('soma.town_sign', 'SOMA NODE\nThe city that never stops shipping.')
-text('soma.road_closed', 'ROAD CLOSED\nAlignment in progress.\fPlease wait for the next release.')
+text('soma.road_closed', 'ROAD CLOSED\nSurvey team at work. Thanks for waiting!')
 text('soma.gym_door',
   'ALIGNMENT GYM\nThe doors are boarded up.',
-  'A note: “The Alignment Gym opens in the next build.\fPlease stay aligned until then.”')
+  'A note on the door:\n“Leader away at a safety conference.”', '“Please stay aligned until we reopen!”')
 text('soma.locked_house', 'It’s locked. A sticky note on the door:\n“At a hackathon. Back in 48 hours. Or 72.”')
 text('soma.fountain', 'The Node Plaza fountain. A plaque reads:\n“All requests flow through here.”')
 
@@ -84,7 +105,7 @@ def('soma.end_sign', async (s) => {
 
 def('soma.guard', (s) => say(s,
   'Sorry, kid. The road north is closed.\fThe Alignment Survey team is still checking what’s up ahead.',
-  'They said it’ll be ready in the next build. Whatever that means.'))
+  'They keep saying “two more weeks”. They’ve said that for three months.'))
 
 def('soma.girl', (s) => say(s,
   'They say the Alignment Gym leader can tell if a LLMMON is being sincere.',

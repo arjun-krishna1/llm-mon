@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Dialogue lint: every page of every dialogue string in src/game/content/**
 must wrap to at most 2 lines in the dialog box (210 px of the bitmap font
-public/assets/game/fonts/dialog.json) and use only glyphs the font has.
+public/assets/game/fonts/dialog.json), use only glyphs the font has, and not
+break a page inside an open “quote”.
 
   python3 tools/maps/textlint.py
 """
@@ -66,8 +67,13 @@ def main():
                     continue
                 for k, v in SUBS.items():
                     s = s.replace(k, v)
-                for page in s.split('\f'):
+                pages = s.split('\f')
+                for pi, page in enumerate(pages):
                     n += 1
+                    open_q = page.count('\u201c') - page.count('\u201d')
+                    if open_q > 0 and pi < len(pages) - 1:
+                        bad += 1
+                        print('%s:%d: page break inside an open quote: %r' % (f, src[:m.start()].count('\n') + 1, page))
                     lines = wrap(adv, page)
                     missing = sorted({ch for ch in page if ch not in adv and ch not in '\n'})
                     line_no = src[:m.start()].count('\n') + 1

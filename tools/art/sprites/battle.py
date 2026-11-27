@@ -194,11 +194,30 @@ def lift_skin(spr, k=1.12):
     return Image.fromarray(a.astype(np.uint8))
 
 
+def skin_remap(spr):
+    """Force skin tones onto the palette's light SKIN ramp by luminance
+    (quantisation otherwise drifts faces to grey or blond-yellow)."""
+    a = np.array(spr).astype(int)
+    r, g, b, al = a[..., 0], a[..., 1], a[..., 2], a[..., 3]
+    mx = np.maximum(np.maximum(r, g), b).astype(float)
+    mn = np.minimum(np.minimum(r, g), b).astype(float)
+    sat = (mx - mn) / np.maximum(mx, 1)
+    hue = np.degrees(np.arctan2(np.sqrt(3) * (g - b), 2 * r - g - b)) % 360
+    lower = (np.arange(a.shape[0])[:, None] > a.shape[0] * 0.45)
+    m = (al > 0) & (hue >= 12) & ((hue <= 36) | (lower & (hue <= 46))) & (sat > 0.1) & (sat < 0.72) & (mx > 130)
+    lum = (r * 3 + g * 4 + b * 2) / 9
+    for y, x in zip(*np.nonzero(m)):
+        L = lum[y, x]
+        c = P.SKIN[3] if L > 205 else P.SKIN[2] if L > 165 else P.SKIN[1] if L > 125 else P.SKIN[0]
+        a[y, x, :3] = c[:3]
+    return Image.fromarray(a.astype(np.uint8))
+
+
 def remap_green(spr, ramp):
     """Map clearly green pixels onto a palette ramp by luminance."""
     a = np.array(spr).astype(int)
     r, g, b, al = a[..., 0], a[..., 1], a[..., 2], a[..., 3]
-    m = (al > 0) & (g > r - 6) & (g > b + 25)
+    m = (al > 0) & (g > r + 10) & (g > b + 40)
     lum = (r * 3 + g * 4 + b * 2) / 9
     for y, x in zip(*np.nonzero(m)):
         k = min(len(ramp) - 1, int(lum[y, x] / 256 * len(ramp) * 1.25))
@@ -219,16 +238,44 @@ def prekey(path_or_img):
     return tmp
 
 
+def chunky(path, w, h, colors=14):
+    """Reduce like the creature sprites (same density): soften sub-pixel
+    linework first, box-downscale, <=colors median-cut, despeckle, solid
+    1px outline on the silhouette."""
+    from mons import key_magenta, reduce as mreduce
+    src = Image.open(path).convert('RGBA')
+    a = key_magenta(np.array(src))
+    src = Image.fromarray(a)
+    bb = src.getchannel('A').getbbox()
+    src = src.crop(bb)
+    k = max(src.width / w, src.height / h)
+    if k > 2:
+        # pre-shrink to 2x target with a soft filter so 1px source lines merge
+        src = src.resize((max(1, round(src.width / k * 2)), max(1, round(src.height / k * 2))),
+                         Image.LANCZOS)
+    arr = mreduce(src, w, h, colors=colors, sharpen=0.15, sat=1.12, min_island=4)
+    spr = clean_specks(Image.fromarray(arr))
+    return spr
+
+
+def solid_outline(spr):
+    a = np.array(spr)
+    m = a[..., 3] > 0
+    pad = np.pad(m, 1)
+    edge = m & ~(pad[:-2, 1:-1] & pad[2:, 1:-1] & pad[1:-1, :-2] & pad[1:-1, 2:])
+    a[edge, :3] = P.OUTLINE[:3]
+    return Image.fromarray(a)
+
+
 def fit_sprite(path, W, H, colors=20, margin=1, snap=True, anchor='bottom', green=None, pal=None):
-    path = prekey(path)
-    spr = pixelize(path, width=W - 2 * margin, height=H - margin, colors=colors, snap=False)
-    os.remove(path)
+    spr = chunky(path, W - 2 * margin, H - margin, colors=min(colors, 16))
     spr = defringe(spr)
-    spr = lift_skin(spr)
+    spr = skin_remap(spr)
     if green:
         spr = remap_green(spr, green)
     if snap:
         spr = snap_img(spr, [c[:3] for c in pal] if pal else None, chroma_w=1.0 if pal else 1.6)
+    spr = solid_outline(spr)
     im = new(W, H)
     x = (W - spr.width) // 2
     y = H - spr.height if anchor == 'bottom' else (H - spr.height) // 2
@@ -238,7 +285,7 @@ def fit_sprite(path, W, H, colors=20, margin=1, snap=True, anchor='bottom', gree
 
 BASE = [P.OUTLINE, P.OUTLINE_SOFT] + P.SKIN + P.WHITE + [P.SKIN_DEEP[1]]
 PAL_PROF = BASE + P.HAIR_BROWN + P.CLOTH_GREEN + P.CLOTH_DARK + P.STONE + P.METAL + P.GLASS + P.WOOD[:3]
-PAL_TM = BASE + P.HAIR_BLOND[:2] + P.CLOTH_RED + P.CLOTH_DARK + P.CLOTH_BLUE + P.ROCK + [P.HAIR_BROWN[0]]
+PAL_TM = BASE + P.HAIR_BLOND + P.CLOTH_RED + P.CLOTH_DARK + P.CLOTH_BLUE + P.ROCK + [P.HAIR_BROWN[0]]
 PAL_TF = BASE + P.HAIR_BROWN + P.CLOTH_RED + P.CLOTH_BLUE + P.CLOTH_DARK + P.ROCK + P.CLOTH_PINK[1:]
 PAL_PLAYER = BASE + P.HAIR_DARK + P.CLOTH_ORANGE + P.ROOF_ORANGE + P.CLOTH_DARK + P.ROOF_TEAL + P.CLOTH_YELLOW + P.CLOTH_BLUE
 
