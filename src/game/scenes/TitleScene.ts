@@ -42,7 +42,8 @@ export class TitleScene extends Phaser.Scene {
     this.setupLife()
     const label = 'PRESS START'
     this.press = new PxText(this, Math.round((W - measure(this, FONT.dialog, label)) / 2), 116, label, { color: 0xffffff, shadowColor: COLORS.frame[0] })
-    new PxText(this, 4, H - 9, 'VERTICAL SLICE', { font: FONT.mini, color: 0xd4dae6, shadowColor: COLORS.frame[0], shadow: 'drop' })
+    const copy = '\u00a9 2026 Arjun Krishna'
+    new PxText(this, Math.round((W - measure(this, FONT.dialog, copy)) / 2), H - 16, copy, { color: 0xffffff, shadowColor: COLORS.frame[0] })
     this.cameras.main.fadeIn(ms(500), 0, 0, 0)
     audio.playMusic('title')
     this.time.delayedCall(ms(400), () => {
