@@ -1,18 +1,17 @@
 # Asset attribution
 
-LLM-mon uses legally reusable game art assets and original project-specific monster sprites.
+All art, music and sound in the game build is original to this project.
 
-## CC0 assets from Kenney
+- **Creature designs:** generated for this project (`public/assets/llmmon/`),
+  then converted to 64×64 battle sprites by `tools/art/sprites/`.
+- **Tiles, buildings, furniture, characters, UI, backgrounds:** source images
+  generated for this project with an AI image model (cached in
+  `tools/art/gen/raw/`), reduced and palette-snapped by scripts in
+  `tools/art/`, plus pixel art drawn directly by those scripts.
+- **Fonts:** original bitmap fonts drawn by `tools/font/build_font.py`.
+- **Music and sound effects:** original compositions synthesized at runtime
+  by `src/game/audio/`.
 
-The following packs are distributed by Kenney under Creative Commons Zero (CC0), so they can be used in personal, educational, and commercial projects without required attribution. Attribution is still included here for clarity.
-
-- Tiny Town: https://kenney.nl/assets/tiny-town
-- UI Pack: https://kenney.nl/assets/ui-pack
-- Roguelike Characters: https://kenney.nl/assets/roguelike-characters
-- Roguelike/RPG Pack: https://kenney.nl/assets/roguelike-rpg-pack
-
-Source license text from the downloaded packs states: `License: (Creative Commons Zero, CC0) http://creativecommons.org/publicdomain/zero/1.0/`.
-
-## Generated model sprites
-
-The LLM-mon creature sprites in `public/assets/llmmon/sprites-ai/` were generated for this project as original model-specific game sprites. They intentionally avoid Pokémon-owned assets, logos, and copyrighted character designs.
+No assets from any existing game are used. `legacy/` contains the earlier
+prototype, which used CC0 packs from Kenney (https://kenney.nl); those files
+are not part of the current build.
