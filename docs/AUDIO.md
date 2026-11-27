@@ -12,6 +12,7 @@ files). Code lives in `src/game/audio/` and has no Phaser dependency.
 | `instruments.ts` | Instrument (ADSR, vibrato, arpeggio…) and drum-kit presets |
 | `synth.ts` | Voices: pulse 12.5/25/50 %, triangle, 4-bit wave, LFSR noise (long + short period) |
 | `sfx.ts` | Every sound effect + the jingles |
+| `cries.ts` | Creature cries: parametric recipes, roster presets, hash fallback |
 | `tracks/*.ts` | One file per music track; `tracks/index.ts` registers them |
 | `dev/` | Audition page, offline render harness, static analysis |
 
@@ -38,6 +39,9 @@ Additions beyond the §4.7 contract:
 | `sfxLoop(id)` / `stopSfx(id)` | Looping sfx. Intended for `exp` (rising EXP-fill tone; stop when the bar is full) and `low_hp` (alarm beeps). Idempotent. |
 | `sfxDurationMs(id): number` | Length of an sfx/jingle — e.g. wait this long before continuing after `item_get` |
 | `setMasterVolume(v)` | Master gain |
+| `cry(speciesId, { pitch?, faint? })` | Creature cry (0.15-0.5 s). `pitch` multiplies frequency; `faint: true` = lower, ~1.45x slower, falling. Never throws. |
+| `cryDurationMs(speciesId, opts?)` | Length of that cry |
+| `cryIds` | Species with hand-tuned cries |
 | `musicIds`, `sfxIds` | Registered ids |
 
 Behaviour:
@@ -48,6 +52,10 @@ Behaviour:
 - **Jingles** (`heal`, `item_get`, `key_item_get`, `level_up`) pause the music (80 ms fade),
   play on the sfx bus, then resume the music *where it was* with a 450 ms fade-in.
   `playMusic` during a jingle changes what resumes afterwards.
+- Music ids beyond §4.7: `battle_rival` (rival fight; use `{fadeMs: 0}`), `rival_encounter`
+  (rival walks up), `ending` (end card; slow reprise of the title theme).
+- SFX ids beyond §4.7: `buy`, `phone` (two rings, ~1 s), `truck` (~1.25 s rumble + drive-off),
+  `pc_on`, `pc_off`, `dex_register`. No separate catch fanfare: use `orb_catch` then `victory`.
 - `victory` is a music track: 4-bar fanfare intro, then a looping vamp.
 - Re-triggers of the same sfx within 25 ms are dropped (`text` 40 ms, `bump` 120 ms,
   `grass` 50 ms), so calling `sfx('text')` per character is fine.
@@ -110,6 +118,23 @@ Then add it to `tracks/index.ts`. Generators (`compose.ts`): `bassLine` styles
 with `R F O T S C -` placeholders. They output plain pattern text (print them to hand-edit).
 
 Then run the checks below. Mixing: keep `gain` such that loop RMS ≈ −22 dBFS and peak < 0.98.
+
+## Creature cries
+
+A cry is a `CryRecipe` (`cries.ts`): a base frequency plus a few timed parts.
+- `{k:'t', w, at, dur, n, to?, g, vib?, arp?, hold?}` is a tone. `n`/`to` are semitones above the base.
+- `{k:'n', type, at, dur, rate, g, hp?/lp?/bp?, sweepTo?}` is a noise burst.
+- `crush` bit-crushes the whole cry. `gain` trims its level.
+
+Presets: `claude_fable` (warm two-note chirp), `gpt_5_5` (rising arpeggio blip), `glm` (bell
+triad falling), `hallucihound` (crushed growl with glitches), `gemma_4` (woody thump then a
+chirp), `gpt_5_4_mini` (double beep), `mistral_medium` (whoosh then a yip), `gemini_flash`
+(upward zip), `claude_haiku` (three-note figure).
+
+Any other id gets `hashCry(id)`: an FNV hash seeds 2-3 notes with a rising, falling or arched
+contour, a wave choice, optional vibrato and a noise tail. It is the same every time for the
+same id. To add a preset, add an entry to `CRIES`. Then trim its `gain` until the render
+peaks at about 0.25-0.4 (check with `__audioTest.cryReport(id)`).
 
 ## Auditioning
 
