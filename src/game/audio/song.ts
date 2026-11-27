@@ -126,7 +126,7 @@ export class SongPlayer implements Tracker {
   readonly song: CompiledSong
   readonly out: GainNode
   private readonly ctx: BaseAudioContext
-  private readonly buses: Record<ChannelId, AudioNode>
+  private readonly buses: Record<ChannelId, GainNode>
   private readonly echoNodes: AudioNode[] = []
   private t0 = 0
   /** Cursor: -1 = intro, k >= 0 = loop pass k. */
@@ -166,7 +166,7 @@ export class SongPlayer implements Tracker {
       echoIn = send
       this.echoNodes.push(send, delay, fb, tone, wet)
     }
-    const buses = {} as Record<ChannelId, AudioNode>
+    const buses = {} as Record<ChannelId, GainNode>
     for (const ch of ['p1', 'p2', 'w', 'n'] as const) {
       const s = channelSetup(def, ch)
       const g = ctx.createGain()
@@ -184,6 +184,11 @@ export class SongPlayer implements Tracker {
       buses[ch] = g
     }
     this.buses = buses
+  }
+
+  /** Silence channels (stems / analysis). */
+  mute(chs: readonly string[]): void {
+    for (const ch of chs) if (ch in this.buses) this.buses[ch as ChannelId].gain.value = 0
   }
 
   add(n: AudioScheduledSourceNode): void {

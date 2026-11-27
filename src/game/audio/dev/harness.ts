@@ -13,9 +13,11 @@ import { analyzeSong, cryReport, noteDump, renderSfx, renderSong, sfxReport, son
   cries: Object.keys(CRIES),
   analyzeSong: (id: string) => analyzeSong(SONGS[id]),
   noteDump: (id: string) => noteDump(SONGS[id]),
+  bpm: (id: string) => SONGS[id].bpm,
+  jingleDump: (id: string) => ({ ...noteDump(SFX[id].jingle!), bpm: SFX[id].jingle!.bpm }),
   /** Render to 16-bit mono PCM, base64 (for offline inspection). */
-  async pcm(kind: 'song' | 'sfx', id: string, sampleRate = 22050): Promise<string> {
-    const buf = kind === 'song' ? (await renderSong(id, 1, sampleRate)).buf : await renderSfx(id, sampleRate)
+  async pcm(kind: 'song' | 'sfx', id: string, sampleRate = 22050, mute: string[] = []): Promise<string> {
+    const buf = kind === 'song' ? (await renderSong(id, 1, sampleRate, mute)).buf : await renderSfx(id, sampleRate, mute)
     const a = buf.getChannelData(0)
     const b = buf.getChannelData(1)
     const out = new Int16Array(a.length)

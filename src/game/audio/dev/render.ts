@@ -11,25 +11,27 @@ import { analyzeSong, noteDump } from './analyze.ts'
 export const SR = 44100
 
 /** Render a song: intro + `passes` loop passes + tail. */
-export async function renderSong(id: string, passes = 2, sampleRate = SR): Promise<{ buf: AudioBuffer; intro: number; loop: number }> {
+export async function renderSong(id: string, passes = 2, sampleRate = SR, mute: string[] = []): Promise<{ buf: AudioBuffer; intro: number; loop: number }> {
   const def = SONGS[id]
   const c = compileSong(def)
   const { intro, loop } = songLengths(c)
   const len = intro + loop * passes + 1.5
   const ctx = new OfflineAudioContext(2, Math.ceil(len * sampleRate), sampleRate)
   const p = new SongPlayer(ctx, c, ctx.destination)
+  p.mute(mute)
   p.start(0)
   p.schedule(intro + loop * passes, false)
   const buf = await ctx.startRendering()
   return { buf, intro, loop }
 }
 
-export async function renderSfx(id: string, sampleRate = SR): Promise<AudioBuffer> {
+export async function renderSfx(id: string, sampleRate = SR, mute: string[] = []): Promise<AudioBuffer> {
   const def = SFX[id]
   const len = def.jingle ? jingleSeconds(def.jingle) + 1 : 2.5
   const ctx = new OfflineAudioContext(2, Math.ceil(len * sampleRate), sampleRate)
   if (def.jingle) {
     const p = new SongPlayer(ctx, compileSong(def.jingle), ctx.destination)
+    p.mute(mute)
     p.start(0)
     p.schedule(len, false)
   } else if (def.loopPeriod) {
