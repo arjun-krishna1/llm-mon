@@ -10,7 +10,7 @@ const mel = `A4:8 C5:8 E5:8 A4:8 C5:8 E5:8 A4:8 C5:8 | Bb4:8 D5:8 F5:8 Bb4:8 D5:
   A4:8 C5:8 E5:8 A4:8 C5:8 E5:8 A4:8 C5:8 | Bb4:8 D5:8 F5:8 Bb4:8 D5:8 F5:8 G5:8 F5:8 |
   E5:4. C5:8 A4:4 E5:4 | F5:4. D5:8 Bb4:4 F5:4 | E5:8 F5:8 E5:8 D5:8 C5:8 B4:8 C5:8 D5:8 | E5:4 G#5:4 B5:4 D6:4`
 // tremolo pedal: common tones a fifth/third above the bass
-const trem = `v9 (E4:16)x16 | (F4:16)x16 | (E4:16)x16 | (F4:16)x16 | (C4:16)x16 | (D4:16)x16 | (A3:16)x16 | (B3:16)x8 (D4:16)x8`
+const trem = `v9 (E4:16)x16 | (F4:16)x16 | (E4:16)x16 | (F4:16)x16 | (C4:16)x16 | (D4:16)x16 | (C4:16)x8 (E4:16)x8 | (B3:16)x8 (D4:16)x8`
 
 export const encounter_trainer: SongDef = {
   id: 'encounter_trainer',

@@ -340,6 +340,11 @@ export function auditSong(def: SongDef): AuditReport {
       const d = lows[1].m - lows[0].m
       if ([1, 2, 10, 11].includes(d)) add(errors, `${lows[0].n.id}-${lows[1].n.id}`, 'R4 low 2nd/7th', a, `${lows[0].n.ch}:${nm(lows[0].m)} ${lows[1].n.ch}:${nm(lows[1].m)}`)
     }
+    // Rule 5: harmony below the bass (crossing into the bass register)
+    const bassN = sounding.find((n) => n.ch === 'w')
+    for (const h of sounding.filter((n) => n.ch === 'p2')) {
+      if (bassN && Math.min(...h.pitches) < bassN.midi) add(errors, `${h.id}-${bassN.id}`, 'R5 harmony below bass', a, `p2:${nm(Math.min(...h.pitches))} < w:${nm(bassN.midi)}`)
+    }
     // Rule 5: harmony above the melody
     const mel = sounding.find((n) => n.ch === 'p1')
     for (const h of sounding.filter((n) => n.ch === 'p2')) {

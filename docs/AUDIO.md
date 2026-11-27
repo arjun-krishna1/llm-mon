@@ -191,7 +191,8 @@ seam. It checks every segment between note, beat and chord boundaries.
    half cadence on V.
 4. **Low register.** No 3rds or 6ths between two voices below C3. No 2nds or 7ths between
    the two lowest voices below C4.
-5. **Spacing.** The harmony never goes above the melody while the melody sounds. No sus
+5. **Spacing.** The harmony never goes above the melody while the melody sounds, and never
+   below the bass. The generator never moves harmony below F3; keep bass centres around G2-Bb2. No sus
    chord left unresolved. No fixed-interval "melody minus a 3rd" harmony: harmony lines
    are written or fitted from chord tones.
 6. **Timbre and engine.**

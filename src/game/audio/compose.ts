@@ -233,8 +233,8 @@ export type CompStyle =
 /** Accompaniment from a chart. `center` is the register (MIDI pitch name). */
 /**
  * Intervals an accompaniment may use for a chord: the triad (root, 3rd or sus tone, 5th),
- * plus the minor 7th of dominant/minor-7th chords. Never the maj7, 6th or 9th: those
- * colour tones grind against the root in a thin chiptune texture.
+ * plus the minor 7th of dominant 7th chords only. Never the maj7, 6th, 9th or a minor
+ * chord's 7th: inside a fast arpeggio those sit a step from the root and roughen the chord.
  */
 export function harmonyIvs(c: Chord): number[] {
   const third = c.ivs.find((iv) => iv === 3 || iv === 4 || iv === 2 || iv === 5)
@@ -242,7 +242,7 @@ export function harmonyIvs(c: Chord): number[] {
   const out = [0]
   if (third !== undefined) out.push(third)
   if (fifth !== undefined) out.push(fifth)
-  if (c.ivs.includes(10)) out.push(10)
+  if (c.ivs.includes(10) && c.ivs.includes(4)) out.push(10)
   return out
 }
 
@@ -457,7 +457,8 @@ function fitUnder(text: string, chart: string, mel: string, bt: number, opts: Co
     if (e.arp) {
       const down = tones.map((p) => p - 12)
       const keep = tones.filter(ok)
-      const pick = down.every(ok) && down[0] >= 48 ? down : keep.length >= 2 ? keep : down.filter(ok).length >= 2 && down[0] >= 48 ? down.filter(ok) : []
+      // never push the harmony down into the bass register (below F3)
+      const pick = down.every(ok) && down[0] >= 53 ? down : keep.length >= 2 ? keep : down.filter(ok).length >= 2 && down[0] >= 53 ? down.filter(ok) : []
       if (pick.length >= 2) out.push({ ...e, midi: pick[0], arp: pick.map((p) => p - pick[0]) })
       else if (pick.length === 1 || keep.length === 1) out.push({ ...e, midi: (pick[0] ?? keep[0]), arp: undefined })
       continue
@@ -465,7 +466,7 @@ function fitUnder(text: string, chart: string, mel: string, bt: number, opts: Co
     // single note: nearest other chord tone at or below the original that fits
     const pcs = ivs.map((iv) => (slot.chord.root + iv) % 12)
     const cands: number[] = []
-    for (let p = e.midi + 2; p >= Math.max(48, e.midi - 9); p--) if (pcs.includes(((p % 12) + 12) % 12) && p !== e.midi) cands.push(p)
+    for (let p = e.midi + 2; p >= Math.max(53, e.midi - 9); p--) if (pcs.includes(((p % 12) + 12) % 12) && p !== e.midi) cands.push(p)
     cands.sort((a, b) => Math.abs(a - e.midi) - Math.abs(b - e.midi))
     const alt = cands.find(ok)
     if (alt !== undefined) out.push({ ...e, midi: alt })

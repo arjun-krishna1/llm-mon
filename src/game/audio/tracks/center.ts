@@ -1,7 +1,7 @@
-import { bassLine, comp } from '../compose.ts'
+import { bassLine, comp, riff } from '../compose.ts'
 import type { SongDef } from '../song.ts'
 
-// Model Center: calm and reassuring. Eb major, 88 bpm. A (8) B (8), repeated with a bell descant.
+// Model Center: calm and reassuring. Eb major, 88 bpm. A (8) B (8), repeated with sparse bell answers under the melody.
 
 const A = 'Eb | Ab | Bb | Eb | Cm | Ab | F7 Bb | Bb'
 const B = 'Ab | Bb | Gm | Cm | Ab | Bb | Ab Bb | Eb'
@@ -24,8 +24,8 @@ export const center: SongDef = {
   chords: { loop: `${A} | ${B} | ${A} | ${B}` },
   loop: {
     p1: `${melA} | ${melB} | @flute ${melA} | ${melB} @leadsoft`,
-    p2: `${comp(A, 'alberti8', { center: 'Eb4', v: 9, mel: melA })} | ${comp(B, 'alberti8', { center: 'Eb4', v: 9, mel: melB })} | ${comp(A, 'guide', { center: 'G4', v: 9, inst: 'harm50', mel: melA })} | ${comp(B, 'guide', { center: 'G4', v: 9, inst: 'harm50', mel: melB })}`,
-    w: bassLine(`${A} | ${B} | ${A} | ${B}`, 'rf2', { center: 'Eb3', v: 12 }),
+    p2: `${comp(A, 'alberti8', { center: 'Eb4', v: 9, mel: melA })} | ${comp(B, 'alberti8', { center: 'Eb4', v: 9, mel: melB })} | ${riff(A, '-:2 T:2', { center: 'C4', v: 8, inst: 'bell' })} | ${riff(B, '-:2 T:2', { center: 'C4', v: 8, inst: 'bell' })}`,
+    w: bassLine(`${A} | ${B} | ${A} | ${B}`, 'rf2', { center: 'Bb2', v: 12 }),
     n: '(-:4 hs:4 -:4 hs:8 hs:8)x32',
   },
 }

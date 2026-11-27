@@ -2,7 +2,7 @@ import { bassLine, comp } from '../compose.ts'
 import type { SongDef } from '../song.ts'
 
 // The rival walks up: a short strutting blues loop in F, 116 bpm. 1 bar walk-in + 8-bar loop.
-// Blue notes are 16th-note passing tones only; the bass struts on roots and 5ths.
+// Blue notes are 16th-note passing tones only; the bass struts on roots and 5ths (dotted).
 
 const L = 'F7 | Bb7 | F7 | F7 | Bb7 | Bb7 | F7 C7 | F7 C7'
 
@@ -29,7 +29,7 @@ export const rival_encounter: SongDef = {
   loop: {
     p1: mel,
     p2: comp(L, 'stab', { center: 'F4', v: 10, mel }),
-    w: bassLine(L, 'stride8', { center: 'D2' }),
+    w: bassLine(L, 'r5', { center: 'F2' }),
     n: '(k:8 h:16 h:16 s:8 h:8 k:8 k:8 s:8 h:8)x7 k:8 h:16 h:16 s:8 h:8 s:16 s:16 t:16 t:16 tl:16 tl:16 s:8',
   },
 }
