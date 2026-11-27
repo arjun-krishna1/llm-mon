@@ -84,7 +84,7 @@ async function fullMenu(g, { check, sleep, FAST }) {
   await g.pick(s.ui.top.labels.indexOf('CLOSE BAG'), 'UI')
   s = await waitTop(g, isStart)
   // ---- trainer card
-  const ci = s.ui.top.labels.findIndex((l) => !['LLMMON', 'BAG', 'SAVE', 'EXIT'].includes(l))
+  const ci = s.ui.top.labels.findIndex((l) => !['LLMMON', 'PROMPTDEX', 'BAG', 'SAVE', 'OPTIONS', 'EXIT'].includes(l))
   await g.pick(ci, 'UI')
   s = await waitTop(g, (t) => t.cls === 'PlayerCard')
   await slow(900)
