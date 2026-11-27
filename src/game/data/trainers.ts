@@ -32,6 +32,8 @@ export interface TrainerDef {
   aiRandomness?: number
 }
 
+// Each route trainer carries a pair that shows off the type web: whichever
+// starter you picked, one of their mons is weak to it or hits it hard.
 const TRAINER_LIST: TrainerDef[] = [
   {
     id: 'route_101_a',
@@ -39,7 +41,11 @@ const TRAINER_LIST: TrainerDef[] = [
     name: 'Calvin',
     sprite: 'trainer_m_front',
     overworldSprite: 'trainer_m',
-    party: [{ speciesId: 'gemma_4', level: 4, moves: ['autocomplete', 'small_talk', 'fork_strike'] }],
+    // Gemma 4 (Anthropic beats Google), Mistral Medium (OpenAI beats Mistral; Mistral beats Zhipu)
+    party: [
+      { speciesId: 'gemma_4', level: 3 },
+      { speciesId: 'mistral_medium', level: 4 },
+    ],
     preBattle: ['Hey! You look like a seed-stage trainer.', 'Let me demo my LLMMON. No slides, just vibes!'],
     loseText: 'My demo crashed on stage...',
     postBattle: ['Investors say losing is "valuable signal".', 'I am collecting a LOT of signal today.'],
@@ -51,9 +57,10 @@ const TRAINER_LIST: TrainerDef[] = [
     name: 'Tiana',
     sprite: 'trainer_f_front',
     overworldSprite: 'trainer_f',
+    // GPT-5.4 mini (Zhipu beats OpenAI; OpenAI beats Anthropic), Gemini Flash (Anthropic beats Google)
     party: [
-      { speciesId: 'gpt_5_4_mini', level: 3 },
-      { speciesId: 'mistral_medium', level: 4, moves: ['autocomplete', 'jailbreak', 'low_latency'] },
+      { speciesId: 'gpt_5_4_mini', level: 4 },
+      { speciesId: 'gemini_flash', level: 3 },
     ],
     preBattle: ['Stop right there! I need one more data point.', 'Your score goes on my leaderboard!'],
     loseText: 'Okay, that result is NOT going in the paper.',
@@ -62,16 +69,16 @@ const TRAINER_LIST: TrainerDef[] = [
   },
 ]
 
-// The rival: neighbour Dana takes the starter that beats yours (myth > logic >
-// tool > myth). Same shape for every matchup: her starter Lv7 with its type move
-// (only just learned: 1 PP, a single super-effective hit) + one Route 101 catch
-// Lv4 that your starter hits super effectively. Fixed IVs even out the three
-// matchups (balance locked by data/__tests__/rival.test.ts). The `_rematch`
-// variant (starter one level lower) is used once after you lose to her.
-const RIVAL_PARTY: Record<string, { moves: string[]; typeMove: string; iv: number; catchId: string }> = {
-  gpt_5_5: { moves: ['autocomplete', 'focus_token', 'tool_tap'], typeMove: 'tool_tap', iv: 12, catchId: 'gemma_4' }, // vs Claude Fable
-  glm: { moves: ['graph_paw', 'pattern_guard', 'logic_spark'], typeMove: 'logic_spark', iv: 9, catchId: 'gpt_5_4_mini' }, // vs GPT 5.5
-  claude_fable: { moves: ['warm_nudge', 'guardrail', 'tiny_myth'], typeMove: 'tiny_myth', iv: 11, catchId: 'gpt_5_4_mini' }, // vs GLM
+// The rival: neighbour Dana takes the starter that beats yours (anthropic > zhipu
+// > openai > anthropic). Same shape for every matchup: her starter Lv7 with its
+// lab move + one Route 101 catch Lv4 that your starter hits super effectively.
+// Fixed IVs even out the three matchups (balance locked by
+// data/__tests__/rival.test.ts). The `_rematch` variant (starter one level lower)
+// is used once after you lose to her.
+const RIVAL_PARTY: Record<string, { moves: string[]; iv: number; catchId: string }> = {
+  gpt_5_5: { moves: ['autocomplete', 'focus_token', 'function_call'], iv: 6, catchId: 'gemma_4' }, // vs Claude Fable
+  glm: { moves: ['graph_paw', 'pattern_guard', 'graph_reason'], iv: 6, catchId: 'mistral_medium' }, // vs GPT 5.5
+  claude_fable: { moves: ['warm_nudge', 'guardrail', 'artifact'], iv: 6, catchId: 'gpt_5_4_mini' }, // vs GLM
 }
 function rival(starter: string, rematch: boolean): TrainerDef {
   const r = RIVAL_PARTY[starter]
@@ -83,12 +90,12 @@ function rival(starter: string, rematch: boolean): TrainerDef {
     sprite: 'rival_front',
     overworldSprite: 'rival',
     party: [
-      { speciesId: r.catchId, level: 4 },
-      { speciesId: starter, level: rematch ? 6 : 7, moves: r.moves, pp: { [r.typeMove]: 1 }, ivs: { hp: iv, atk: iv, def: iv, spa: iv, spd: iv, spe: iv } },
+      { speciesId: r.catchId, level: 4, moves: ['autocomplete', 'small_talk'] },
+      { speciesId: starter, level: rematch ? 6 : 7, moves: r.moves, ivs: { hp: iv, atk: iv, def: iv, spa: iv, spd: iv, spe: iv } },
     ],
     preBattle: ['Ready or not, here I come!'],
-    loseText: 'Wow. Okay. That was a really good battle. I\u2019m still beating you next time.',
-    postBattle: ['Next time I\u2019m reading the whole chart.'],
+    loseText: 'Wow. Okay. That was a really good battle. I’m still beating you next time.',
+    postBattle: ['Next time I’m reading the whole chart.'],
     prize: 300,
     aiRandomness: 0,
   }

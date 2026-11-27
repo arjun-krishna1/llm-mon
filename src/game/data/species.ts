@@ -269,7 +269,7 @@ const SPECIES_LIST: SpeciesDef[] = [
     learnset: ls([1, 'autocomplete'], [1, 'quick_reply'], [1, 'expert_mix'], [16, 'distill'], [22, 'deep_think']),
     dex: {
       category: 'Deep Current',
-      lines: ['Swims fast and cheap through the', 'deep end. Leaves no ripple on your bill.'],
+      lines: ['Swims fast and cheap through the', 'deep end. Kind to your token bill.'],
       stats: [
         { label: 'Context', value: '128K tokens' },
         { label: 'Lab', value: 'DeepSeek' },
