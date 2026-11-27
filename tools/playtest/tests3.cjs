@@ -24,8 +24,8 @@ let browser
 const PRE_RESCUE = { arrived: true, visited_2f: true, read_notebook: true, mom_lab_call: true, met_rival: true, met_aide: true, has_satchel: true }
 const POST = (starter) => ({ ...PRE_RESCUE, has_satchel: false, starter, rescue_done: true, got_dex: true, has_run: true })
 const COUNTER = { glm: 'claude_fable', claude_fable: 'gpt_5_5', gpt_5_5: 'glm' }
-const TYPE = { glm: 'logic', claude_fable: 'myth', gpt_5_5: 'tool' }
-const BEATS = { myth: 'logic', logic: 'tool', tool: 'myth' } // a beats BEATS[a]
+const TYPE = { glm: 'zhipu', claude_fable: 'anthropic', gpt_5_5: 'openai' }
+const BEATS = { anthropic: 'zhipu', zhipu: 'openai', openai: 'anthropic' } // a beats BEATS[a]
 
 function record(name, ok, detail, extra = {}) {
   results.push({ name, ok, detail, ...extra })

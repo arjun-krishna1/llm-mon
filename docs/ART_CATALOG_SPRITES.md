@@ -220,11 +220,19 @@ Text colour on paper: `#383840` with shadow `#c8c4b0` (+1,+1).
 | `cursor.png` | 8×8 | ▶ selection cursor (dark outline, orange core) |
 | `arrow_down.png` | 8×8 | ▼ advance arrow (bounce it 1px); also use as pointer over starter orbs |
 | `orb_slots.png` | 64×8 | 8 cells of 8×8: 0 empty slot, 1 healthy, 2 status, 3 fainted, 4 healthy-glint, 5–7 healthy (spare glint frames) |
-| `type_<id>.png` | 32×12 | chips for `neutral myth logic tool speed open vision glitch` (ids from `src/game/data/typechart.ts`) |
+| `type_<id>.png` | 32×12 | chips for `anthropic openai google zhipu deepseek mistral moonshot cohere classic glitch` (ids from `src/game/data/typechart.ts`) |
 
-Type chip ramps: neutral = ROCK, myth = ROOF_ORANGE, logic = ROOF_TEAL, tool
-= ROOF_BLUE, speed = CLOTH_YELLOW, open = CLOTH_GREEN, vision = ROOF_VIOLET,
-glitch = CLOTH_PINK/CLOTH_RED.
+Types are the labs that make the models (plus `classic` and `glitch`). Chips are
+plain coloured pills with text only — no company logos or logo-like marks.
+Label = the short name if it fits in 28px, else the 3-letter code:
+ANT, OPENAI, GOOGLE, ZHIPU, DSK, MST, MSH, COHERE, CLASSIC, GLITCH.
+Ramps: anthropic = ROOF_ORANGE, openai = ROOF_TEAL, google = ROOF_BLUE,
+zhipu = ROOF_VIOLET, deepseek = UI_FRAME, mistral = CLOTH_YELLOW,
+moonshot = GRASS, cohere = WOOD, classic = ROCK, glitch = CLOTH_PINK/CLOTH_RED.
+Regenerate just the chips with
+`cd tools/art/sprites && python3 -c "import ui; ui.build_type_chips()"`.
+The old `type_neutral/myth/logic/tool/speed/open/vision.png` files are no longer
+in the asset manifest and can be deleted.
 
 ### Screens
 

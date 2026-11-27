@@ -10,7 +10,7 @@ import { MOVES, SPECIES } from '../../data/index.ts'
 import { LEGACY_MOVE_IDS, STRUGGLE_ID } from '../../data/moves.ts'
 import { isMajorStatus } from '../../data/statuses.ts'
 import { calcStats, defaultMovesAt, moveSlot } from './mon.ts'
-import { STAT_KEYS } from './stats.ts'
+import { MAX_LEVEL, STAT_KEYS, expForLevel } from './stats.ts'
 
 /** Save version whose battle data matches the current tables. */
 export const BATTLE_DATA_VERSION = 2
@@ -50,7 +50,7 @@ export function migrateMon(mon: MonInstance, fromVersion: number, label = 'mon')
       if (out.length === 4) break
     }
     if (out.length === 0 && species) {
-      for (const id of defaultMovesAt(species, Math.max(1, Math.floor(mon.level) || 1))) out.push(moveSlot(id))
+      for (const id of defaultMovesAt(species, Math.max(1, Math.min(MAX_LEVEL, Math.floor(Number(mon.level)) || 1)))) out.push(moveSlot(id))
       notes.push(`${label}: relearned ${out.map((s) => s.id).join(', ')}`)
     }
     mon.moves = out
@@ -59,6 +59,12 @@ export function migrateMon(mon: MonInstance, fromVersion: number, label = 'mon')
       mon.status = 'none'
     }
     if (species) {
+      const lvl = Math.floor(Number(mon.level))
+      if (!Number.isFinite(lvl) || lvl < 1 || lvl > MAX_LEVEL) {
+        mon.level = Math.max(1, Math.min(MAX_LEVEL, Number.isFinite(lvl) ? lvl : 1))
+        notes.push(`${label}: fixed level`)
+      }
+      if (!Number.isFinite(mon.exp)) mon.exp = expForLevel(species.growth, mon.level)
       if (!mon.ivs || typeof mon.ivs !== 'object') mon.ivs = { hp: 8, atk: 8, def: 8, spa: 8, spd: 8, spe: 8 }
       for (const k of STAT_KEYS) {
         const v = Number(mon.ivs[k])

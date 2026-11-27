@@ -74,13 +74,15 @@ export const TIMING = {
 
 /** Move type → effect colour (BATTLE_API suggested chip colours). */
 export const TYPE_COLOR: Record<string, number> = {
-  neutral: 0xf0ece0,
-  myth: 0xf09848,
-  logic: 0x48c8a0,
-  tool: 0x48a0f0,
-  speed: 0xf8d850,
-  open: 0x88d058,
-  vision: 0xc880e8,
+  anthropic: 0xf09848,
+  openai: 0x48c8a0,
+  google: 0x48a0f0,
+  zhipu: 0xc880e8,
+  deepseek: 0x7088f0,
+  mistral: 0xf8d850,
+  moonshot: 0x88d058,
+  cohere: 0xf07890,
+  classic: 0xf0ece0,
   glitch: 0xe85080,
 }
 

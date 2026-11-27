@@ -351,7 +351,7 @@ describe('trainers', () => {
     expect(ofType(all, 'trainer_reappear')).toHaveLength(1)
     expect(texts(all)).toContain('You got 120 tokens for winning!')
     expect(battle.result).toEqual({ outcome: 'win', prize: 120 })
-    expect(ofType(all, 'exp_gain')[0].amount).toBe(Math.floor(Math.floor((50 * 4) / 7) * 1.5))
+    expect(ofType(all, 'exp_gain')[0].amount).toBe(Math.floor(Math.floor((58 * 3) / 7) * 1.5))
   })
 
   it('AI prefers super-effective and finishing moves', () => {

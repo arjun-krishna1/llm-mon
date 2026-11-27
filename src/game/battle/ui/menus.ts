@@ -137,7 +137,7 @@ export function moveMenu(scene: Phaser.Scene, stack: WidgetStack, moves: MoveVie
   const win = new Window(scene, info.x, info.y, info.w, info.h, 'ui/frame_dialog').setDepth(DEPTH.menu)
   const ppLabel = new PxText(scene, info.x + 8, info.y + 8, 'PP').setDepth(DEPTH.menu + 1)
   const ppVal = new PxText(scene, info.x + 30, info.y + 8, '').setDepth(DEPTH.menu + 1)
-  const chip = scene.add.image(info.x + info.w / 2, info.y + 31, 'ui/type_neutral').setOrigin(0.5, 0.5).setDepth(DEPTH.menu + 1)
+  const chip = scene.add.image(info.x + info.w / 2, info.y + 31, 'ui/type_classic').setOrigin(0.5, 0.5).setDepth(DEPTH.menu + 1)
   const labels = [0, 1, 2, 3].map((i) => moves[i]?.name ?? '')
   const colors = labels.map((_, i) => (moves[i] ? undefined : 'grey') as TextColorName | undefined)
   const onMove = (i: number) => {
@@ -281,7 +281,7 @@ export class ForgetMoveScreen implements Widget {
     this.objs.push(sep)
     const info = new Window(scene, 138, 24, 102, 88, 'ui/frame_menu').setDepth(D + 1)
     this.objs.push(info)
-    this.chip = scene.add.image(146, 32, 'ui/type_neutral').setOrigin(0, 0).setDepth(D + 2)
+    this.chip = scene.add.image(146, 32, 'ui/type_classic').setOrigin(0, 0).setDepth(D + 2)
     const lab = (y: number, s: string) => {
       const t = new PxText(scene, 146, y, s).setDepth(D + 2)
       this.objs.push(t)

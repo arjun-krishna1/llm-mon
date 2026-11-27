@@ -1,6 +1,6 @@
 // Starter select (BATTLE-UI): the professor's satchel with three Prompt Orbs.
 // Left/right picks an orb (it bobs, the creature fades in above it with name, type and
-// a one-line description); A asks "So, you want X, the T-type LLMMON?" YES/NO.
+// a one-line description); A asks "So, you want X, the <Lab> LLMMON?" YES/NO.
 //
 // Launch: `scene.scene.run('StarterSelect', { starters?, onDone(speciesId) })`, or
 // `await launchStarterSelect(scene)` from src/game/battle/ui/starterSelect.ts.
@@ -85,7 +85,7 @@ export class StarterSelectScene extends Phaser.Scene {
     // name plate (name + type chip) sits on top of the description box, like a speaker plate
     this.plate = new Window(this, 2, 90, 100, 24, 'ui/frame_dialog').setDepth(10)
     this.plateName = new PxText(this, 11, 96, '').setDepth(11)
-    this.chip = this.add.image(0, 96, 'ui/type_neutral').setOrigin(0, 0).setDepth(11)
+    this.chip = this.add.image(0, 96, 'ui/type_classic').setOrigin(0, 0).setDepth(11)
     this.descWin = new Window(this, 0, 112, W, 48, 'ui/frame_dialog').setDepth(10)
     this.desc = [0, 1].map((i) => new PxText(this, 10, 118 + i * 16, '').setDepth(11))
     this.box = new DialogBox(this, this.stack, { x: 0, y: 112, w: W, h: 48, frame: 'ui/frame_dialog', depth: 20 })
@@ -221,7 +221,7 @@ export class StarterSelectScene extends Phaser.Scene {
     const sp = getSpecies(id)
     const typeName = TYPES[sp.types[0]]?.name ?? sp.types[0]
     this.setBrowseVisible(false)
-    await this.box.say(`So, you want ${sp.name}, the ${typeName}-type LLMMON?`, { keepOpen: true })
+    await this.box.say(`So, you want ${sp.name}, the ${typeName} LLMMON?`, { keepOpen: true })
     const yes = (await choice(this, this.stack, ['YES', 'NO'], { x: W - 2, y: 110, anchor: 'br', depth: 30, cancelIndex: 1 })) === 0
     this.box.close()
     if (!yes) {

@@ -446,9 +446,19 @@ only on Route 101.
    gym 1 (Rumelhart, Werbos or Linnainmaa), gym 4 (Ioffe or Kaiming He),
    League 2 (Howard or Devlin), League 4 (Russell, or an interpretability
    room led by Olah). Swap freely.
-3. **Type system.** The slice's eight types were designed for models only.
-   Component creatures (optimizers, activations, tokenizers) may want a
-   second look at the chart.
+3. **Types (decided).** Types are the labs that make the models:
+   Anthropic, OpenAI, Google, Zhipu, DeepSeek, Mistral, Moonshot, Cohere,
+   one type per model. The chart is a perfectly even web: every lab is
+   super effective against exactly two labs and weak to exactly two, with
+   a playful in-world reason for each arrow (Notebook text), and the
+   starter triangle Anthropic > Zhipu > OpenAI > Anthropic. New labs (Meta,
+   xAI, Alibaba, Microsoft) slot in by splitting two existing arrows, so
+   nobody else changes. **Classic** is neutral both ways: it is the type of
+   basic moves and of the component and historic creatures (Perceptron,
+   SGD, Sigmoid, ELIZA...), which therefore win on stats, moves and
+   evolution rather than matchups. **Glitch** (HalluciHound, Team Overfit)
+   is weak to every lab ("any real lab can fact-check a hallucination") and
+   hits Classic hard. Reference: `docs/BATTLE_API.md` §4.
 4. **Scope.** A sensible next milestone is gym 1 complete (puzzle, leader,
    badge, Backprop skill), the Caltrain Line, and the first Team Overfit
    encounter.

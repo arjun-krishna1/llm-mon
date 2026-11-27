@@ -27,7 +27,7 @@ export interface ImageAsset {
 export const CHAR_IDS = ['player', 'mom', 'prof', 'aide', 'boy', 'girl', 'man', 'woman', 'elder', 'techie',
   'nurse', 'clerk', 'trainer_m', 'trainer_f', 'hallucihound', 'rival']
 
-export const TYPE_IDS = ['neutral', 'myth', 'logic', 'tool', 'speed', 'open', 'vision', 'glitch']
+export const TYPE_IDS = ['anthropic', 'openai', 'google', 'zhipu', 'deepseek', 'mistral', 'moonshot', 'cohere', 'classic', 'glitch']
 
 const P = COLORS
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`

@@ -57,10 +57,10 @@ const TRAINER_LIST: TrainerDef[] = [
     name: 'Tiana',
     sprite: 'trainer_f_front',
     overworldSprite: 'trainer_f',
-    // GPT-5.4 mini (Zhipu beats OpenAI; OpenAI beats Anthropic), Gemini Flash (Anthropic beats Google)
+    // Mistral Medium (OpenAI beats Mistral; Mistral beats Zhipu), GPT-5.4 mini (Zhipu beats OpenAI; OpenAI beats Anthropic)
     party: [
+      { speciesId: 'mistral_medium', level: 3 },
       { speciesId: 'gpt_5_4_mini', level: 4 },
-      { speciesId: 'gemini_flash', level: 3 },
     ],
     preBattle: ['Stop right there! I need one more data point.', 'Your score goes on my leaderboard!'],
     loseText: 'Okay, that result is NOT going in the paper.',

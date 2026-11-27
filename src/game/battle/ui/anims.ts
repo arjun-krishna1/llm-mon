@@ -1,5 +1,5 @@
 // Move animations. One effect per BATTLE-CORE `anim` key, tinted by the move's type
-// colour, with a type-specific particle so e.g. a Logic beam and a Glitch beam differ.
+// colour, with a type-specific particle so e.g. a Zhipu beam and a Glitch beam differ.
 // Add a bespoke look for a single move in MOVE_OVERRIDES (see docs/BATTLE_UI.md).
 
 import Phaser from 'phaser'
@@ -27,13 +27,15 @@ type AnimFn = (c: AnimCtx) => Promise<void>
 
 /** Particle texture per move type (all white, tinted at runtime). */
 export const TYPE_PARTICLE: Record<string, string> = {
-  neutral: 'bfx/orb',
-  myth: 'bfx/spark',
-  logic: 'bfx/dot',
-  tool: 'bfx/orb',
-  speed: 'bfx/slash',
-  open: 'bfx/dot',
-  vision: 'bfx/spark',
+  anthropic: 'bfx/spark',
+  openai: 'bfx/orb',
+  google: 'bfx/spark',
+  zhipu: 'bfx/dot',
+  deepseek: 'bfx/dot',
+  mistral: 'bfx/slash',
+  moonshot: 'bfx/orb',
+  cohere: 'bfx/note',
+  classic: 'bfx/orb',
   glitch: 'bfx/pixel',
 }
 

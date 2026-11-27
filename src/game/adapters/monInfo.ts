@@ -70,7 +70,7 @@ export function speciesName(id: string): string {
 
 export function speciesTypes(id: string): string[] {
   const t = SPECIES()[id]?.types
-  return Array.isArray(t) && t.length ? (t as string[]) : ['neutral']
+  return Array.isArray(t) && t.length ? (t as string[]) : ['classic']
 }
 
 export function speciesInfo(id: string): { name: string; types: string[]; dexText: string; category: string } {
@@ -204,7 +204,7 @@ export function moveInfo(id: string): { name: string; type: string; power: numbe
   const m = MOVES()[id] ?? {}
   return {
     name: String(m.name ?? titleCase(id)),
-    type: String(m.type ?? 'neutral'),
+    type: String(m.type ?? 'classic'),
     power: Number(m.power ?? 0),
     pp: Number(m.pp ?? 20),
     desc: String(m.description ?? ''),
@@ -216,7 +216,7 @@ export function typeName(id: string): string {
   return String(TYPES()[id]?.name ?? titleCase(id))
 }
 
-/** 3-letter type abbreviation ("MYT") for tight HUDs. */
+/** 3-letter type code ("OAI") for tight HUDs. */
 export function typeShort(id: string): string {
   return String(TYPES()[id]?.short ?? id.slice(0, 3)).toUpperCase()
 }

@@ -26,22 +26,22 @@ export interface TypeInfo {
   name: string
   /** 3-letter code for small pills ("OAI"). */
   short: string
-  /** Chip colour (hex), mirrors the palette ramp used by tools/art/sprites/ui.py. */
+  /** Chip fill colour (hex): the mid tone of the palette ramp in tools/art/sprites/ui.py TYPE_RAMPS. */
   color: string
   blurb: string
 }
 
 export const TYPES: Record<TypeId, TypeInfo> = {
-  anthropic: { id: 'anthropic', name: 'Anthropic', short: 'ANT', color: '#e08a3c', blurb: 'Claude models: careful, thoughtful, very good at long answers.' },
-  openai: { id: 'openai', name: 'OpenAI', short: 'OAI', color: '#3fae8a', blurb: 'GPT models: all-rounders that reach for the right tool.' },
-  google: { id: 'google', name: 'Google', short: 'GGL', color: '#3a8fd8', blurb: 'Gemini and Gemma: huge context and sharp multimodal eyes.' },
-  zhipu: { id: 'zhipu', name: 'Zhipu', short: 'ZHP', color: '#b86fd6', blurb: 'GLM models: graph-minded reasoners with open weights.' },
-  deepseek: { id: 'deepseek', name: 'DeepSeek', short: 'DSK', color: '#5a6fd0', blurb: 'DeepSeek models: deep thinkers, cheap to run, sturdy.' },
-  mistral: { id: 'mistral', name: 'Mistral', short: 'MST', color: '#f2c94c', blurb: 'Mistral models: quick and breezy, straight from Paris.' },
-  moonshot: { id: 'moonshot', name: 'Moonshot', short: 'MSH', color: '#7bbf4a', blurb: 'Kimi models: long-horizon agents aiming high.' },
-  cohere: { id: 'cohere', name: 'Cohere', short: 'COH', color: '#d0607a', blurb: 'Command models: tidy retrieval for busy offices.' },
-  classic: { id: 'classic', name: 'Classic', short: 'CLS', color: '#a8a29a', blurb: 'Basic moves and the old building blocks of the field.' },
-  glitch: { id: 'glitch', name: 'Glitch', short: 'GLT', color: '#d6456a', blurb: 'Hallucinations, corrupted caches and broken prompts.' },
+  anthropic: { id: 'anthropic', name: 'Anthropic', short: 'ANT', color: '#d0642a', blurb: 'Claude models: careful, thoughtful, very good at long answers.' },
+  openai: { id: 'openai', name: 'OpenAI', short: 'OAI', color: '#2a9490', blurb: 'GPT models: all-rounders that reach for the right tool.' },
+  google: { id: 'google', name: 'Google', short: 'GGL', color: '#3f6cc0', blurb: 'Gemini and Gemma: huge context and sharp multimodal eyes.' },
+  zhipu: { id: 'zhipu', name: 'Zhipu', short: 'ZHP', color: '#6c54bc', blurb: 'GLM models: graph-minded reasoners with open weights.' },
+  deepseek: { id: 'deepseek', name: 'DeepSeek', short: 'DSK', color: '#40507c', blurb: 'DeepSeek models: deep thinkers, cheap to run, sturdy.' },
+  mistral: { id: 'mistral', name: 'Mistral', short: 'MST', color: '#e8b830', blurb: 'Mistral models: quick and breezy, straight from Paris.' },
+  moonshot: { id: 'moonshot', name: 'Moonshot', short: 'MSH', color: '#58b257', blurb: 'Kimi models: long-horizon agents aiming high.' },
+  cohere: { id: 'cohere', name: 'Cohere', short: 'COH', color: '#946240', blurb: 'Command models: tidy retrieval for busy offices.' },
+  classic: { id: 'classic', name: 'Classic', short: 'CLS', color: '#84808e', blurb: 'Basic moves and the old building blocks of the field.' },
+  glitch: { id: 'glitch', name: 'Glitch', short: 'GLT', color: '#c83c44', blurb: 'Hallucinations, corrupted caches and broken prompts.' },
 }
 
 export interface Matchup {

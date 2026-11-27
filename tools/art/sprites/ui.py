@@ -209,18 +209,28 @@ def arrow_down():
     return im
 
 
+# One chip per type id (src/game/data/typechart.ts). Lab types are plain coloured
+# chips with text only (no logos or logo-like marks). Neighbouring labs in the list
+# use clearly different hues: orange, teal, blue, violet, navy, yellow, green, brown.
 TYPE_RAMPS = {
-    'neutral': [P.ROCK[0], P.ROCK[1], P.ROCK[2]],
-    'myth': [P.ROOF_ORANGE[0], P.ROOF_ORANGE[1], P.ROOF_ORANGE[2]],
-    'logic': [P.ROOF_TEAL[0], P.ROOF_TEAL[1], P.ROOF_TEAL[2]],
-    'tool': [P.ROOF_BLUE[0], P.ROOF_BLUE[1], P.ROOF_BLUE[2]],
-    'speed': [P.CLOTH_YELLOW[0], P.CLOTH_YELLOW[1], P.CLOTH_YELLOW[2]],
-    'open': [P.CLOTH_GREEN[0], P.CLOTH_GREEN[1], P.CLOTH_GREEN[2]],
-    'vision': [P.ROOF_VIOLET[0], P.ROOF_VIOLET[1], P.ROOF_VIOLET[2]],
+    'anthropic': [P.ROOF_ORANGE[0], P.ROOF_ORANGE[1], P.ROOF_ORANGE[2]],
+    'openai': [P.ROOF_TEAL[0], P.ROOF_TEAL[1], P.ROOF_TEAL[2]],
+    'google': [P.ROOF_BLUE[0], P.ROOF_BLUE[1], P.ROOF_BLUE[2]],
+    'zhipu': [P.ROOF_VIOLET[0], P.ROOF_VIOLET[1], P.ROOF_VIOLET[2]],
+    'deepseek': [P.UI_FRAME[0], P.UI_FRAME[1], P.UI_FRAME[2]],
+    'mistral': [P.CLOTH_YELLOW[0], P.CLOTH_YELLOW[1], P.CLOTH_YELLOW[2]],
+    'moonshot': [P.GRASS[0], P.GRASS[1], P.GRASS[2]],
+    'cohere': [P.WOOD[0], P.WOOD[1], P.WOOD[2]],
+    'classic': [P.ROCK[0], P.ROCK[1], P.ROCK[2]],
     'glitch': [P.CLOTH_PINK[0], P.CLOTH_RED[1], P.CLOTH_PINK[1]],
 }
-TYPE_LABEL = {'neutral': 'NEUTRAL', 'myth': 'MYTH', 'logic': 'LOGIC', 'tool': 'TOOL',
-              'speed': 'SPEED', 'open': 'OPEN', 'vision': 'VISION', 'glitch': 'GLITCH'}
+TYPE_NAME = {'anthropic': 'ANTHROPIC', 'openai': 'OPENAI', 'google': 'GOOGLE', 'zhipu': 'ZHIPU',
+             'deepseek': 'DEEPSEEK', 'mistral': 'MISTRAL', 'moonshot': 'MOONSHOT', 'cohere': 'COHERE',
+             'classic': 'CLASSIC', 'glitch': 'GLITCH'}
+TYPE_CODE = {'anthropic': 'ANT', 'openai': 'OAI', 'google': 'GGL', 'zhipu': 'ZHP', 'deepseek': 'DSK',
+             'mistral': 'MST', 'moonshot': 'MSH', 'cohere': 'COH', 'classic': 'CLS', 'glitch': 'GLT'}
+# Short name when it fits inside the 32px chip (2px inset each side), else the 3-letter code.
+TYPE_LABEL = {t: (n if width3(n) <= 28 else TYPE_CODE[t]) for t, n in TYPE_NAME.items()}
 
 
 def type_chip(tid):
@@ -276,6 +286,11 @@ def build():
     save(cursor(), UI, 'cursor.png')
     save(arrow_down(), UI, 'arrow_down.png')
     save(orb_slots(), UI, 'orb_slots.png')
+    build_type_chips()
+
+
+def build_type_chips():
+    """Only the 32x12 type chips (safe to run on its own)."""
     for t in TYPE_RAMPS:
         save(type_chip(t), UI, 'type_%s.png' % t)
 
