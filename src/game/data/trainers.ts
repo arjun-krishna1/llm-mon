@@ -70,15 +70,17 @@ const TRAINER_LIST: TrainerDef[] = [
 ]
 
 // The rival: neighbour Dana takes the starter that beats yours (anthropic > zhipu
-// > openai > anthropic). Same shape for every matchup: her starter Lv7 with its
-// lab move + one Route 101 catch Lv4 that your starter hits super effectively.
+// > openai > anthropic). Same shape for every matchup: her starter Lv5 with its
+// lab move at full PP + one Route 101 catch Lv4 that your starter hits super
+// effectively. Lv5 (not 7) because the counter-starter both hits you 2x and
+// resists your lab move; that is the whole difficulty, no PP tricks needed.
 // Fixed IVs even out the three matchups (balance locked by
 // data/__tests__/rival.test.ts). The `_rematch` variant (starter one level lower)
 // is used once after you lose to her.
 const RIVAL_PARTY: Record<string, { moves: string[]; iv: number; catchId: string }> = {
-  gpt_5_5: { moves: ['autocomplete', 'focus_token', 'function_call'], iv: 6, catchId: 'gemma_4' }, // vs Claude Fable
-  glm: { moves: ['graph_paw', 'pattern_guard', 'graph_reason'], iv: 6, catchId: 'mistral_medium' }, // vs GPT 5.5
-  claude_fable: { moves: ['warm_nudge', 'guardrail', 'artifact'], iv: 6, catchId: 'gpt_5_4_mini' }, // vs GLM
+  gpt_5_5: { moves: ['autocomplete', 'focus_token', 'function_call'], iv: 15, catchId: 'gemma_4' }, // vs Claude Fable
+  glm: { moves: ['graph_paw', 'pattern_guard', 'graph_reason'], iv: 10, catchId: 'mistral_medium' }, // vs GPT 5.5
+  claude_fable: { moves: ['warm_nudge', 'guardrail', 'artifact'], iv: 10, catchId: 'gpt_5_4_mini' }, // vs GLM
 }
 function rival(starter: string, rematch: boolean): TrainerDef {
   const r = RIVAL_PARTY[starter]
@@ -91,7 +93,7 @@ function rival(starter: string, rematch: boolean): TrainerDef {
     overworldSprite: 'rival',
     party: [
       { speciesId: r.catchId, level: 4, moves: ['autocomplete', 'small_talk'] },
-      { speciesId: starter, level: rematch ? 6 : 7, moves: r.moves, ivs: { hp: iv, atk: iv, def: iv, spa: iv, spd: iv, spe: iv } },
+      { speciesId: starter, level: rematch ? 4 : 5, moves: r.moves, ivs: { hp: iv, atk: iv, def: iv, spa: iv, spd: iv, spe: iv } },
     ],
     preBattle: ['Ready or not, here I come!'],
     loseText: 'Wow. Okay. That was a really good battle. I’m still beating you next time.',

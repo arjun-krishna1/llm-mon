@@ -88,23 +88,23 @@ const MOVE_LIST: MoveDef[] = [
   m({ id: STRUGGLE_ID, name: 'Retry Loop', type: 'classic', category: 'physical', power: 50, accuracy: null, pp: 1, anim: 'heavy', description: 'Out of tokens, it retries anyway. Hurts the user too.', typeless: true }),
 
   // ── anthropic ──────────────────────────────────────────────────────────
-  m({ id: 'artifact', name: 'Artifact', type: 'anthropic', category: 'special', power: 45, accuracy: 100, pp: 25, anim: 'wave', description: 'Builds a little interactive page and drops it on the foe.' }),
+  m({ id: 'artifact', name: 'Artifact', type: 'anthropic', category: 'special', power: 40, accuracy: 100, pp: 25, anim: 'wave', description: 'Builds a little interactive page and drops it on the foe.' }),
   m({ id: 'extended_thinking', name: 'Extended Thinking', type: 'anthropic', category: 'special', power: 70, accuracy: 100, pp: 15, anim: 'burst', description: 'Signature. Thinks it all through first. May raise Sp. Atk.', effect: { chance: 20, self: { spa: 1 } } }),
   m({ id: 'constitution', name: 'Constitution', type: 'anthropic', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Recites its principles. Raises Sp. Atk and Sp. Def.', effect: { self: { spa: 1, spd: 1 } } }),
 
   // ── openai ─────────────────────────────────────────────────────────────
-  m({ id: 'function_call', name: 'Function Call', type: 'openai', category: 'physical', power: 45, accuracy: 100, pp: 25, description: 'Calls exactly the right function with typed arguments.' }),
+  m({ id: 'function_call', name: 'Function Call', type: 'openai', category: 'physical', power: 40, accuracy: 100, pp: 25, description: 'Calls exactly the right function with typed arguments.' }),
   m({ id: 'reasoning_effort', name: 'Reasoning Effort', type: 'openai', category: 'physical', power: 75, accuracy: 95, pp: 10, anim: 'heavy', description: 'Signature. Turns the effort dial to max. High critical-hit ratio.', highCrit: true }),
   m({ id: 'custom_instruction', name: 'Custom Instruction', type: 'openai', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Remembers how you like it. Raises Attack and Speed.', effect: { self: { atk: 1, spe: 1 } } }),
 
   // ── google ─────────────────────────────────────────────────────────────
-  m({ id: 'multimodal_beam', name: 'Multimodal Beam', type: 'google', category: 'special', power: 50, accuracy: 100, pp: 25, description: 'A ray of text, pixels and audio all at once.' }),
+  m({ id: 'multimodal_beam', name: 'Multimodal Beam', type: 'google', category: 'special', power: 40, accuracy: 100, pp: 25, description: 'A ray of text, pixels and audio all at once.' }),
   m({ id: 'grounding', name: 'Grounding', type: 'google', category: 'special', power: 65, accuracy: null, pp: 15, anim: 'burst', description: 'Signature. Anchors the hit in search results. Never misses.' }),
   m({ id: 'long_context', name: 'Long Context', type: 'google', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Remembers every hit so far. Raises Defense and Sp. Def.', effect: { self: { def: 1, spd: 1 } } }),
   m({ id: 'tpu_slam', name: 'TPU Slam', type: 'google', category: 'physical', power: 80, accuracy: 90, pp: 10, anim: 'heavy', description: 'Drops a whole rack of chips on the foe. Some recoil.', recoilFraction: 0.25 }),
 
   // ── zhipu ──────────────────────────────────────────────────────────────
-  m({ id: 'graph_reason', name: 'Graph Reason', type: 'zhipu', category: 'special', power: 45, accuracy: 100, pp: 25, description: 'Follows every edge of the problem to the answer.' }),
+  m({ id: 'graph_reason', name: 'Graph Reason', type: 'zhipu', category: 'special', power: 40, accuracy: 100, pp: 25, description: 'Follows every edge of the problem to the answer.' }),
   m({ id: 'blank_infill', name: 'Blank Infill', type: 'zhipu', category: 'special', power: 70, accuracy: 100, pp: 15, anim: 'burst', description: 'Signature. Fills in the blank the foe left. May lower its Speed.', effect: { chance: 20, foe: { spe: -1 } } }),
   m({ id: 'thinking_mode', name: 'Thinking Mode', type: 'zhipu', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Flips into thinking mode. Sharply raises Sp. Atk.', effect: { self: { spa: 2 } } }),
 
