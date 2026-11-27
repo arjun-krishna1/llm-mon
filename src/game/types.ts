@@ -48,6 +48,12 @@ export interface BattleRequest {
   safety?: boolean
   /** (BATTLE-CORE) Optional override for the opening line, e.g. "The wild HalluciHound is glitching out!". */
   introText?: string
+  /**
+   * (BATTLE-UI) The enemy runs off instead of fainting when defeated (tutorial hound).
+   * The faint event carries `fled: true` and `defeatText` replaces "X fainted!".
+   */
+  fleeOnDefeat?: boolean
+  defeatText?: string
 }
 
 export interface BattleResult {

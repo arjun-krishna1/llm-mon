@@ -187,6 +187,16 @@ describe('safety flag', () => {
     }
   })
 
+  it('tutorial hound bolts instead of fainting', () => {
+    const rng = createRng(3)
+    const req = tutorialBattleRequest(rng)
+    const r = simulate(req, [createMon('glm', 9, rng)], rng, 'random', {}, 2000)
+    expect(r.outcome).toBe('win')
+    expect(ofType(r.events, 'faint').filter((f) => f.side === 'enemy')).toEqual([{ type: 'faint', side: 'enemy', partyIndex: 0, fled: true }])
+    expect(texts(r.events)).toContain('The HalluciHound lost its nerve and bolted!')
+    expect(texts(r.events).some((t) => t.endsWith('fainted!'))).toBe(false)
+  })
+
   it('tutorial request is scripted, no run, no catch', () => {
     const req = tutorialBattleRequest(createRng(1))
     expect(req).toMatchObject({ kind: 'scripted', canRun: false, canCatch: false, safety: true })

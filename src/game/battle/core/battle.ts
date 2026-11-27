@@ -334,8 +334,10 @@ export class Battle {
       if (mon.hp > 0 || this.faintHandled.has(mon.uid)) continue
       this.faintHandled.add(mon.uid)
       c.hallucinatingTurns = 0
-      this.say(`${this.nameOf(c)} fainted!`)
-      this.emit({ type: 'faint', side: c.side, partyIndex: c.active })
+      const fled = c.side === 'enemy' && !!this.request.fleeOnDefeat
+      if (fled) this.say(this.request.defeatText ?? `${this.nameOf(c)} ran away!`)
+      else this.say(`${this.nameOf(c)} fainted!`)
+      this.emit(fled ? { type: 'faint', side: c.side, partyIndex: c.active, fled } : { type: 'faint', side: c.side, partyIndex: c.active })
       if (c.side === 'enemy') this.awardExp(c.active)
     }
   }

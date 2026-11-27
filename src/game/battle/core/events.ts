@@ -96,7 +96,8 @@ export type BattleEvent =
   | { type: 'cant_move'; side: Side; reason: AnyStatusId }
   /** `delta` is what was actually applied (0 = already at the limit; text explains). */
   | { type: 'stat_change'; side: Side; stat: StageStat; delta: number; stage: number }
-  | { type: 'faint'; side: Side; partyIndex: number }
+  /** `fled`: the enemy ran off instead of fainting (request.fleeOnDefeat). */
+  | { type: 'faint'; side: Side; partyIndex: number; fled?: boolean }
   /**
    * EXP bar fill for one level segment. A multi-level gain emits one exp_gain per
    * level (each followed by level_up). Bar fraction = (exp - levelStart)/(levelEnd - levelStart).

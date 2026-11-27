@@ -58,5 +58,7 @@ export function tutorialBattleRequest(rng: Rng, level = 2): BattleRequest {
     music: 'battle_wild',
     safety: true,
     introText: 'The wild HalluciHound is glitching out!',
+    fleeOnDefeat: true,
+    defeatText: 'The HalluciHound lost its nerve and bolted!',
   }
 }
