@@ -399,7 +399,9 @@ TESTS.anims = async () => {
   await g.face('up')
   await g.frames('door_enter', 16, 60, () => g.holdUntil('up', { x: 13, y: 97 }))
   await g.waitIdle()
-  await g.frames('door_exit', 16, 60, async () => { await g.walkTo({ x: 6, y: 7 }); await g.page.keyboard.down('ArrowDown'); await sleep(300); await g.page.keyboard.up('ArrowDown') })
+  await g.walkTo({ x: 6, y: 7 })
+  await g.face('down')
+  await g.frames('door_exit', 22, 60, async () => { await g.page.keyboard.down('ArrowDown'); await sleep(300); await g.page.keyboard.up('ArrowDown') })
   await g.waitIdle()
   // grass rustle + battle intro / attack / faint
   await g.walkTo({ x: 21, y: 75 })
@@ -440,6 +442,102 @@ TESTS.anims = async () => {
   }
   record('anim_strips', (g.strips || []).length >= 8, (g.strips || []).map((s) => `${s.name}(${s.files.length}f, dt≈${Math.round((s.t[s.t.length - 1] - s.t[0]) / Math.max(1, s.t.length - 1))}ms)`).join(', '))
   fs.writeFileSync(path.join(OUT, 'anims', 'strips.json'), JSON.stringify({ fast: false, quick: true, seed: SEED, starter: 'glm', strips: g.strips, beats: [] }, null, 1))
+  await g.close()
+}
+
+
+TESTS.saves = async () => {
+  // save + reload + Continue from inside every interior and mid-route
+  const spots = [
+    { map: 'home_1f', x: 7, y: 5 }, { map: 'home_2f', x: 5, y: 5 }, { map: 'neighbor', x: 3, y: 5 }, { map: 'lab', x: 4, y: 8 },
+    { map: 'center', x: 6, y: 6 }, { map: 'mart', x: 4, y: 6 }, { map: 'soma_house', x: 5, y: 6 },
+    { map: 'overworld', x: 21, y: 76 }, { map: 'overworld', x: 30, y: 60 }, { map: 'overworld', x: 21, y: 27 },
+  ]
+  for (const sp of spots) {
+    const name = `save_${sp.map}_${sp.x}_${sp.y}`
+    const g = await setup(name, { map: sp.map, x: sp.x, y: sp.y, flags: POST_RESCUE, party: [['claude_fable', 8], ['gemma_4', 4]], items: { patch: 2 } })
+    await g.face('left')
+    await menu.save(g, { check: () => {}, sleep, FAST: true })
+    const before = await g.snap()
+    await g.goto('')
+    await g.page.waitForFunction(() => window.__ptSnap() && window.__ptSnap().title === 'press', null, { timeout: 20000 })
+    await g.press('A')
+    await g.page.waitForFunction(() => { const s = window.__ptSnap(); return s.ui.top && s.ui.top.cls === 'ListMenu' }, null, { timeout: 5000 })
+    await g.pick(0, 'UI')
+    await g.page.waitForFunction(() => { const s = window.__ptSnap(); return s.info.scenes.includes('Overworld') && !s.info.busy }, null, { timeout: 15000 })
+    await sleep(900)
+    const s = await g.snap()
+    await g.shot('continued', `Continue in ${sp.map}`)
+    // can we still walk?
+    const moved = await g.walkTo({ x: s.info.x, y: s.info.y + 1 }).then(() => true).catch(() => false)
+    const ok = s.info.map === before.info.map && s.info.x === before.info.x && s.info.y === before.info.y && s.info.facing === before.info.facing && s.music === before.music
+    record(name, ok, `saved ${before.info.map} ${before.info.x},${before.info.y} ${before.info.facing} music ${before.music} → ${s.info.map} ${s.info.x},${s.info.y} ${s.info.facing} music ${s.music}; banner zone ${s.info.zone}; can walk after: ${moved}`)
+    await g.close()
+  }
+}
+
+TESTS.menus = async () => {
+  const g = await setup('menus', { spawn: 'route_mouth', flags: POST_RESCUE, party: [['claude_fable', 8, { hp: 5 }], ['gemma_4', 4]], items: { patch: 3, prompt_orb: 5 } })
+  const sfxSince = async () => g.page.evaluate(() => window.__audioLog.splice(0).filter((a) => a.k === 'sfx').map((a) => a.id))
+  const rows = []
+  await sfxSince()
+  // start menu open / move / cursor memory
+  await g.press('START'); await sleep(300)
+  rows.push(['open start', await sfxSince()])
+  let s = await g.snap()
+  const i0 = s.ui.top.index
+  await g.press('down'); await sleep(150); rows.push(['down', await sfxSince()])
+  await g.press('down'); await sleep(150); rows.push(['down', await sfxSince()])
+  s = await g.snap(); const idx = s.ui.top.index
+  await g.press('B'); await sleep(300); rows.push(['B closes', await sfxSince()])
+  s = await g.snap(); const closed = !s.info.menuOpen && !(s.ui.top)
+  await g.press('START'); await sleep(300); await sfxSince()
+  s = await g.snap(); const remembered = s.ui.top && s.ui.top.index === idx
+  // up wraps?
+  await g.pick(0, 'UI'); await sleep(500); await sfxSince()
+  s = await g.snap(); const inParty = s.ui.top && s.ui.top.cls
+  await g.press('down'); await sleep(150); rows.push(['party down', await sfxSince()])
+  await g.press('B'); await sleep(700); rows.push(['party B', await sfxSince()])
+  s = await g.snap(); const backToStart = s.ui.top && s.ui.top.labels && s.ui.top.labels.includes('SAVE')
+  // bag
+  await g.pick(s.ui.top.labels.indexOf('BAG'), 'UI'); await sleep(700); await sfxSince()
+  await g.press('down'); await sleep(150); rows.push(['bag down', await sfxSince()])
+  await g.press('A'); await sleep(300); rows.push(['bag A (submenu)', await sfxSince()])
+  await g.press('B'); await sleep(300); rows.push(['bag sub B', await sfxSince()])
+  await g.press('B'); await sleep(700); rows.push(['bag B close', await sfxSince()])
+  s = await g.snap(); const bagBack = s.ui.top && s.ui.top.labels && s.ui.top.labels.includes('SAVE')
+  // card + B
+  await g.pick(s.ui.top.labels.findIndex((l) => !['LLMMON', 'BAG', 'SAVE', 'EXIT'].includes(l)), 'UI'); await sleep(700); await sfxSince()
+  await g.press('B'); await sleep(700); rows.push(['card B', await sfxSince()])
+  s = await g.snap(); const cardBack = s.ui.top && s.ui.top.labels && s.ui.top.labels.includes('SAVE')
+  // save prompt: B = NO
+  await g.pick(s.ui.top.labels.indexOf('SAVE'), 'UI'); await sleep(500); await sfxSince()
+  await g.press('B'); await sleep(500); rows.push(['save prompt B', await sfxSince()])
+  s = await g.snap(); const saveB = { top: s.ui.top && s.ui.top.cls, busy: s.info.busy, text: s.ui.text }
+  await g.waitIdle()
+  // rapid input: 10 downs at 50 ms in the start menu → index should advance 10 (mod n)
+  await g.press('START'); await sleep(300)
+  s = await g.snap(); const n = s.ui.top.labels.length; const a0 = s.ui.top.index
+  for (let k = 0; k < 10; k++) { await g.page.keyboard.down('ArrowDown'); await sleep(25); await g.page.keyboard.up('ArrowDown'); await sleep(25) }
+  await sleep(200)
+  s = await g.snap(); const a1 = s.ui.top.index
+  await g.press('B'); await g.waitIdle()
+  record('menus', closed && remembered && backToStart && bagBack && cardBack, JSON.stringify({ i0, idx, closed, remembered, inParty, backToStart, bagBack, cardBack, saveB, rapid: { n, from: a0, to: a1, expected: (a0 + 10) % n }, sfx: rows }))
+  await g.close()
+}
+
+TESTS.grass4 = async () => {
+  const g = await setup('grass4', { map: 'overworld', x: 21, y: 72, flags: { ...POST_RESCUE, debug_no_encounters: true }, party: [['claude_fable', 8]] })
+  await g.walkTo({ x: 21, y: 72 }, { grassCost: 0 })
+  const moves = [['up', { x: 21, y: 70 }], ['left', { x: 19, y: 70 }], ['down', { x: 19, y: 72 }], ['right', { x: 21, y: 72 }]]
+  for (const [d, t] of moves) await g.frames('grass_' + d, 12, 45, () => g.holdUntil(d, t))
+  await g.walkTo({ x: 21, y: 68 }).catch(() => {})
+  await g.page.keyboard.down('x')
+  await g.walkTo({ x: 18, y: 67 }).catch(() => {})
+  await g.frames('run_right_road', 12, 40, async () => { await g.holdUntil('right', { x: 26, y: 67 }) })
+  await g.page.keyboard.up('x')
+  fs.writeFileSync(path.join(OUT, 'grass4', 'strips.json'), JSON.stringify({ fast: false, quick: true, seed: SEED, starter: 'claude_fable', strips: g.strips, beats: [] }, null, 1))
+  record('grass4', true, (g.strips || []).map((x) => x.name).join(','))
   await g.close()
 }
 

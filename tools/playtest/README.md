@@ -31,7 +31,7 @@ node tools/playtest/run.cjs --fast
 
 # targeted tests (white-out, level-up/learn, full party, Hayes escape/edges, mashing,
 # NPC-walk menu/talk, resize, reload mid-cutscene, animation strips)
-node tools/playtest/tests.cjs [--only whiteout,levelup,fullparty,escape,mash,npcwalk,resize,reload,anims]
+node tools/playtest/tests.cjs [--only whiteout,levelup,fullparty,escape,mash,npcwalk,resize,reload,anims,saves,menus,grass4]
 
 # contact sheets (12 beats per sheet, 2x, labelled) + animation strip sheets
 python3 tools/playtest/sheets.py tools/playtest/out/run --out tools/playtest/out --prefix sheet

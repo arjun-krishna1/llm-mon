@@ -58,9 +58,7 @@ module.exports = async function world(ctx) {
     await g.shot('neighbor', 'Neighbour house')
     await g.talkTo('nb_dana', { onText: shootOn(g, [[/I’m Dana/, 'neighbor_dana']]) })
     await g.talkTo('nb_milo')
-    await g.readAt(4, 2)
-    await g.readAt(9, 2)
-    await g.readAt(1, 2)
+    await g.readAllSigns()
     await g.takeWarp('overworld')
   })
 
@@ -71,7 +69,7 @@ module.exports = async function world(ctx) {
     await g.talkTo('lab_aide', { onText: shootOn(g, [[/forgot his satchel/, 'lab_aide']]), choice: async (p, labels) => { await g.shot('lab_aide_yesno', 'Aide asks: take the satchel?'); return 0 } })
     const s = await g.snap()
     check(!!s.flags.met_aide && !!s.flags.has_satchel, 'met aide + has satchel')
-    for (const [x, y] of [[1, 2], [5, 1], [7, 2], [12, 2], [1, 6], [5, 5], [10, 5], [11, 2]]) await g.readAt(x, y)
+    await g.readAllSigns()
     await g.takeWarp('overworld')
   })
 
@@ -123,6 +121,11 @@ module.exports = async function world(ctx) {
     await g.shot('route_sign', 'Route 101 sign')
     await musicIs('route_101')
     await g.talkTo('rt_girl', { walk: { run: true } })
+    await g.readAt(18, 82, { onText: shootOn(g, [[/./, 'route_field_notes']]) }) // field notes sign in the clearing
+    await g.shot('rescue_clearing', 'Rescue clearing after the rescue')
+    await g.readAt(29, 79, { walk: { grassCost: 0 } }) // Debugger behind tall grass
+    const s0 = await g.snap()
+    check(!!s0.flags.item_route_debugger, 'picked up the Debugger behind the grass')
     const s = await g.snap()
     check(s.info.zone === 'ROUTE 101', 'zone route', s.info.zone)
   })
@@ -175,9 +178,15 @@ module.exports = async function world(ctx) {
     // north along the east path: Calvin's sight line (row 54) crosses it. KNOWN P0: a sight trainer who has
     // to walk >= 1 tile toward the player soft-locks the game (REPORT.md); the only safe crossing is the
     // tile right next to him, so step into his line there (a first-time player would not know this).
-    await g.walkTo({ x: 32, y: 56 }, { run: true })
-    await g.holdUntil('up', { x: 32, y: 54 })
+    // hiker heals once (stands south of Calvin's line)
+    await g.talkTo('rt_hiker', { walk: { run: true }, onText: shootOn(g, [[/cache/, 'route_hiker']]) })
+    let sh = await g.snap()
+    check(!!sh.flags.route_hiker_heal, 'hiker healed the team once')
+    // Round 2: enter Calvin's line at its FAR end (24,54): he must walk 8 tiles
+    await g.walkTo({ x: 24, y: 56 }, { run: true })
+    await g.holdUntil('up', { x: 24, y: 54 })
     await g.waitIdle()
+    await g.shot('calvin_after', 'After Calvin (entered at far end)')
     await g.talkTo('rt_elder', { walk: { run: true } })
     s = await g.snap()
     check(!!s.flags.trainer_route_101_a_defeated, 'Calvin (sight-line trainer) battled + beaten')
@@ -210,8 +219,9 @@ module.exports = async function world(ctx) {
   await seg('route_101_north', async () => {
     g.handlers = { ...battleShooter('tr') }
     // Tiana's sight line is row 39, x 20-23 (unavoidable). Same P0 as Calvin: cross at x=23 (adjacent).
-    await g.walkTo({ x: 23, y: 41 }, { run: true })
-    await g.holdUntil('up', { x: 23, y: 39 })
+    // Round 2: enter Tiana's line at its FAR end (20,39): she must walk 3 tiles
+    await g.walkTo({ x: 20, y: 41 }, { run: true })
+    await g.holdUntil('up', { x: 20, y: 39 })
     await g.waitIdle()
     let s = await g.snap()
     check(!!s.flags.trainer_route_101_b_defeated, 'Tiana (sight-line trainer) battled + beaten')
@@ -240,7 +250,7 @@ module.exports = async function world(ctx) {
     g.handlers = {}
     await g.readAt(18, 32)
     for (const id of ['sn_boy', 'sn_man', 'sn_elder', 'sn_woman']) await g.talkTo(id, { walk: { run: true } })
-    await g.readAt(21, 23)
+    await g.readAt(21, 25, { onText: shootOn(g, [[/fountain|plaque/i, 'soma_fountain']]) })
     await g.shot('soma_plaza', 'SoMa plaza')
   })
 
@@ -280,7 +290,7 @@ module.exports = async function world(ctx) {
     check((s.bag.patch || 0) === (before.bag.patch || 0) + 2, 'bought 2 Patches', `${before.bag.patch || 0} → ${s.bag.patch}; paid $${cost}`)
     g.mart = { before: before.money, after: s.money, cost }
     await g.talkTo('mt_man')
-    for (const [x, y] of [[5, 2], [6, 5], [10, 6]]) await g.readAt(x, y)
+    await g.readAllSigns()
     await g.takeWarp('overworld')
   })
 
@@ -289,7 +299,7 @@ module.exports = async function world(ctx) {
     await g.shot('soma_house', 'SoMa house')
     await g.talkTo('sh_grandpa')
     await g.talkTo('sh_kid')
-    for (const [x, y] of [[1, 2], [6, 2], [2, 4]]) await g.readAt(x, y)
+    await g.readAllSigns()
     await g.takeWarp('overworld')
   })
 

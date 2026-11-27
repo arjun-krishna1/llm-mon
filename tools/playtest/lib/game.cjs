@@ -329,7 +329,7 @@ class Game {
   }
   textLog(t) {
     this.texts = this.texts || []
-    this.texts.push({ seg: this.segment && this.segment.name, t })
+    this.texts.push({ seg: this.segment && this.segment.name, t, at: Date.now() })
     console.log('   > ' + t.replace(/\n/g, ' / ').replace(/\f/g, ' // '))
   }
   waitIdle(h, timeout) { return this.drive((s) => !s.battle && !s.starter && !s.info.busy && !s.info.moving && s.info.scenes.includes('Overworld'), h, timeout) }
@@ -526,7 +526,7 @@ class Game {
       })
       if (!path) {
         // maybe an NPC blocks the only way: wait a bit
-        if (attempt > 8) throw new Error(`no path on ${map.id} from ${s.info.x},${s.info.y}`)
+        if (attempt > (opts.maxAttempts ?? 8)) throw new Error(`no path on ${map.id} from ${s.info.x},${s.info.y}`)
         await sleep(400)
         continue
       }
@@ -598,7 +598,8 @@ class Game {
         stands.push({ x: sx, y: sy, face: d })
         if (map.tileAt(sx, sy).counter) stands.push({ x: sx - dx, y: sy - dy, face: d })
       }
-      const ok = stands.filter((p) => map.inBounds(p.x, p.y) && (!map.isSolid(p.x, p.y)) && !map.objectAt('warp', p.x, p.y) && !(map.tileAt(p.x, p.y).ledge))
+      const ok = stands.filter((p) => map.inBounds(p.x, p.y) && (!map.isSolid(p.x, p.y)) && !map.objectAt('warp', p.x, p.y) && !(map.tileAt(p.x, p.y).ledge) && (!opts.faces || opts.faces.includes(p.face)))
+      if (!ok.length) return null
       const goal = (x, y) => ok.some((p) => p.x === x && p.y === y)
       const r = await this.walkTo(goal, opts)
       if (r.interrupted || r.mapChanged) return null
@@ -634,7 +635,10 @@ class Game {
     throw new Error('talkTo failed: ' + id)
   }
   async readAt(x, y, h = {}) {
-    const f = await this.approach(x, y, h.walk || {})
+    // signs: stand below and face up when possible (genre rule; some signs only read from below)
+    let f = null
+    try { f = await this.approach(x, y, { ...(h.walk || {}), faces: ['up'], maxAttempts: 3 }) } catch { f = null }
+    if (!f) f = await this.approach(x, y, h.walk || {})
     if (!f) throw new Error(`cannot approach ${x},${y}`)
     return this.interact(h)
   }
@@ -652,6 +656,20 @@ class Game {
     if (h.onOpen) await h.onOpen()
     await this.waitIdle(h)
     return (this.texts || []).slice(before).map((x) => x.t)
+  }
+
+  /** Read every distinct sign script on the current map once (first tile that reads). */
+  async readAllSigns(h = {}, skip = []) {
+    const map = this.map((await this.info()).map)
+    const done = new Set(skip)
+    for (const o of map.objectsOfType('sign')) {
+      const key = o.props.script || o.props.text
+      if (done.has(key)) continue
+      const before = (this.texts || []).length
+      try { await this.readAt(o.tx, o.ty, h) } catch (e) { continue }
+      if ((this.texts || []).length > before) done.add(key)
+    }
+    return [...done]
   }
 
   /** Walk onto a warp tile (door / stairs / exit mat) and wait for the new map. */
