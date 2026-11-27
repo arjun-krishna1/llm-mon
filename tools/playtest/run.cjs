@@ -107,6 +107,15 @@ async function main() {
 
   // ======================================================== home
   await seg('home_1f', async () => {
+    // the phone rings on the first steps after the arrival (triggers round the mat / below the stairs)
+    g.handlers = { onText: shootOn(g, [[/Brrring|lab on the phone/, 'mom_lab_call']]) }
+    await g.walkTo({ x: 6, y: 6 }, { onInterrupt: async () => 'stop' })
+    await g.waitIdle()
+    g.handlers = {}
+    {
+      const s = await g.snap()
+      check(!!s.flags.mom_lab_call, 'Mom lab call fired on the first steps')
+    }
     await g.talkTo('mom')
     await g.shot('home_1f_room_hint', 'after talking to Mom')
     const m = g.map('home_1f')
@@ -130,17 +139,13 @@ async function main() {
     for (const [x, y] of [[3, 2], [1, 2], [5, 2], [1, 7], [7, 2]]) await g.readAt(x, y, { onText: shootOn(g, [[/47 browser tabs/, 'home_pc']]) })
     const s = await g.snap()
     check(!!s.flags.visited_2f, 'flag visited_2f')
+    check(!!s.flags.found_box_patch && (s.bag?.patch ?? 1) > 0, 'found the Patch in the moving box')
     check(!!s.flags.read_notebook, 'flag read_notebook')
     await g.takeWarp('home_1f')
   })
-  await seg('mom_lab_call', async () => {
-    // the trigger sits one tile below the stairs spawn
-    g.handlers = { onText: shootOn(g, [[/lab just called/, 'mom_lab_call']]) }
-    await g.walkTo({ x: 10, y: 4 }, { onInterrupt: async () => 'stop' })
-    await g.waitIdle()
-    g.handlers = {}
+  await seg('leave_home', async () => {
+    // the 2F room is optional now; the lab call already happened in home_1f
     const s = await g.snap()
-    check(!!s.flags.mom_lab_call, 'Mom lab call fired on the way down')
     if (!s.flags.mom_lab_call) { await g.talkTo('mom') }
     await g.takeWarp('overworld')
     await g.shot('hayes_outside', 'Hayes Valley, leaving home')

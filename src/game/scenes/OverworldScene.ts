@@ -139,7 +139,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     this.cameras.main.setBackgroundColor(0x000000)
     this.cameras.main.setRoundPixels(true)
     this.player = new Actor(this, { id: 'player', sprite: 'player', x: 0, y: 0 })
-    this.player.onGrass = (x, y) => !!this.map?.tileAt(x, y).grass
+    this.player.grassAt = (x, y) => this.map?.grassFrameAt(x, y) ?? null
     if (this.textures.exists('chars/player_run') && !isPlaceholder('chars/player_run')) this.player.runTexKey = 'chars/player_run'
     setAreaNameProvider(() => this.zoneName || String(this.map?.props.name ?? ''))
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -246,7 +246,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     const a = new Actor(this, { id, sprite: String(p.sprite ?? 'boy'), x: o.tx, y: o.ty, facing: (p.facing as Dir) ?? 'down' })
     a.movement = (String(p.movement ?? 'static') as Actor['movement'])
     a.data = { ...p, obj: o }
-    a.onGrass = (x, y) => !!this.map?.tileAt(x, y).grass
+    a.grassAt = (x, y) => this.map?.grassFrameAt(x, y) ?? null
     a.aiTimer = randInt(60, 200)
     this.npcs.set(id, a)
   }
@@ -342,8 +342,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       pt.life++
       pt.r.x += pt.vx
       pt.r.y += pt.vy
-      pt.vy += 0.02
-      pt.r.setAlpha(Math.max(0, 1 - pt.life / pt.max))
+      pt.r.setAlpha(Math.max(0, 0.95 * (1 - (pt.life / pt.max) ** 1.5)))
       if (pt.life >= pt.max) pt.r.destroy()
     }
     this.particles = this.particles.filter((pt) => pt.r.active)
@@ -456,16 +455,24 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     else void p.step(d, frames)
   }
 
-  /** Small dust puff behind the heels (running). */
+  /** Dust puff at the heels (running, outdoors, not in tall grass): a 3-4px soft cluster that spreads and fades over ~10 frames. */
   private dust(x: number, y: number, d: Dir): void {
+    if (this.map?.props.indoor) return
     const v = DIR_VEC[d]
-    const cx = x * TILE + 8 - v.x * 4
-    const cy = y * TILE + 14 - (v.y < 0 ? -1 : 0)
-    const cols = [0xf4e4b8, 0xe8cf97, 0xfcfaf0]
-    for (let i = 0; i < 3; i++) {
-      const s = i === 0 ? 2 : 1
-      const r = this.add.rectangle(cx + (i - 1) * 3, cy - (i % 2), s, s, cols[i]).setOrigin(0, 0).setDepth(DEPTH.charBase + y * TILE + TILE - 0.5)
-      this.particles.push({ r, vx: (i - 1) * 0.12 - v.x * 0.15, vy: -0.18 - (i % 2) * 0.06, life: 0, max: 14 + i * 2 })
+    const cx = x * TILE + 7 - v.x * 5
+    const cy = y * TILE + 13 - v.y * 2
+    const depth = DEPTH.charBase + y * TILE + TILE - 0.5
+    // [dx, dy, size, colour, alpha, vx, vy]
+    const parts: Array<[number, number, number, number, number, number, number]> = [
+      [0, 0, 2, 0xfcf6e2, 0.95, 0, -0.08],
+      [-2, 1, 2, 0xf2e6c4, 0.85, -0.22, -0.04],
+      [2, 1, 2, 0xf2e6c4, 0.85, 0.22, -0.04],
+      [-1, -1, 1, 0xfcf6e2, 0.8, -0.1, -0.16],
+      [2, -1, 1, 0xfcf6e2, 0.8, 0.12, -0.15],
+    ]
+    for (const [dx, dy, sz, col, a, vx, vy] of parts) {
+      const r = this.add.rectangle(cx + dx, cy + dy, sz, sz, col).setOrigin(0, 0).setDepth(depth).setAlpha(a)
+      this.particles.push({ r, vx: vx - v.x * 0.12, vy, life: 0, max: 10 + Math.abs(dx) })
     }
   }
 
@@ -937,7 +944,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     const a = new Actor(this, { id: def.id, sprite: def.sprite, x: def.x, y: def.y, facing: def.facing ?? 'down' })
     a.movement = def.movement ?? 'static'
     a.data = { script: def.script, text: def.text }
-    a.onGrass = (x, y) => !!this.map?.tileAt(x, y).grass
+    a.grassAt = (x, y) => this.map?.grassFrameAt(x, y) ?? null
     a.aiTimer = randInt(60, 200)
     this.npcs.set(def.id, a)
   }

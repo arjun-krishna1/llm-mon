@@ -13,7 +13,16 @@ text('home.pc', 'Your trusty PC! It’s restoring 47 browser tabs from the old h
   '...This could take a while. Maybe later.')
 text('home.bed', 'Your bed! It already feels like home.\n...Because it’s the same bed.')
 text('home.bookshelf', 'Your comic collection. Issue #1:\n“The Adventures of Captain Backprop”.')
-text('home.boxes_2f', 'Boxes full of your stuff. Unpacking is a problem for future {player}.')
+def('home.boxes_2f', async (s) => {
+  if (!s.flag('found_box_patch')) {
+    await s.say('Boxes full of your stuff. Wait, what\u2019s this on top?')
+    s.setFlag('found_box_patch')
+    await s.giveItem('patch', 1, { verb: 'found' })
+    await s.say('Mom must have packed it. She packs a first-aid kit for everything.')
+    return
+  }
+  await s.say('Boxes full of your stuff. Unpacking is a problem for future {player}.')
+})
 text('home.bin', 'Empty. The movers were very thorough.')
 
 // ============================================================================ neighbour

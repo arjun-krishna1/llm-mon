@@ -101,13 +101,10 @@ export class SummaryScreen extends Screen<number> {
       const status = mon.hp <= 0 ? 'FAINTED' : mon.status && mon.status !== 'none' ? mon.status.toUpperCase() : 'OK'
       txt(96, 146, `STATUS: ${status}`, true)
     } else {
-      for (let i = mon.moves.length; i < 4; i++) {
-        // empty slot: GBA-style dash
-        txt(96, 22 + i * 33, '-', false, COLORS.text)
-        if (i < 3) {
-          g.fillStyle(COLORS.paper[0])
-          g.fillRect(94, 22 + i * 33 + 29, 140, 1)
-        }
+      // empty move slots stay blank (as in battle); keep the row separators
+      for (let i = mon.moves.length; i < 3; i++) {
+        g.fillStyle(COLORS.paper[0])
+        g.fillRect(94, 22 + i * 33 + 29, 140, 1)
       }
       mon.moves.slice(0, 4).forEach((m, i) => {
         const y = 22 + i * 33

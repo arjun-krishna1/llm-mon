@@ -49,9 +49,7 @@ def('story.arrival', async (s) => {
   await s.cameraPan(-4, -1, 900)
   await s.wait(300)
   s.face('hv_mover', 'right')
-  await line(s, MOVER,
-    'And that\u2019s the last box! The one marked FRAGILE: WEIGHTS took four of us.',
-    'Mythos Movers, signing off. Welcome to Hayes Valley, kid!')
+  await line(s, MOVER, 'That\u2019s the last box! Mythos Movers, signing off. Welcome to Hayes Valley!')
   await s.move('hv_mover', 'up, left')
   s.sfx('door')
   s.hide('hv_mover')
@@ -86,8 +84,7 @@ def('story.arrival', async (s) => {
   s.face('mom', 'down')
   await line(s, MOM,
     'Ta-da! Home sweet home.\fThe movers did a great job, apart from the boxes labelled MISC.',
-    'Your room is upstairs. They even set up your PC!',
-    'Go take a look. And don’t forget to unpack your notebook!')
+    'Your room is upstairs, if you want a look. They even set up your PC!')
   await s.move('mom', 'up, left 2')
   s.face('mom', 'left')
   s.setFlag(F.arrived)
@@ -96,10 +93,20 @@ def('story.arrival', async (s) => {
 // ============================================================================ home
 def('home.mom_lab_call', async (s) => {
   if (s.flag(F.momLabCall)) return
+  for (let i = 0; i < 2; i++) {
+    s.sfx('select')
+    await s.wait(140)
+    s.sfx('select')
+    await s.wait(500)
+  }
+  await s.emote('mom', 'note')
+  s.face('mom', 'up')
+  await s.say('Brrring! Brrring!')
+  await s.wait(500)
   s.face('mom', 'player')
   await s.emote('mom', 'exclaim')
   await line(s, MOM,
-    'Oh, {player}! Professor Karpathy’s lab just called.',
+    'Oh, {player}! That was Professor Karpathy\u2019s lab on the phone.',
     'He wants to welcome you to the neighbourhood.\fHis lab is up the street, the building with the big dish.',
     'Go say hello! And be polite.\fHe’s very smart, so he’ll probably explain things twice.')
   s.setFlag(F.momLabCall)
@@ -107,10 +114,6 @@ def('home.mom_lab_call', async (s) => {
 })
 
 def('home.mom', async (s) => {
-  if (!s.flag(F.visited2f)) {
-    await line(s, MOM, 'Your room’s upstairs, sweetie. Go on, have a look!')
-    return
-  }
   if (!s.flag(F.momLabCall)) {
     await s.run('home.mom_lab_call')
     return
@@ -314,8 +317,8 @@ def('route.rescue', async (s) => {
   await s.emote('player', 'exclaim')
   s.playMusic('encounter_trainer')
   await walkTo(s, 'player', 21, p.y)
-  await s.move('player', Array(Math.max(0, p.y - 82)).fill('up') as Dir[], { speed: 'run' })
-  await s.cameraPan(0, -3, 600)
+  await s.move('player', Array(Math.max(0, p.y - 81)).fill('up') as Dir[], { speed: 'run' })
+  await s.cameraPan(0, -2, 600)
   // the hound prowls, then lunges
   await s.move('hound', 'left', { speed: 'slow' })
   await s.move('hound', 'right 2', { speed: 'slow' })
@@ -337,7 +340,7 @@ def('route.rescue', async (s) => {
     await line(s, PROF, 'You there! I dropped my satchel, it\u2019s right next to you!\fQuick, grab a LLMMON out of it!')
   }
   // walk over to the satchel and face it
-  await s.move('player', 'right, up')
+  await s.move('player', 'right')
   s.face('player', 'right')
   if (carrying) {
     s.spawnProp('satchel', 'fx/satchel', SATCHEL.x, SATCHEL.y)
@@ -360,10 +363,17 @@ def('route.rescue', async (s) => {
   // the hound bolts back into the tall grass
   s.face('hound', 'up')
   await s.emote('hound', 'dots')
-  await s.move('hound', 'up 5', { speed: 'run' })
-  s.despawn('hound')
   s.resumeMapMusic()
-  await s.wait(300)
+  // follow it for a beat while the professor reacts
+  const flee = s.move('hound', 'up 3')
+  void s.cameraPan(0, -3, 700)
+  await s.wait(250)
+  s.face('prof', 'up')
+  await line(s, PROF, 'Phew... Look at it run!')
+  await flee
+  await Promise.all([s.move('hound', 'up 3', { speed: 'run' }), s.cameraPan(0, -2, 600)])
+  s.despawn('hound')
+  await s.wait(200)
   // the professor collects his satchel
   await s.move('prof', 'down, right 2')
   s.face('prof', 'down')
@@ -373,7 +383,7 @@ def('route.rescue', async (s) => {
   s.face('prof', 'left')
   s.face('player', 'right')
   await line(s, PROF,
-    'Phew... Look at it run! Thank you!\fYou must be the new kid from the moving truck.',
+    'Thank you! You must be the new kid from the moving truck.',
     '{player}, right? I\u2019m Professor Karpathy!',
     'That was a wild HalluciHound. They make things up with total confidence,\fand get VERY upset when you check their sources.',
     'Come back to my lab with me. I\u2019d like to thank you properly!')

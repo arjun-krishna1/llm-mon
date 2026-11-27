@@ -170,12 +170,15 @@ export class GameMap {
   readonly layers: Phaser.Tilemaps.TilemapLayer[] = []
   /** Raw gids per tile layer (flip bits stripped), row-major. */
   private grids: number[][] = []
+  private tsInfo: Array<{ firstgid: number; key: string; columns: number; tw: number; th: number }> = []
+  private scene: Phaser.Scene
   private tileProps = new Map<number, TileInfo>()
   private anims = new Map<number, AnimDef>()
   private animTiles: Array<{ tile: Phaser.Tilemaps.Tile; anim: AnimDef; base: number }> = []
 
   constructor(scene: Phaser.Scene, id: string, raw: RawMap) {
     this.id = id
+    this.scene = scene
     this.raw = raw
     this.width = raw.width
     this.height = raw.height
@@ -209,6 +212,7 @@ export class GameMap {
       const tk = tilesetKey(resolveUrl(MAPS_DIR, ts.image))
       const t = this.tilemap.addTilesetImage(ts.name, tk, ts.tilewidth, ts.tileheight, ts.margin ?? 0, ts.spacing ?? 0, ts.firstgid)
       if (t) tilesets.push(t)
+      this.tsInfo.push({ firstgid: ts.firstgid, key: tk, columns: ts.columns ?? Math.floor((ts.imagewidth ?? 256) / ts.tilewidth), tw: ts.tilewidth, th: ts.tileheight })
     }
 
     let below = 0
@@ -277,6 +281,33 @@ export class GameMap {
       if (p) Object.assign(out, p)
     }
     return out
+  }
+
+  /**
+   * Texture + frame of the top-most tall-grass tile at (x, y), or null. The feet overlay is
+   * cut from this very tile so it always matches the grass drawn underneath.
+   */
+  grassFrameAt(x: number, y: number): { key: string; frame: string } | null {
+    if (!this.inBounds(x, y)) return null
+    const i = y * this.width + x
+    for (let l = this.grids.length - 1; l >= 0; l--) {
+      const gid = this.grids[l][i]
+      if (gid && this.tileProps.get(gid)?.grass) return this.tileFrame(gid)
+    }
+    return null
+  }
+
+  private tileFrame(gid: number): { key: string; frame: string } | null {
+    let ts = null as (typeof this.tsInfo)[number] | null
+    for (const t of this.tsInfo) if (t.firstgid <= gid && (!ts || t.firstgid > ts.firstgid)) ts = t
+    if (!ts) return null
+    const tex = this.scene.textures.get(ts.key)
+    const name = `gid${gid - ts.firstgid}`
+    if (!tex.has(name)) {
+      const local = gid - ts.firstgid
+      tex.add(name, 0, (local % ts.columns) * ts.tw, Math.floor(local / ts.columns) * ts.th, ts.tw, ts.th)
+    }
+    return { key: ts.key, frame: name }
   }
 
   isSolid(x: number, y: number): boolean {

@@ -57,7 +57,8 @@ export class Actor {
   aiTimer = 0
   /** Free-form data (npc object props etc). */
   data: Record<string, unknown> = {}
-  onGrass: (x: number, y: number) => boolean = () => false
+  /** Tall-grass tile frame at (x, y) (overlay source), or null. Set by the overworld. */
+  grassAt: (x: number, y: number) => { key: string; frame: string } | null = () => null
 
   constructor(scene: Phaser.Scene, o: ActorOptions) {
     this.scene = scene
@@ -275,8 +276,10 @@ export class Actor {
     const feetBottom = this.py + TILE // sprite bottom (px)
     const cropTop = (tileY: number) => Math.max(0, feetBottom - FEET_PX - tileY * TILE)
     const show = (img: Phaser.GameObjects.Image, x: number, y: number, on: boolean) => {
-      img.setVisible(on)
-      if (!on) return
+      const src = on ? this.grassAt(x, y) : null
+      img.setVisible(!!src)
+      if (!src) return
+      if (img.texture.key !== src.key || img.frame.name !== src.frame) img.setTexture(src.key, src.frame)
       const top = cropTop(y)
       img.setPosition(x * TILE, y * TILE).setDepth(depth).setCrop(0, top, TILE, Math.max(0, TILE - top))
     }
@@ -284,12 +287,12 @@ export class Actor {
     if (!this.moving || vertical) {
       // feet tile: the tile containing the sprite's bottom row
       const fy = Math.floor((this.py + TILE - 1) / TILE)
-      show(gd, this.tx, fy, !air && this.onGrass(this.tx, fy))
+      show(gd, this.tx, fy, !air)
       gs.setVisible(false)
     } else {
       // sideways: the feet straddle both tiles of the same row
-      show(gd, this.tx, this.ty, !air && this.onGrass(this.tx, this.ty))
-      show(gs, this.fromX, this.fromY, !air && this.onGrass(this.fromX, this.fromY))
+      show(gd, this.tx, this.ty, !air)
+      show(gs, this.fromX, this.fromY, !air)
     }
   }
 

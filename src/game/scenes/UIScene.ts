@@ -155,7 +155,8 @@ export class UIScene extends Phaser.Scene {
           cancelIndex: opts.length - 1, persist: true, startCancels: true,
         })
         const i = await m.result()
-        this.startCursor = Math.max(0, i)
+        // remember where the cursor was (B/START close keeps it; it never jumps to EXIT)
+        this.startCursor = Math.max(0, m.selected)
         const id = opts[i]?.id ?? 'exit'
         if (id === 'exit') {
           m.destroy()
@@ -288,7 +289,7 @@ export class UIScene extends Phaser.Scene {
           state.addMoney(-info.price * n)
           state.addItem(info.id, n)
           money.refresh?.()
-          audio.sfx('select') // purchase / sale chime (not the save jingle)
+          audio.sfx('stat_up') // short rising chime on a completed purchase / sale (select is swallowed by the YES press)
           await this.say('Here you are! Thank you!')
         }
       }
@@ -315,7 +316,7 @@ export class UIScene extends Phaser.Scene {
         state.removeItem(id, n)
         state.addMoney(price * n)
         money.refresh?.()
-        audio.sfx('select') // purchase / sale chime (not the save jingle)
+        audio.sfx('stat_up') // short rising chime on a completed purchase / sale (select is swallowed by the YES press)
         await this.say(`Turned over the ${info.name} and received $${price * n}.`)
       }
     }

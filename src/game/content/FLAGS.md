@@ -7,9 +7,10 @@ runs twice. Order below = story order.
 | flag | set by | meaning / used by |
 | --- | --- | --- |
 | `arrived` | `story.arrival` (new-game script) | Truck has driven off (truck prop + mover hidden by this flag) and Mom has walked you in. Never replays. |
-| `visited_2f` | `home.enter_2f` (the `onEnter` hook of `home_2f`) | You went up to your room. Mom's talk changes; enables the lab call trigger. |
+| `visited_2f` | `home.enter_2f` (the `onEnter` hook of `home_2f`) | You went up to your room (optional exploration; nothing gates on it). |
+| `found_box_patch` | `home.boxes_2f` | Found the Patch in the moving box in your room (one-time reward for exploring). |
 | `read_notebook` | `home.notebook` | You opened the controls notebook (only changes its first line). |
-| `mom_lab_call` | `home.mom_lab_call` (trigger at the bottom of the 1F stairs, or talking to Mom) | Mom told you the professor's lab called. |
+| `mom_lab_call` | `home.mom_lab_call`: the phone rings on your first steps after the arrival (triggers round the exit mat and below the stairs in `home_1f`, `ifFlag: arrived`), or talking to Mom | Mom told you the professor's lab called. |
 | `met_aide` | `lab.aide` | The aide explained the professor went up Route 101. |
 | `has_satchel` | `lab.aide` (cleared after the rescue) | You are carrying the professor's satchel (changes his rescue line). |
 | `starter` | `route.rescue` | Species id of the starter you chose (`claude_fable` / `gpt_5_5` / `glm`). Set before the battle so the choice is never offered twice. |
