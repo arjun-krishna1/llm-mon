@@ -124,25 +124,31 @@ Coordinates are pixels relative to the plate's top-left. Baked into the art:
 "LV" label, "HP" label + empty bar well, "EXP" label + empty well. The engine
 draws name, level number, HP fill, HP numbers, EXP fill.
 
-`hud_enemy.png` 104×32 (suggested screen position (8,10)):
+Both plates are sized so the longest roster name ("DeepSeek Flash", 77 px in
+`font_dialog`) plus "Lv100" fit with ≥ 3 px to spare at normal letter spacing.
+Text anchors are PxText top-lefts (font_dialog caps occupy rows +1..+9, descenders +10..+11).
+
+`hud_enemy.png` 124×32 (screen position (8,10)):
 
 | element | position |
 | --- | --- |
-| name text top-left | (8, 5) |
-| "LV" (baked) | (70, 7), 3×5 |
-| level number top-left | (78, 5) |
-| HP fill rect | x=46, y=17, w=48, h=3 |
+| name text top-left | (9, 2); may extend to x=88 |
+| "LV" (baked) | (92, 6), 3×5 |
+| level number top-left | (100, 2), up to 3 digits |
+| HP fill rect | x=69, y=17, w=48, h=3 |
+| status tag (engine-drawn) | (9, 16), 19×7 |
 
-`hud_player.png` 104×40 (suggested screen position (128,70)):
+`hud_player.png` 124×44 (screen position (114,68)):
 
 | element | position |
 | --- | --- |
-| name text top-left | (14, 4) |
-| "LV" (baked) | (76, 6) |
-| level number top-left | (84, 4) |
-| HP fill rect | x=48, y=14, w=48, h=3 |
-| HP numbers "cur/ max" | right-aligned to x=96, top y=20 (7px font) |
-| EXP fill rect | x=34, y=30, w=62, h=2 |
+| name text top-left | (7, 1); may extend to x=84 |
+| "LV" (baked) | (88, 5) |
+| level number top-left | (96, 1) |
+| HP fill rect | x=66, y=15, w=48, h=3 |
+| HP numbers "cur/max" | own row: right-aligned to x=114, top y=19 (no padding spaces) |
+| EXP fill rect | x=50, y=33, w=64, h=2 |
+| status tag (engine-drawn) | (7, 15) |
 
 HP / EXP bar colours (fill `round(w*frac)` px from the left; empty well is
 `#383840`):

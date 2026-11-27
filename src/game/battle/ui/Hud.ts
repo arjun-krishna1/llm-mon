@@ -26,14 +26,15 @@ interface PlateSpec {
   status: [number, number]
 }
 
+// Anchors mirror tools/art/sprites/ui.py HUD (docs/ART_CATALOG_SPRITES.md).
 const SPEC: Record<'enemy' | 'player', PlateSpec> = {
   enemy: {
-    key: 'ui/hud_enemy', name: [8, 2], nameMax: 67, level: [78, 2],
-    hp: { x: 46, y: 17, w: 48 }, status: [9, 16],
+    key: 'ui/hud_enemy', name: [9, 2], nameMax: 88, level: [100, 2],
+    hp: { x: 69, y: 17, w: 48 }, status: [9, 16],
   },
   player: {
-    key: 'ui/hud_player', name: [14, 1], nameMax: 72, level: [84, 1],
-    hp: { x: 48, y: 14, w: 48 }, hpText: { right: 96, y: 19 }, exp: { x: 34, y: 30, w: 62 }, status: [13, 21],
+    key: 'ui/hud_player', name: [7, 1], nameMax: 84, level: [96, 1],
+    hp: { x: 66, y: 15, w: 48 }, hpText: { right: 114, y: 19 }, exp: { x: 50, y: 33, w: 64 }, status: [7, 15],
   },
 }
 
@@ -87,7 +88,7 @@ export class Hud {
 
   /** Off-screen x for slide in/out (enemy plate leaves left, player plate leaves right). */
   private get awayX(): number {
-    return this.side === 'enemy' ? -112 : 248
+    return this.side === 'enemy' ? -132 : 248
   }
 
   setMon(v: MonView, expFrac = 0): void {
@@ -103,10 +104,9 @@ export class Hud {
   private setName(n: string): void {
     this.name.setText(n)
     // Long names move left, then condense, rather than overlapping the baked LV label.
-    const minX = this.side === 'enemy' ? 6 : 4
-    const w = fitText(this.scene, this.name, this.spec.nameMax - minX)
-    const x = Math.max(minX, Math.min(this.spec.name[0], this.spec.nameMax - w))
-    this.name.setPosition(x, this.spec.name[1])
+    // Plates fit every roster name at normal spacing; condense only as a last resort.
+    fitText(this.scene, this.name, this.spec.nameMax - this.spec.name[0])
+    this.name.setPosition(this.spec.name[0], this.spec.name[1])
   }
 
   setLevel(n: number): void {
@@ -156,7 +156,7 @@ export class Hud {
       g.fillRect(e.x, e.y + 1, ew, 1)
     }
     if (this.hpText && this.spec.hpText) {
-      const s = `${Math.max(0, Math.round(this.hp))}/ ${this.maxHp}`
+      const s = `${Math.max(0, Math.round(this.hp))}/${this.maxHp}`
       this.hpText.setText(s)
       this.hpText.setPosition(this.spec.hpText.right - measure(this.scene, FONT.dialog, s), this.spec.hpText.y)
     }

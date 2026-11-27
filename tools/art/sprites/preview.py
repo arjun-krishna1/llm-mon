@@ -71,7 +71,7 @@ def battle_screen(enemy, player, enemy_name='Enemy', player_name='Player', lv=(5
     he, hpl = L(UI, 'hud_enemy.png'), L(UI, 'hud_player.png')
     a, b = U.HUD['enemy'], U.HUD['player']
     ex, ey = 8, 10
-    px_, py_ = 128, 70
+    px_, py_ = 114, 68
     if he:
         h = he.copy()
         text5(h, *a['name'], enemy_name, P.UI_TEXT, P.UI_TEXT_SHADOW)
@@ -83,7 +83,7 @@ def battle_screen(enemy, player, enemy_name='Enemy', player_name='Player', lv=(5
         text5(h, *b['name'], player_name, P.UI_TEXT, P.UI_TEXT_SHADOW)
         text5(h, *b['level'], str(lv[1]), P.UI_TEXT, P.UI_TEXT_SHADOW)
         U.draw_hp(h, b['hp_bar'], hp[1])
-        s = '%d/ %d' % (round(21 * hp[1]), 21)
+        s = '%d/%d' % (round(21 * hp[1]), 21)
         rx, ry = b['hp_text_right']
         text5(h, rx - width5(s), ry, s, P.UI_TEXT, P.UI_TEXT_SHADOW)
         x, y, w, hh = b['exp_bar']

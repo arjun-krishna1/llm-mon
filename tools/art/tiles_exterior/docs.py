@@ -15,7 +15,7 @@ def write(path, sh):
     w('')
     w('- `public/assets/game/tilesets/exterior.png` - 16x16 tiles, 16 columns, no margin/spacing.')
     w('- `public/assets/game/tilesets/exterior.tsj` - Tiled tileset: per-tile properties '
-      '(`solid`, `grass`, `ledge`, `water`, `door`) and `animation` arrays (water 4x280 ms, flowers 2x600 ms).')
+      '(`solid`, `grass`, `ledge`, `water`, `door`) and `animation` arrays (water 4x280 ms, flowers 2x600 ms, tall grass 2x650 ms, fountain 3x220 ms, signal-tower beacon 700/500 ms).')
     w('- `public/assets/game/tilesets/exterior.catalog.json` - the names below -> tile ids (0-based, '
       'i.e. Tiled gid minus firstgid). `-1` = leave the cell empty.')
     w('- Previews: `tools/art/tiles_exterior/preview/` (`tileset_4x.png`, `scene_3x.png`, '
@@ -47,8 +47,8 @@ def write(path, sh):
     notes = {
         'grass_a': 'default grass; mix a/b/c/d randomly (about 40/15/15/30%) for natural ground',
         'grass_d': 'calmest variant, use most under props/flowers',
-        'tall_grass': '`grass: true` (encounters + rustle). Interior of a patch',
-        'tall_grass_top': '`grass: true`. Use on the TOP row of a patch (blade tips over grass)',
+        'tall_grass': '`grass: true` (encounters + rustle), 2-frame sway. Interior of a patch',
+        'tall_grass_top': '`grass: true`, 2-frame sway. Use on the TOP row of a patch (blade tips over grass)',
         'flower_red': 'animated (2 frames). Walkable. Also flower_yellow/white/pink',
         'steps': 'walkable earth steps cut through a down-ledge: ledge_s_end_e, steps, ledge_s_end_w',
         'ledge_s': '`ledge: down` - hop south. Repeat horizontally',
@@ -62,6 +62,12 @@ def write(path, sh):
         'bush': 'solid, detail layer', 'rock': 'solid, detail layer',
         'sign_wood': 'solid, detail layer; put a `sign` object on it',
         'mailbox': 'solid, detail layer',
+        'bush_flower': 'flowering shrub, solid, detail layer',
+        'stump': 'tree stump, solid, detail layer',
+        'lilypad': 'transparent overlay: put on the detail layer over a water tile (water below stays animated + solid)',
+        'reeds': 'cattail reeds, transparent overlay, solid: detail layer on a water edge cell or the grass beside a pond',
+        'planter': 'stone flower box, solid, detail layer',
+        'crate': 'wooden crate, solid, detail layer',
     }
     for n, i in sh.tiles.items():
         w('| `%s` | %d | %s |' % (n, i, notes.get(n, '')))
@@ -83,6 +89,9 @@ def write(path, sh):
         'token_mart': 'Token Mart: violet roof, gold coin "T" sign, awning',
         'gym': 'closed gym-like arena: boarded-up doors, brain-circuit emblem',
         'shed': 'small tool shed',
+        'tree_b': 'conifer variant of `tree` (same 2x3 layout). Standalone only: not part of the forest autotile',
+        'fountain': 'plaza fountain, animated water (3 frames). Spout row is `over` (walk behind), lower 2 rows solid',
+        'signal_tower': 'relay mast landmark with a blinking beacon (2 frames). Top row `over`, rest solid',
     }
     for n, st in sh.stamps.items():
         ov = 0
@@ -123,6 +132,10 @@ def write(path, sh):
     w("key = ''.join('1' if nb[d] else '0' for d in [n,ne,e,se,s,sw,w,nw])")
     w("tile = catalog.autotiles.path.blob[key]")
     w('```')
+    w('')
+    w('Water also has `c_variants`: three interchangeable all-water centre tiles with different ripple '
+      'layouts. Whenever the blob key is `11111111`, pick one by a position hash so big ponds do not '
+      'tile visibly. Dress ponds with `lilypad` (detail layer over water) and `reeds` (solid).')
     w('')
     w('Path, sand and water each have their own grass margin, so they do not butt against each other; '
       'separate two materials by at least one grass cell (a pond inside a beach is not supported).')

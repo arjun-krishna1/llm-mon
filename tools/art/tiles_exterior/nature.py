@@ -10,9 +10,14 @@ LEAF_COLS = P.TREE + P.TRUNK + [O, P.OUTLINE_SOFT]
 ROCK_COLS = P.ROCK + [O, P.OUTLINE_SOFT]
 
 
-def tree_sprite():
-    """32 px wide tree, outline reinforced."""
-    s = genart.sprite('ext_tree', width=32, colors=32, sat=1.15)
+def tree_sprite(name='ext_tree'):
+    """<=32 px wide tree, outline reinforced."""
+    if name == 'ext_tree':
+        s = genart.sprite(name, width=32, colors=32, sat=1.15)
+    else:
+        s = genart.sprite(name, height=44, colors=32, sat=1.15)
+        if s.w > 32:
+            s = genart.sprite(name, width=32, colors=32, sat=1.15)
     genart.resnap(s, LEAF_COLS)
     _fill_holes(s, P.TRUNK[0])
     _reink(s)
@@ -54,30 +59,31 @@ def _shadow(c, cx, cy, rx, ry):
         c.put(x, y, P.SHADOW)
 
 
-def tree_stamp():
+def tree_stamp(name='ext_tree'):
     """2x3 stamp canvas: rows 0 = over (crown top), rows 1-2 = base, solid."""
-    s = tree_sprite()
+    s = tree_sprite(name)
     c = Canvas(32, 48)
     oy = 48 - s.h - 1
     _shadow(c, 17, 46, 11, 2.5)
-    c.blit(s, 0, oy)
+    c.blit(s, (32 - s.w) // 2, oy)
     return c
 
 
 TREE_OY = None
 
 
-def forest_canvas(cols, rows):
+def forest_canvas(cols, rows, name='ext_tree'):
     """Trees on a 2x2-tile lattice, back to front; interior gaps filled with
     deep canopy shade. Returns (canvas, height in tiles)."""
-    s = tree_sprite()
+    s = tree_sprite(name)
     oy = 48 - s.h - 1
+    ox = (32 - s.w) // 2
     H = (rows * 2 + 1) * T
     c = Canvas(cols * 32, H)
     for r in range(rows):
         for k in range(cols):
             _shadow(c, k * 32 + 17, r * 32 + 46, 11, 2.5)
-            c.blit(s, k * 32, r * 32 + oy)
+            c.blit(s, k * 32 + ox, r * 32 + oy)
     # fill gaps bounded on all four sides (keeps the outer silhouette open)
     fill = P.TREE[1]
     solid = [[c.px[y][x][3] == 255 for x in range(c.w)] for y in range(c.h)]
@@ -97,10 +103,10 @@ def forest_canvas(cols, rows):
     return c
 
 
-def forest_pieces():
+def forest_pieces(name='ext_tree'):
     """Pieces for a forest wall built from whole trees on a 2-col lattice.
     Row kinds: top, mid, join, bottom. Column kinds: l_out, l_in, r_in, r_out."""
-    c = forest_canvas(3, 3)
+    c = forest_canvas(3, 3, name)
     rows = {'top': 0, 'mid': 1, 'join': 2, 'bottom': 6}
     cols = {'l_out': 0, 'r_in': 1, 'l_in': 2, 'r_out': 5}
     out = {}
@@ -129,3 +135,25 @@ def rock(size=1):
     _shadow(c, size * 8 + 1, size * 16 - 1.5, size * 7, 1.6 * size)
     c.blit(s, (c.w - s.w) // 2, c.h - s.h - 1)
     return c
+
+
+def small(name, width, cols=LEAF_COLS, height=None):
+    """1x1 decoration from generated art, bottom-centred with a soft shadow."""
+    s = genart.sprite(name, width=width, height=height, colors=24, sat=1.1)
+    if cols:
+        genart.resnap(s, cols)
+    _fill_holes(s, P.OUTLINE)
+    _reink(s)
+    c = Canvas(T, T)
+    _shadow(c, 8.5, 14.5, s.w / 2, 1.6)
+    c.blit(s, (T - s.w) // 2, T - s.h - 1)
+    return c
+
+
+def bush_flower():
+    return small('ext_bush_flower', 16, LEAF_COLS + [P.FLOWER['pink'], P.FLOWER['white'],
+                                                     P.FLOWER['centre'], P.CLOTH_PINK[1]])
+
+
+def stump():
+    return small('ext_stump', 14, P.TRUNK + P.WOOD + [O, P.OUTLINE_SOFT])

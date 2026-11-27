@@ -61,22 +61,26 @@ def frame_battle(w=24, h=24):
 # Anchor coordinates are documented in docs/ART_CATALOG_SPRITES.md and
 # exported here so previews draw text exactly where the engine should.
 HUD = {
+    # Sized for the longest roster name ("DeepSeek Flash", 77 px in font_dialog)
+    # plus "Lv100" with >= 3 px breathing room at normal letter spacing.
     'enemy': {
-        'size': (104, 32),
-        'name': (8, 5),          # top-left of name text (7px font cap height)
-        'level': (78, 5),        # top-left of level number (after baked 'Lv')
-        'lv_label': (70, 7),
-        'hp_bar': (46, 17, 48, 3),  # x, y, w, h of the fill area
+        'size': (124, 32),
+        'name': (9, 2),          # top-left of the name PxText (font_dialog: caps rows +1..+9)
+        'name_max': 88,          # right edge the name may reach
+        'level': (100, 2),       # top-left of the level number (after baked 'LV'); up to 3 digits
+        'lv_label': (92, 6),
+        'hp_bar': (69, 17, 48, 3),  # x, y, w, h of the fill area
         'gender': None,
     },
     'player': {
-        'size': (104, 40),
-        'name': (14, 4),
-        'level': (84, 4),
-        'lv_label': (76, 6),
-        'hp_bar': (48, 14, 48, 3),
-        'hp_text_right': (96, 20),  # right edge / top of "cur/ max" text
-        'exp_bar': (34, 30, 62, 2),
+        'size': (124, 44),
+        'name': (7, 1),
+        'name_max': 84,
+        'level': (96, 1),
+        'lv_label': (88, 5),
+        'hp_bar': (66, 15, 48, 3),
+        'hp_text_right': (114, 19),  # right edge / top of the "cur/max" PxText row
+        'exp_bar': (50, 33, 64, 2),
     },
 }
 
@@ -123,7 +127,7 @@ def plate(w, h, tail_left):
 
 def hud_enemy():
     a = HUD['enemy']
-    im = plate(104, 32, tail_left=False)
+    im = plate(*a['size'], tail_left=False)
     text3(im, a['lv_label'][0], a['lv_label'][1], 'LV', FRAME[1])
     x, y, bw, _ = a['hp_bar']
     hp_housing(im, x - 11, y - 2, bw)
@@ -132,7 +136,7 @@ def hud_enemy():
 
 def hud_player():
     a = HUD['player']
-    im = plate(104, 40, tail_left=True)
+    im = plate(*a['size'], tail_left=True)
     text3(im, a['lv_label'][0], a['lv_label'][1], 'LV', FRAME[1])
     x, y, bw, _ = a['hp_bar']
     hp_housing(im, x - 11, y - 2, bw)

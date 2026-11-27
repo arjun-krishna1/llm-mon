@@ -58,7 +58,11 @@ class Map:
                 if not (nb[a] and nb[b]):
                     nb[d] = False
             key = ''.join('1' if nb[k] else '0' for k in ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'))
-            self.set(layer, x, y, blob[key])
+            tid = blob[key]
+            cv = self.cat['autotiles'][kind].get('c_variants')
+            if key == '11111111' and cv:
+                tid = cv[(x * 7 + y * 13 + (x * y) % 5) % len(cv)]
+            self.set(layer, x, y, tid)
 
     def forest(self, anchors, layer='detail'):
         """anchors: set of (ax, ay) tree positions on a 2-col/2-row lattice
@@ -136,7 +140,7 @@ def town(cat):
     m.area('path', path)
 
     # pond with a small inlet
-    water = rect(12, 19, 17, 23) | rect(14, 18, 16, 18) | rect(13, 24, 15, 24)
+    water = rect(12, 19, 17, 23) | rect(14, 18, 16, 18) | rect(13, 24, 15, 24) | rect(18, 21, 18, 22)
     m.area('water', water)
 
     # tall grass + ledge with steps (bottom right)
@@ -193,9 +197,21 @@ def town(cat):
     m.stamp('rock_big', 6, 22)
     m.stamp('tree', 16, 15)
     m.stamp('tree', 13, 3)
-    m.stamp('tree', 34, 3)
     m.tile('detail', 37, 13, 'bush')
     m.tile('detail', 7, 4, 'bush'); m.tile('detail', 11, 4, 'bush')
+
+    # new dressing: plaza fountain, relay mast, planters, crates, pond decor
+    m.stamp('fountain', 26, 4)
+    m.stamp('signal_tower', 36, 5)
+    for x in (24, 30):
+        m.tile('detail', x, 6, 'planter')
+    m.tile('detail', 28, 17, 'crate'); m.tile('detail', 28, 18, 'crate')
+    m.tile('detail', 13, 20, 'lilypad'); m.tile('detail', 16, 22, 'lilypad')
+    m.tile('detail', 12, 23, 'reeds'); m.tile('detail', 17, 19, 'reeds')
+    m.stamp('tree_b', 4, 2 + 21)
+    m.stamp('tree_b', 33, 4)
+    m.tile('detail', 9, 3 + 1, 'stump')
+    m.tile('detail', 18, 12, 'bush_flower'); m.tile('detail', 5, 15 + 1, 'bush_flower')
 
     # fences: white picket garden west of the pond, wood fence by the ledge
     m.fence('white', rect(4, 17, 8, 17) | rect(4, 17, 4, 20) | rect(4, 20, 8, 20))

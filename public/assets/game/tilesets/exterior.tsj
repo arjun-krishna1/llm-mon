@@ -1,12 +1,12 @@
 {
  "columns": 16,
  "image": "exterior.png",
- "imageheight": 784,
+ "imageheight": 848,
  "imagewidth": 256,
  "margin": 0,
  "spacing": 0,
  "name": "exterior",
- "tilecount": 784,
+ "tilecount": 848,
  "tileheight": 16,
  "tilewidth": 16,
  "tiledversion": "1.10.2",
@@ -15,16 +15,16 @@
  "tiles": [
   {
    "id": 4,
-   "properties": [
+   "animation": [
     {
-     "name": "grass",
-     "type": "bool",
-     "value": true
+     "tileid": 4,
+     "duration": 650
+    },
+    {
+     "tileid": 5,
+     "duration": 650
     }
-   ]
-  },
-  {
-   "id": 5,
+   ],
    "properties": [
     {
      "name": "grass",
@@ -38,11 +38,18 @@
    "animation": [
     {
      "tileid": 6,
-     "duration": 600
+     "duration": 650
     },
     {
      "tileid": 7,
-     "duration": 600
+     "duration": 650
+    }
+   ],
+   "properties": [
+    {
+     "name": "grass",
+     "type": "bool",
+     "value": true
     }
    ]
   },
@@ -86,22 +93,15 @@
    ]
   },
   {
-   "id": 15,
-   "properties": [
+   "id": 14,
+   "animation": [
     {
-     "name": "ledge",
-     "type": "string",
-     "value": "down"
-    }
-   ]
-  },
-  {
-   "id": 16,
-   "properties": [
+     "tileid": 14,
+     "duration": 600
+    },
     {
-     "name": "ledge",
-     "type": "string",
-     "value": "down"
+     "tileid": 15,
+     "duration": 600
     }
    ]
   },
@@ -121,7 +121,7 @@
     {
      "name": "ledge",
      "type": "string",
-     "value": "left"
+     "value": "down"
     }
    ]
   },
@@ -131,7 +131,7 @@
     {
      "name": "ledge",
      "type": "string",
-     "value": "left"
+     "value": "down"
     }
    ]
   },
@@ -141,7 +141,7 @@
     {
      "name": "ledge",
      "type": "string",
-     "value": "right"
+     "value": "left"
     }
    ]
   },
@@ -151,7 +151,7 @@
     {
      "name": "ledge",
      "type": "string",
-     "value": "right"
+     "value": "left"
     }
    ]
   },
@@ -161,12 +161,32 @@
     {
      "name": "ledge",
      "type": "string",
-     "value": "down"
+     "value": "right"
     }
    ]
   },
   {
    "id": 23,
+   "properties": [
+    {
+     "name": "ledge",
+     "type": "string",
+     "value": "right"
+    }
+   ]
+  },
+  {
+   "id": 24,
+   "properties": [
+    {
+     "name": "ledge",
+     "type": "string",
+     "value": "down"
+    }
+   ]
+  },
+  {
+   "id": 25,
    "properties": [
     {
      "name": "ledge",
@@ -3842,10 +3862,63 @@
    ]
   },
   {
+   "id": 320,
+   "animation": [
+    {
+     "tileid": 320,
+     "duration": 280
+    },
+    {
+     "tileid": 321,
+     "duration": 280
+    },
+    {
+     "tileid": 322,
+     "duration": 280
+    },
+    {
+     "tileid": 323,
+     "duration": 280
+    }
+   ],
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "water",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 321,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "water",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
    "id": 322,
    "properties": [
     {
      "name": "solid",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "water",
      "type": "bool",
      "value": true
     }
@@ -3858,14 +3931,42 @@
      "name": "solid",
      "type": "bool",
      "value": true
+    },
+    {
+     "name": "water",
+     "type": "bool",
+     "value": true
     }
    ]
   },
   {
    "id": 324,
+   "animation": [
+    {
+     "tileid": 324,
+     "duration": 280
+    },
+    {
+     "tileid": 325,
+     "duration": 280
+    },
+    {
+     "tileid": 326,
+     "duration": 280
+    },
+    {
+     "tileid": 327,
+     "duration": 280
+    }
+   ],
    "properties": [
     {
      "name": "solid",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "water",
      "type": "bool",
      "value": true
     }
@@ -3878,6 +3979,11 @@
      "name": "solid",
      "type": "bool",
      "value": true
+    },
+    {
+     "name": "water",
+     "type": "bool",
+     "value": true
     }
    ]
   },
@@ -3886,6 +3992,11 @@
    "properties": [
     {
      "name": "solid",
+     "type": "bool",
+     "value": true
+    },
+    {
+     "name": "water",
      "type": "bool",
      "value": true
     }
@@ -3898,44 +4009,9 @@
      "name": "solid",
      "type": "bool",
      "value": true
-    }
-   ]
-  },
-  {
-   "id": 328,
-   "properties": [
+    },
     {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 329,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 336,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 337,
-   "properties": [
-    {
-     "name": "solid",
+     "name": "water",
      "type": "bool",
      "value": true
     }
@@ -3993,6 +4069,56 @@
   },
   {
    "id": 343,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 344,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 345,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 346,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 347,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 349,
    "properties": [
     {
      "name": "solid",
@@ -4062,6 +4188,66 @@
    ]
   },
   {
+   "id": 358,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 359,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 366,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 367,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 368,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 369,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
    "id": 370,
    "properties": [
     {
@@ -4102,7 +4288,7 @@
    ]
   },
   {
-   "id": 384,
+   "id": 382,
    "properties": [
     {
      "name": "solid",
@@ -4112,7 +4298,7 @@
    ]
   },
   {
-   "id": 385,
+   "id": 383,
    "properties": [
     {
      "name": "solid",
@@ -4153,106 +4339,6 @@
   },
   {
    "id": 389,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 390,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 391,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 392,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 393,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 394,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 395,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 396,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 397,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 398,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 399,
    "properties": [
     {
      "name": "solid",
@@ -4442,6 +4528,36 @@
    ]
   },
   {
+   "id": 418,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 419,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 420,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
    "id": 421,
    "properties": [
     {
@@ -4462,7 +4578,7 @@
    ]
   },
   {
-   "id": 434,
+   "id": 423,
    "properties": [
     {
      "name": "solid",
@@ -4472,7 +4588,7 @@
    ]
   },
   {
-   "id": 435,
+   "id": 424,
    "properties": [
     {
      "name": "solid",
@@ -4482,7 +4598,292 @@
    ]
   },
   {
-   "id": 436,
+   "id": 425,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 426,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 427,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 428,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 429,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 430,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 431,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 432,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 433,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 437,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 438,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 439,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 440,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 450,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 451,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 452,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 465,
+   "animation": [
+    {
+     "tileid": 465,
+     "duration": 220
+    },
+    {
+     "tileid": 468,
+     "duration": 220
+    },
+    {
+     "tileid": 471,
+     "duration": 220
+    }
+   ]
+  },
+  {
+   "id": 473,
+   "animation": [
+    {
+     "tileid": 473,
+     "duration": 700
+    },
+    {
+     "tileid": 475,
+     "duration": 500
+    }
+   ]
+  },
+  {
+   "id": 474,
+   "animation": [
+    {
+     "tileid": 474,
+     "duration": 700
+    },
+    {
+     "tileid": 476,
+     "duration": 500
+    }
+   ]
+  },
+  {
+   "id": 480,
+   "animation": [
+    {
+     "tileid": 480,
+     "duration": 220
+    },
+    {
+     "tileid": 483,
+     "duration": 220
+    },
+    {
+     "tileid": 486,
+     "duration": 220
+    }
+   ],
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 481,
+   "animation": [
+    {
+     "tileid": 481,
+     "duration": 220
+    },
+    {
+     "tileid": 484,
+     "duration": 220
+    },
+    {
+     "tileid": 487,
+     "duration": 220
+    }
+   ],
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 482,
+   "animation": [
+    {
+     "tileid": 482,
+     "duration": 220
+    },
+    {
+     "tileid": 485,
+     "duration": 220
+    },
+    {
+     "tileid": 488,
+     "duration": 220
+    }
+   ],
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 489,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 490,
    "properties": [
     {
      "name": "solid",
@@ -4493,6 +4894,20 @@
   },
   {
    "id": 496,
+   "animation": [
+    {
+     "tileid": 496,
+     "duration": 220
+    },
+    {
+     "tileid": 496,
+     "duration": 220
+    },
+    {
+     "tileid": 502,
+     "duration": 220
+    }
+   ],
    "properties": [
     {
      "name": "solid",
@@ -4503,6 +4918,20 @@
   },
   {
    "id": 497,
+   "animation": [
+    {
+     "tileid": 497,
+     "duration": 220
+    },
+    {
+     "tileid": 500,
+     "duration": 220
+    },
+    {
+     "tileid": 503,
+     "duration": 220
+    }
+   ],
    "properties": [
     {
      "name": "solid",
@@ -4522,66 +4951,6 @@
    ]
   },
   {
-   "id": 499,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 500,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 501,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 502,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 503,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 504,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
    "id": 505,
    "properties": [
     {
@@ -4592,7 +4961,7 @@
    ]
   },
   {
-   "id": 512,
+   "id": 506,
    "properties": [
     {
      "name": "solid",
@@ -4602,7 +4971,7 @@
    ]
   },
   {
-   "id": 513,
+   "id": 560,
    "properties": [
     {
      "name": "solid",
@@ -4612,7 +4981,7 @@
    ]
   },
   {
-   "id": 514,
+   "id": 561,
    "properties": [
     {
      "name": "solid",
@@ -4622,7 +4991,7 @@
    ]
   },
   {
-   "id": 515,
+   "id": 562,
    "properties": [
     {
      "name": "solid",
@@ -4632,7 +5001,7 @@
    ]
   },
   {
-   "id": 516,
+   "id": 563,
    "properties": [
     {
      "name": "solid",
@@ -4642,7 +5011,7 @@
    ]
   },
   {
-   "id": 517,
+   "id": 564,
    "properties": [
     {
      "name": "solid",
@@ -4652,7 +5021,7 @@
    ]
   },
   {
-   "id": 518,
+   "id": 565,
    "properties": [
     {
      "name": "solid",
@@ -4662,7 +5031,7 @@
    ]
   },
   {
-   "id": 519,
+   "id": 566,
    "properties": [
     {
      "name": "solid",
@@ -4672,7 +5041,7 @@
    ]
   },
   {
-   "id": 520,
+   "id": 567,
    "properties": [
     {
      "name": "solid",
@@ -4682,7 +5051,7 @@
    ]
   },
   {
-   "id": 521,
+   "id": 568,
    "properties": [
     {
      "name": "solid",
@@ -4692,197 +5061,7 @@
    ]
   },
   {
-   "id": 528,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 529,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 530,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 531,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 532,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 533,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 534,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 535,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 536,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 537,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 544,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 545,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 546,
-   "properties": [
-    {
-     "name": "door",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 547,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 548,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 549,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 550,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 551,
-   "properties": [
-    {
-     "name": "door",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 552,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 553,
+   "id": 569,
    "properties": [
     {
      "name": "solid",
@@ -4953,6 +5132,36 @@
   },
   {
    "id": 582,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 583,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 584,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 585,
    "properties": [
     {
      "name": "solid",
@@ -5062,36 +5271,6 @@
    ]
   },
   {
-   "id": 602,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 603,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 604,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
    "id": 608,
    "properties": [
     {
@@ -5115,7 +5294,7 @@
    "id": 610,
    "properties": [
     {
-     "name": "solid",
+     "name": "door",
      "type": "bool",
      "value": true
     }
@@ -5165,7 +5344,7 @@
    "id": 615,
    "properties": [
     {
-     "name": "solid",
+     "name": "door",
      "type": "bool",
      "value": true
     }
@@ -5192,7 +5371,7 @@
    ]
   },
   {
-   "id": 618,
+   "id": 640,
    "properties": [
     {
      "name": "solid",
@@ -5202,7 +5381,7 @@
    ]
   },
   {
-   "id": 619,
+   "id": 641,
    "properties": [
     {
      "name": "solid",
@@ -5212,7 +5391,7 @@
    ]
   },
   {
-   "id": 620,
+   "id": 642,
    "properties": [
     {
      "name": "solid",
@@ -5222,7 +5401,7 @@
    ]
   },
   {
-   "id": 624,
+   "id": 643,
    "properties": [
     {
      "name": "solid",
@@ -5232,7 +5411,7 @@
    ]
   },
   {
-   "id": 625,
+   "id": 644,
    "properties": [
     {
      "name": "solid",
@@ -5242,7 +5421,7 @@
    ]
   },
   {
-   "id": 626,
+   "id": 645,
    "properties": [
     {
      "name": "solid",
@@ -5252,7 +5431,307 @@
    ]
   },
   {
-   "id": 627,
+   "id": 646,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 656,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 657,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 658,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 659,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 660,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 661,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 662,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 663,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 664,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 665,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 666,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 667,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 668,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 672,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 673,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 674,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 675,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 676,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 677,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 678,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 679,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 680,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 681,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 682,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 683,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 684,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 688,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 689,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 690,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 691,
    "properties": [
     {
      "name": "door",
@@ -5262,7 +5741,7 @@
    ]
   },
   {
-   "id": 628,
+   "id": 692,
    "properties": [
     {
      "name": "solid",
@@ -5272,7 +5751,7 @@
    ]
   },
   {
-   "id": 629,
+   "id": 693,
    "properties": [
     {
      "name": "solid",
@@ -5282,7 +5761,7 @@
    ]
   },
   {
-   "id": 630,
+   "id": 694,
    "properties": [
     {
      "name": "solid",
@@ -5292,7 +5771,7 @@
    ]
   },
   {
-   "id": 631,
+   "id": 695,
    "properties": [
     {
      "name": "solid",
@@ -5302,7 +5781,7 @@
    ]
   },
   {
-   "id": 632,
+   "id": 696,
    "properties": [
     {
      "name": "solid",
@@ -5312,7 +5791,7 @@
    ]
   },
   {
-   "id": 633,
+   "id": 697,
    "properties": [
     {
      "name": "solid",
@@ -5322,7 +5801,7 @@
    ]
   },
   {
-   "id": 634,
+   "id": 698,
    "properties": [
     {
      "name": "solid",
@@ -5332,77 +5811,7 @@
    ]
   },
   {
-   "id": 635,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 636,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 647,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 648,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 649,
-   "properties": [
-    {
-     "name": "door",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 650,
-   "properties": [
-    {
-     "name": "door",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 651,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 652,
+   "id": 699,
    "properties": [
     {
      "name": "solid",
@@ -5413,96 +5822,6 @@
   },
   {
    "id": 700,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 701,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 702,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 704,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 705,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 706,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 707,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 708,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 709,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 710,
    "properties": [
     {
      "name": "solid",
@@ -5535,7 +5854,7 @@
    "id": 713,
    "properties": [
     {
-     "name": "solid",
+     "name": "door",
      "type": "bool",
      "value": true
     }
@@ -5545,7 +5864,7 @@
    "id": 714,
    "properties": [
     {
-     "name": "solid",
+     "name": "door",
      "type": "bool",
      "value": true
     }
@@ -5572,7 +5891,7 @@
    ]
   },
   {
-   "id": 717,
+   "id": 764,
    "properties": [
     {
      "name": "solid",
@@ -5582,7 +5901,7 @@
    ]
   },
   {
-   "id": 718,
+   "id": 765,
    "properties": [
     {
      "name": "solid",
@@ -5592,7 +5911,7 @@
    ]
   },
   {
-   "id": 720,
+   "id": 766,
    "properties": [
     {
      "name": "solid",
@@ -5602,7 +5921,7 @@
    ]
   },
   {
-   "id": 721,
+   "id": 768,
    "properties": [
     {
      "name": "solid",
@@ -5612,7 +5931,7 @@
    ]
   },
   {
-   "id": 722,
+   "id": 769,
    "properties": [
     {
      "name": "solid",
@@ -5622,7 +5941,7 @@
    ]
   },
   {
-   "id": 723,
+   "id": 770,
    "properties": [
     {
      "name": "solid",
@@ -5632,7 +5951,7 @@
    ]
   },
   {
-   "id": 724,
+   "id": 771,
    "properties": [
     {
      "name": "solid",
@@ -5642,337 +5961,7 @@
    ]
   },
   {
-   "id": 725,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 726,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 727,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 728,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 729,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 730,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 731,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 732,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 733,
-   "properties": [
-    {
-     "name": "door",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 734,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 736,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 737,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 738,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 739,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 740,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 741,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 742,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 743,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 744,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 745,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 746,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 747,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 752,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 753,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 754,
-   "properties": [
-    {
-     "name": "door",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 755,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 756,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 757,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 758,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 759,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 760,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 761,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 762,
-   "properties": [
-    {
-     "name": "solid",
-     "type": "bool",
-     "value": true
-    }
-   ]
-  },
-  {
-   "id": 763,
+   "id": 772,
    "properties": [
     {
      "name": "solid",
@@ -6015,7 +6004,7 @@
    "id": 776,
    "properties": [
     {
-     "name": "door",
+     "name": "solid",
      "type": "bool",
      "value": true
     }
@@ -6043,6 +6032,496 @@
   },
   {
    "id": 779,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 780,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 781,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 782,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 784,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 785,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 786,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 787,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 788,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 789,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 790,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 791,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 792,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 793,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 794,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 795,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 796,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 797,
+   "properties": [
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 798,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 800,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 801,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 802,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 803,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 804,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 805,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 806,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 807,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 808,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 809,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 810,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 811,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 816,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 817,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 818,
+   "properties": [
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 819,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 820,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 821,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 822,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 823,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 824,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 825,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 826,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 827,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 837,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 838,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 839,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 840,
+   "properties": [
+    {
+     "name": "door",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 841,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 842,
+   "properties": [
+    {
+     "name": "solid",
+     "type": "bool",
+     "value": true
+    }
+   ]
+  },
+  {
+   "id": 843,
    "properties": [
     {
      "name": "solid",

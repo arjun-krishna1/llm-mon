@@ -95,28 +95,35 @@ def flower(colour, frame):
 # ----------------------------------------------------------- tall grass
 # One clump = a mound of pointed blades, lit on the left, outlined dark at
 # its base. Clumps overlap like scales in staggered rows (period 16).
+# One clump = three pointed blades with dark gaps between them, lit on the
+# left. Clumps overlap like scales in staggered rows (period 16), so a patch
+# reads as clearly bladed and a full value step darker than lawn grass.
 CLUMP = [
-    '..l...l.',
-    '.lm..lm.',
-    '.mml.mml',
-    'lmmmlmmm',
-    'mmmmmmmd',
-    'dmmmmmdd',
-    'odmmmddo',
-    '.oodddo.',
+    '.l....l.',
+    '.l...lm.',
+    'lm..lmd.',
+    'lmd.lmd.',
+    'mmdlmmdl',
+    'mmdmmddm',
+    'mddmmddm',
+    'mdmmdddd',
+    'oddddddo',
+    '.oooooo.',
 ]
+TG_DARK = P.TREE[0]
 
 
 def tall_grass(frame=0, top=False):
-    """top=True: variant for the top row of a patch (blade tips over grass)."""
-    c = grass('d') if top else Canvas(T, T, TG[1])
-    lg = {'l': TG[3], 'm': TG[2], 'd': TG[1], 'o': TG[0]}
+    """top=True: variant for the top row of a patch (blade tips over grass).
+    frame 0/1: the upper half of every blade sways 1px (2-frame anim)."""
+    c = grass('d') if top else Canvas(T, T, TG_DARK)
+    lg = {'l': TG[3], 'm': TG[2], 'd': TG[1], 'o': TG_DARK}
     rows = [(0, 0), (8, 4)] if top else [(-8, 4), (0, 0), (8, 4)]
     if top:
-        # fill below the first clump row's tips so no grass shows inside
-        for y in range(5, T):
+        for y in range(6, T):
             for x in range(T):
-                c.px[y][x] = TG[1]
+                c.px[y][x] = TG_DARK
+    drawn = set()
     for ty, xo in rows:
         for k in range(-1, 3):
             ox = xo + k * 8
@@ -124,21 +131,21 @@ def tall_grass(frame=0, top=False):
                 for i, ch in enumerate(row):
                     if ch == '.':
                         continue
-                    sway = 1 if (frame and j < 3) else 0
-                    x = ox + i + sway
+                    sway = (1 if frame else 0) if j < 4 else 0
+                    x = (ox + i + sway) % T
                     y = ty + j
                     if 0 <= y < T:
-                        c.px[y][x % T] = lg[ch]
+                        c.px[y][x] = lg[ch]
+                        drawn.add((x, y))
     if top:
-        # dark outline on the tips against the open grass
-        for y in range(0, 6):
+        # dark outline around tips that stand against the open grass
+        for y in range(0, 7):
             for x in range(T):
-                p = c.px[y][x]
-                if p in (G[2], G[1], G[3]):
-                    below = c.px[y + 1][x] if y + 1 < T else None
-                    side = [c.px[y][(x + d) % T] for d in (-1, 1)]
-                    if below in (TG[2], TG[3]) or any(q in (TG[2], TG[3]) for q in side):
-                        c.px[y][x] = TG[0]
+                if (x, y) in drawn or y >= 6:
+                    continue
+                nbs = [((x + dx) % T, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1))]
+                if any(q in drawn for q in nbs if 0 <= q[1] < T):
+                    c.px[y][x] = TG_DARK
     return c
 
 
@@ -232,13 +239,18 @@ def _sand_texture(x, y):
     return S[1]
 
 
-def _water_texture(x, y, f):
-    """Water: calm mid-blue with short glints that drift, period 16.
-    f = frame 0..3."""
+WATER_RIPPLES = [
+    # (x, y, length, drift per frame) -- three layouts so ponds don't tile visibly
+    [(1, 3, 4, 1), (10, 7, 3, -1), (4, 12, 3, 1)],
+    [(7, 2, 3, -1), (2, 8, 4, 1), (11, 13, 3, -1)],
+    [(12, 4, 3, 1), (5, 6, 2, -1), (8, 11, 4, -1), (1, 14, 2, 1)],
+]
+
+
+def _water_texture(x, y, f, var=0):
+    """Water: calm mid-blue with short glints that drift, period 16."""
     x %= 16; y %= 16
-    # (x, y, length, drift per frame)
-    ripples = [(1, 3, 4, 1), (10, 7, 3, -1), (4, 12, 3, 1)]
-    for rx, ry, ln, dv in ripples:
+    for rx, ry, ln, dv in WATER_RIPPLES[var]:
         sx = (rx + dv * f) % 16
         if y == ry:
             for k in range(ln):
@@ -251,7 +263,7 @@ def _water_texture(x, y, f):
     return W[1]
 
 
-def render_area(kind, nb, frame=0):
+def render_area(kind, nb, frame=0, var=0):
     mask = _area_mask(nb)
     N = 48
 
@@ -269,10 +281,12 @@ def render_area(kind, nb, frame=0):
                 col = grass_px(gx, gy)
                 # grass lip next to the material
                 if kind == 'water':
-                    if m(x, y + 1) or m(x + 1, y) or m(x - 1, y) or m(x, y - 1):
-                        col = G[0] if (m(x, y + 1) or m(x + 1, y)) else G[1]
-                    elif m(x, y + 2) and not m(x, y + 1):
-                        col = G[1]
+                    if m(x, y + 1):
+                        col = D[0]            # earthy bank lip on the north shore
+                    elif m(x + 1, y) or m(x - 1, y) or m(x, y - 1):
+                        col = G[0]
+                    elif m(x, y + 2) or m(x + 1, y + 1) or m(x - 1, y + 1):
+                        col = G[0]
                 else:
                     if m(x, y + 1) or m(x + 1, y) or m(x - 1, y) or m(x, y - 1):
                         col = G[1]
@@ -304,16 +318,18 @@ def render_area(kind, nb, frame=0):
                 elif n2:
                     col = S[0] if (gx % 2 == 0) else S[1]
             else:  # water
-                col = _water_texture(gx, gy, frame)
-                if edge_n or edge_w:
-                    col = W[0]
-                elif n2 or w2:
+                col = _water_texture(gx, gy, frame, var)
+                n3 = not m(x, y - 3)
+                near = (not m(x, y - 4)) or not m(x, y + 2) or not m(x + 2, y) or not m(x - 2, y)
+                if edge_n or edge_w or edge_s or edge_e:
+                    col = W[0]                       # dark rim all round
+                elif n2:
+                    col = W[0]                       # bank shadow, 2 rows
+                elif n3:
                     col = W[0] if (gx + gy) % 2 == 0 else W[1]
-                elif edge_s or edge_e:
-                    # foam line that breathes between frames
-                    col = W[3] if (gx + gy + frame) % 4 < 2 else W[2]
-                elif not m(x, y + 2) or not m(x + 2, y):
-                    col = W[2] if (gx + gy + frame) % 4 == 0 else col
+                elif near:
+                    # light inner line that glints as frames advance
+                    col = W[3] if (gx + gy + frame) % 6 == 0 else W[2]
             c.px[ty][tx] = col
     return c
 
@@ -366,7 +382,7 @@ def named_pieces():
 # --------------------------------------------------------------- ledges
 # Legend: g grass texture, m G2, L G3 (sunlit lip), o TG0 (outline),
 # h/f/d face light/mid/shade, s G1 cast shadow on the grass below.
-_SOUTH = {'m': G[2], 'L': G[3], 'o': P.OUTLINE_SOFT, 't': TG[3], 'h': TG[2], 'f': TG[1], 'd': TG[0], 's': G[1]}
+_SOUTH = {'m': G[2], 'L': G[3], 'o': P.OUTLINE_SOFT, 't': TG[3], 'h': TG[2], 'f': TG[1], 'd': TG[0], 's': G[0], 'S': G[1]}
 _EAST = dict(_SOUTH, h=TG[1], f=TG[0], d=TG[0])
 _WEST = dict(_SOUTH, h=TG[2], f=TG[1], d=TG[0])
 
@@ -374,13 +390,13 @@ _FACE = ['hhhhhfhhhhhhhfhh',
          'fhffffffhfffffff',
          'fffdfffffffdffdf',
          'dddddddddddddddd']
-LEDGE_S = ['gggggggggggggggg'] * 7 + [
+LEDGE_S = ['gggggggggggggggg'] * 6 + ['LgLgLgLgLgLgLgLg'] + [
     'LLLLLLLLLLLLLLLL',
     'LLtLLLLLLtLLLLLL',
     'tttttttttttttttt'] + _FACE + [
     'oooooooooooooooo',
     'ssssssssssssssss']
-LEDGE_S_END_W = ['gggggggggggggggg'] * 7 + [
+LEDGE_S_END_W = ['gggggggggggggggg'] * 6 + ['ggggLgLgLgLgLgLg'] + [
     'ggggLLLLLLLLLLLL',
     'ggLLLLtLLLLLLtLL',
     'gottttttttttttttt'[:16],
@@ -451,3 +467,54 @@ def steps():
         'ssoEEEEEEEEEEoss']
     lg = dict(_SOUTH, D=D[2], E=D[1], k=D[0])
     return _draw_map(rows, lambda j: lg)
+
+
+# ------------------------------------------------------ pond decoration
+def lilypad():
+    """Transparent overlay for the detail layer on top of water."""
+    c = Canvas(T, T)
+    pad = ['...oooo...',
+           '.ooLLmmoo.',
+           'oLLmmmmmdo',
+           'oLmmm.mddo',
+           'ommmd.dddo',
+           '.oodd.ddo.',
+           '...oo.oo..']
+    lg = {'o': P.TREE[0], 'L': P.TREE[4], 'm': P.TREE[3], 'd': P.TREE[2]}
+    c.pmap(1, 3, pad, lg)
+    small = ['.oooo.',
+             'oLmmdo',
+             'omm.do',
+             '.oo.o.']
+    c.pmap(9, 10, small, lg)
+    # a pink bloom on the big pad
+    fl = {'p': P.FLOWER['pink'], 's': P.CLOTH_PINK[1], 'c': P.FLOWER['centre']}
+    c.pmap(3, 2, ['.p.', 'pcs', '.s.'], fl)
+    c.pmap(7, 4, ['p', 's'], fl)
+    # faint ring in the water under each pad
+    for x in range(3, 10):
+        c.put(x, 10, P.WATER[2])
+    for x in range(10, 15):
+        c.put(x, 14, P.WATER[2])
+    return c
+
+
+def reeds():
+    """Transparent overlay: cattail reeds for pond shores (solid)."""
+    c = Canvas(T, T)
+    blades = [(2, 6, -1), (4, 3, 0), (6, 5, 1), (9, 2, 0), (11, 4, 1), (13, 7, 1)]
+    for bx, top, lean in blades:
+        for y in range(top, 15):
+            t = (15 - y) / (15 - top)
+            x = bx + int(round(lean * t * 2))
+            c.set(x, y, TG[3] if y < top + 2 else TG[2])
+            c.set(x + 1, y, P.TREE[0])
+    for hx, hy in ((4, 1), (9, 0), (12, 3)):
+        c.pmap(hx - 1, hy, ['.k.', 'kbk', 'kBk', 'kBk', 'kBk', '.k.'],
+               {'k': P.OUTLINE, 'b': P.TRUNK[2], 'B': P.TRUNK[1]})
+        c.set(hx, hy, P.TREE[1])
+    # base clump
+    for x in range(2, 15):
+        c.set(x, 15, P.TREE[0] if x % 3 else P.TREE[1])
+        c.set(x, 14, TG[1] if x % 2 else TG[2])
+    return c

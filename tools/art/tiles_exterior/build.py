@@ -30,6 +30,7 @@ DOC = os.path.join(ROOT, 'docs', 'ART_CATALOG_EXTERIOR.md')
 SOLID = {'solid': True}
 WATER_MS = 280
 FLOWER_MS = 600
+GRASS_MS = 650
 
 
 def add_stamp(sh, name, canvas, over_rows=0, props_fn=None, note=''):
@@ -47,6 +48,31 @@ def add_stamp(sh, name, canvas, over_rows=0, props_fn=None, note=''):
     sh.stamps[name] = st
     if note:
         sh.notes[name] = note
+    return st
+
+
+def add_anim_stamp(sh, name, frames, over_rows, ms, note=''):
+    """Stamp whose cells animate: frame 0 is the stamp, later frames get
+    their own blocks; cells that change get a Tiled animation."""
+    st = add_stamp(sh, name, frames[0], over_rows, note=note)
+    w, h = st['w'], st['h']
+    ids0 = [[(st['layers']['over'][j][i] if j < over_rows else st['layers']['base'][j][i])
+             for i in range(w)] for j in range(h)]
+    seqs = [[[ids0[j][i]] for i in range(w)] for j in range(h)]
+    for fr in frames[1:]:
+        c0, r0 = sh.block(w, h)
+        for j in range(h):
+            for i in range(w):
+                t = fr.crop(i * T, j * T, T, T)
+                if t.key() == frames[0].crop(i * T, j * T, T, T).key():
+                    seqs[j][i].append(ids0[j][i])
+                else:
+                    seqs[j][i].append(sh.place(c0 + i, r0 + j, t))
+    for j in range(h):
+        for i in range(w):
+            s = seqs[j][i]
+            if s[0] >= 0 and len(set(s)) > 1:
+                sh.animate(s[0], s, ms)
     return st
 
 
@@ -84,6 +110,15 @@ def build_area(sh, kind, frames=1, props=None):
         for k, fr in ids.items():
             sh.animate(fr[0], fr, WATER_MS)
     at = {nm: ids[ground.blob_key(nb)][0] for nm, nb in named.items()}
+    if kind == 'water':
+        # extra centre tiles with different ripple layouts; pick by position hash
+        cv = [at['c']]
+        for var in (1, 2):
+            fr = [sh.add(ground.render_area(kind, named['c'], f, var), props) for f in range(frames)]
+            sh.animate(fr[0], fr, WATER_MS)
+            cv.append(fr[0])
+        sh.newline()
+        at['c_variants'] = cv
     at['blob'] = {k: v[0] for k, v in ids.items()}
     sh.autotiles[kind] = at
 
@@ -94,8 +129,11 @@ def build():
     # ---------------------------------------------------------- ground
     for v in 'abcd':
         sh.add(ground.grass(v), name='grass_' + v)
-    sh.add(ground.tall_grass(), {'grass': True}, name='tall_grass')
-    sh.add(ground.tall_grass(top=True), {'grass': True}, name='tall_grass_top')
+    for top in (False, True):
+        a = sh.add(ground.tall_grass(0, top), {'grass': True},
+                   name='tall_grass_top' if top else 'tall_grass')
+        b2 = sh.add(ground.tall_grass(1, top))
+        sh.animate(a, [a, b2], GRASS_MS)
     for col in ('red', 'yellow', 'white', 'pink'):
         a = sh.add(ground.flower(col, 0), name='flower_' + col)
         b = sh.add(ground.flower(col, 1))
@@ -122,6 +160,12 @@ def build():
     add_stamp(sh, 'rock_big', nature.rock(2))
     sh.add(nature.bush(), SOLID, name='bush')
     sh.add(nature.rock(1), SOLID, name='rock')
+    sh.add(nature.bush_flower(), SOLID, name='bush_flower')
+    sh.add(nature.stump(), SOLID, name='stump')
+    sh.add(ground.lilypad(), name='lilypad')
+    sh.add(ground.reeds(), SOLID, name='reeds')
+    add_stamp(sh, 'tree_b', nature.tree_stamp('ext_tree_b'), over_rows=1,
+              note='Conifer. Standalone only (not part of the forest autotile).')
     sh.newline()
 
     # ---------------------------------------------------------- fences
@@ -142,6 +186,11 @@ def build():
     add_stamp(sh, 'lamp', props.lamp(), over_rows=1)
     add_stamp(sh, 'sign_town', props.town_sign(), over_rows=1)
     add_stamp(sh, 'bench', props.bench())
+    sh.add(props.planter(), SOLID, name='planter')
+    sh.add(props.crate(), SOLID, name='crate')
+    sh.newline()
+    add_anim_stamp(sh, 'fountain', props.fountain_frames(3), 1, 220)
+    add_anim_stamp(sh, 'signal_tower', props.signal_tower_frames(), 1, [700, 500])
     sh.newline()
 
     # ---------------------------------------------------------- buildings

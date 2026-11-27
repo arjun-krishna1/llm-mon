@@ -18,7 +18,7 @@ export const LAYOUT = {
   playerPlatform: { x: -8, y: 96 },
   /** HUD plates: top-left. */
   enemyHud: { x: 8, y: 10 },
-  playerHud: { x: 128, y: 70 },
+  playerHud: { x: 114, y: 68 },
   /** Trainer sprites (bottom-centre). */
   enemyTrainer: { x: 178, y: 66 },
   playerTrainer: { x: 60, y: 112 },

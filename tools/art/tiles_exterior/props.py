@@ -132,3 +132,90 @@ def lamp():
 
 def bench():
     return _place(_fit('ext_bench', w=30), 32, T)
+
+
+def planter():
+    return _place(_fit('ext_planter', w=14), T, T)
+
+
+def crate():
+    return _place(_fit('ext_crate', w=14), T, T)
+
+
+# ------------------------------------------------------- animated props
+_WATERY = set(P.WATER) | set(P.GLASS) | set(P.SKY)
+
+
+def _wrank(c):
+    for ramp in (P.WATER, P.GLASS, P.SKY):
+        if c in ramp:
+            return ramp.index(c) / (len(ramp) - 1)
+    return None
+
+
+def fountain_frames(n=3):
+    """48x48 fountain; water surface + spout shimmer in code (n frames)."""
+    s = _fit('ext_fountain', w=46, colors=40, sat=1.25)
+    base = Canvas(48, 48)
+    ox, oy = 1, 48 - s.h - 1
+    for x in range(ox + 3, ox + s.w + 1):
+        base.put(x, 47, P.SHADOW)
+    base.blit(s, ox, oy)
+    # normalise all watery pixels onto the WATER ramp
+    pts = []
+    for y in range(48):
+        for x in range(48):
+            r = _wrank(base.px[y][x])
+            if r is not None:
+                k = 0 if r < 0.3 else 1 if r < 0.6 else 2 if r < 0.85 else 3
+                base.px[y][x] = P.WATER[k]
+                pts.append((x, y, k))
+    pool_top = 48 * 0.45   # rough split: above = spout, below = pool
+    frames = []
+    for f in range(n):
+        c = base.copy()
+        for x, y, k in pts:
+            if y < pool_top:     # falling spout: bright streaks travel down
+                if k >= 1 and (y + 3 * (n - f)) % 4 == 0:
+                    c.px[y][x] = P.WATER[3] if k >= 2 else P.WATER[2]
+                elif k == 3 and (y + 3 * (n - f)) % 4 == 2:
+                    c.px[y][x] = P.WATER[2]
+            else:                # pool: ripple glints drift sideways
+                if k in (1, 2) and (x * 2 + y * 3 + f * 4) % 11 == 0:
+                    c.px[y][x] = P.WATER[3]
+                elif k == 3 and (x + y + f) % 3 == 0:
+                    c.px[y][x] = P.WATER[2]
+        frames.append(c)
+    return frames
+
+
+def signal_tower_frames():
+    """32x48 relay mast; the beacon blinks (2 frames)."""
+    s = _fit('ext_signal_tower', h=46, colors=40, sat=1.2)
+    base = Canvas(32, 48)
+    ox, oy = (32 - s.w) // 2, 48 - s.h - 1
+    for x in range(ox + 3, ox + s.w + 2):
+        base.put(x, 47, P.SHADOW)
+    base.blit(s, ox, oy)
+    reds = set(P.CLOTH_RED) | set(P.ROOF_RED) | {P.FLOWER['red']} | set(P.HP_RED) | set(P.CLOTH_PINK)
+    beacon = [(x, y) for y in range(0, 10) for x in range(32) if base.px[y][x] in reds]
+    # the lattice snapped to pinks: put it back on a white/teal-ish metal ramp
+    body = [base.px[y][x] for y in range(10, 48) for x in range(32)
+            if base.px[y][x][3] == 255 and base.px[y][x][0] > base.px[y][x][1] + 25]
+    if body:
+        genart.remap_ramp(base, (0, 10, 32, 38), list(set(body)), P.WHITE[:3])
+    on = base.copy()
+    off = base.copy()
+    if beacon:
+        cx = sum(p[0] for p in beacon) / len(beacon)
+        cy = sum(p[1] for p in beacon) / len(beacon)
+        for x, y in beacon:
+            on.px[y][x] = P.HP_RED[1] if (x <= cx and y <= cy) else P.CLOTH_RED[1]
+            off.px[y][x] = P.CLOTH_RED[0]
+        # glint + glow halo on the lit frame
+        on.set(int(cx) - 1, int(cy) - 1, P.WHITE[3])
+        for dx, dy in ((-3, 0), (3, 0), (0, -3)):
+            x, y = int(round(cx)) + dx, int(round(cy)) + dy
+            if on.get(x, y)[3] == 0:
+                on.set(x, y, P.FLOWER['red'])
+    return [on, off]
