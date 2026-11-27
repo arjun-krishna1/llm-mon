@@ -43,4 +43,6 @@ export interface ContentConfig {
   /** Name presets offered in the intro. */
   namePresets?: string[]
   startMoney?: number
+  /** Script id run right after a white-out respawn (player faces up, screen faded in). Default: a built-in line. */
+  whiteOutScript?: string
 }

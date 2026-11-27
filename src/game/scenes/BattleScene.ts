@@ -304,9 +304,9 @@ export class BattleScene extends Phaser.Scene {
     if (left > 0) await holdSkippable(this, left)
   }
 
-  private async text(text: string, mode: TextMode): Promise<void> {
+  private async text(text: string, mode: TextMode, keepPhase = false): Promise<void> {
     await this.flushText()
-    this.phase = mode === 'wait' ? 'text-wait' : 'text'
+    if (!keepPhase) this.phase = mode === 'wait' ? 'text-wait' : 'text'
     if (mode === 'wait') {
       await this.box.say(text)
       return
@@ -343,7 +343,7 @@ export class BattleScene extends Phaser.Scene {
         if (act && mode === 'auto' && (act.type === 'move_anim' || act.type === 'faint' || act.type === 'catch_throw')) {
           await this.flushText()
           await Promise.all([
-            this.present(e, events[i + 1], events.slice(i + 1)),
+            this.text(e.text, mode, true),
             this.present(act, events[j + 1], events.slice(j + 1)),
           ])
           i = j

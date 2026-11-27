@@ -78,6 +78,7 @@ export const content: ContentConfig = {
   newGameScript: 'arrival',      // runs once after the intro drops you on the map
   namePresets: ['Arjun', 'Maya', 'Kai', 'Noor'],
   startMoney: 3000,
+  whiteOutScript: 'center.after_whiteout',  // optional line(s) after a white-out respawn (player faces up)
 }
 
 registerScript('hv.old_man', async (s: ScriptApi) => {
@@ -142,7 +143,7 @@ Battles, audio, shops
 | `trainerBattle(trainerId, extra?)` → BattleResult | from BATTLE-CORE `trainerBattleRequest`; on win sets flag `trainer_<id>_defeated` |
 | `wildBattle(speciesId, level, extra?)` | |
 | `tutorialBattle(level = 2)` | the rescue HalluciHound fight (can't run, can't lose) |
-| `whiteOut()` | fade, halve money, heal, respawn at heal point, message; sets `just_whited_out` |
+| `whiteOut()` | fade, halve money, heal, respawn at heal point facing up, run `onEnter`, then `content.whiteOutScript` (or a built-in line); sets `just_whited_out` |
 | `playMusic(id, fadeMs?)`, `stopMusic(fadeMs?)`, `resumeMapMusic()`, `sfx(id)` (sync) | ids in plan §4.7 |
 | `shop(itemIds, greeting?)` | BUY / SELL / SEE YA with money window, quantity picker, confirmation |
 | `run(scriptId)` | run another script inline with the same `self`/`ctx` |
@@ -221,19 +222,22 @@ Objects (`type`, or `class` in Tiled ≥1.9; tile coords = rect top-left, size �
 | `spawn` | `name` (object name), optional `facing` |
 | `warp` | `toMap`, `toSpawn`, optional `facing`, `sfx` (`door`/`stairs`/`exit`; default by context). Fires when the player *steps onto* it (not on arrival). Placed on a solid tile it still lets the player in. |
 | `npc` | `id`, `sprite` (chars id), `facing`, `movement` (`static`/`look`/`wander`), `radius` (wander, default 2), `script` or `text`, `hideIfFlag`, `showIfFlag`, `noFace` (don't turn to the player). Trainers: `trainer` (BATTLE-CORE trainer id), `sight` (tiles), optional `seeText`, `afterText`, `defeatedFlag` (default `trainer_<trainer>_defeated`), `sightScript` (replaces the default walk-up flow's dialogue + battle) |
-| `sign` | `text` (`\n`, `\f` allowed literally) or `script`. Read with A while facing it. |
+| `sign` | `text` (`\n`, `\f` allowed literally) or `script`. Read with A while facing it **from below (facing up)**; set `anySide: true` to allow every side. |
 | `trigger` | rect; `script`; `once` (flag name, set when it fires), `ifFlag`, `unlessFlag` |
 | `item` | `itemId`, `count`, `flag` (default `item_<map>_<objId>`), `hidden: true` (invisible, walkable, A while facing) |
 | `zone` | rect; `name` (banner), `music`, `encounters` (table id, e.g. `route_101`). Smallest containing zone wins. |
 | `prop` | static sprite (e.g. the moving truck, the satchel). Rect = collision footprint (a point/1-tile object: footprint from the image size as in `spawnProp`). `id`, `sprite` (texture key, e.g. `fx/truck`), `frame`, `solid` (default **true**), `depth` (`y`/`ground`/`over`), `offsetX`/`offsetY` (px), `hideIfFlag`, `showIfFlag`, `script` or `text` (A while facing any footprint tile). Scripts can then `moveProp`/`despawnProp` it by `id`. |
 
 Step order after each player step: warp → triggers → zone (banner/music) →
-trainer sight → Firewall countdown → encounter roll. NPC talk / trainer / item
+trainer sight → Firewall countdown → encounter roll. Sight is only checked while
+the player stands on a tile and nothing else is running (one sighting at a time);
+regression: `node tools/playtest/trainer_sight.cjs`. NPC talk / trainer / item
 / sign interactions happen on A. NPC visibility flags are re-evaluated after
 every script.
 
 Trainer flow (no `sightScript`): `encounter_trainer` music, `!` emote, the
-trainer walks up, player turns, `seeText` (default: BATTLE-CORE `preBattle`
+trainer walks up (re-measured each step; stops on the tile adjacent to the
+player), player turns, `seeText` (default: BATTLE-CORE `preBattle`
 lines, one page each), `trainerBattle`. Talking to a defeated trainer shows
 `afterText` (default: `postBattle`). An npc `script` on a trainer replaces the
 whole flow; call `s.trainerBattle(id)` yourself.
@@ -248,9 +252,11 @@ satchel) and an `onEnter` hook (counts entries in flag `test_enter_count`).
 60 Hz fixed-step logic (`controls.step()` runs from Phaser's PRE_STEP and
 decides how many logic ticks each render frame gets; every scene runs its
 logic inside `controls.each(...)`). Walk = 16 frames/tile (1 px/frame), run =
-8 (B held, flag `has_run`, not indoors; the stride frame is held for ¾ of each
-tile with a 1px bob, and a small dust puff appears every other running step
-off-grass). Tap a new direction while standing:
+8 (B held, flag `has_run`, not indoors). While running the player uses
+`chars/player_run` (same layout; cycle 0→1→0→2), with a small dust puff every
+other step off-grass; any other actor (or a missing run sheet) holds the stride
+frame for ¾ of the tile with a 1px bob. Tall grass covers only the bottom 6px of a
+character (the tile the feet are in); the rustle plays beneath characters. Tap a new direction while standing:
 turn only; keep holding ≥ 6 frames: walk. Holding a direction across tiles
 chains steps with no idle frame; changing direction while walking is instant.
 Walls: in-place walk cycle + `bump` sfx every 16 frames. Walk cycle stand → A →
@@ -371,7 +377,8 @@ Saves go to `localStorage['llmmon_mythos_save_v1']` as `SaveData`
 (types.ts; engine added optional `box`). Position/facing are synced every
 frame the player is idle. Engine flags: `has_run`, `trainer_<id>_defeated`,
 `item_<map>_<objId>`, `repel_steps` (Firewall), `just_whited_out`,
-`trainer_id`, `debug_no_encounters`.
+`trainer_id`, `debug_no_encounters`. Play time counts wall-clock in every scene
+except Title/Boot.
 
 BATTLE-CORE data is reached only via `src/game/adapters/monInfo.ts`
 (`speciesName`, `speciesInfo`, `monStats`, `monMaxHp`, `expProgress`,

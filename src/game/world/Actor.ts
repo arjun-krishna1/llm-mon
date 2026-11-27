@@ -26,6 +26,8 @@ export class Actor {
   /** Grass overlays: [destination tile, source tile]. */
   readonly grass: [Phaser.GameObjects.Image, Phaser.GameObjects.Image]
   texKey: string
+  /** Optional run sheet (chars/<id>_run) used while taking run-speed steps. */
+  runTexKey?: string
   /** Logical tile (the destination while moving). */
   tx: number
   ty: number
@@ -243,7 +245,7 @@ export class Actor {
     if (this.moving) {
       const half = this.dist === TILE * 2 ? TILE : TILE / 2
       if (this.hopT >= 0) return this.hopT < this.hopFrames / 2 ? 1 + this.foot : 0
-      if (this.running) return this.moved < (TILE * 3) / 4 ? 1 + this.foot : 0
+      if (this.running && !this.runTexKey) return this.moved < (TILE * 3) / 4 ? 1 + this.foot : 0
       return this.moved % (half * 2) < half ? 1 + this.foot : 0
     }
     if (this.bumpT > 8) return 1 + this.foot
@@ -252,11 +254,14 @@ export class Actor {
 
   render(): void {
     const frame = DIR_ROW[this.facing] * 3 + this.column()
-    this.sprite.setFrame(frame)
+    // run sheet (same layout; col 0 = passing pose) while taking run-speed steps
+    const tex = this.running && this.runTexKey ? this.runTexKey : this.texKey
+    if (this.sprite.texture.key !== tex) this.sprite.setTexture(tex, frame)
+    else this.sprite.setFrame(frame)
     const x = this.px + TILE / 2
     const y = this.py + TILE
     // running: 1px stride bob while the leg is out
-    const bob = this.running && this.moved < (TILE * 3) / 4 ? 1 : 0
+    const bob = this.running && !this.runTexKey && this.moved < (TILE * 3) / 4 ? 1 : 0
     this.sprite.setPosition(x, y - this.lift - bob)
     this.sprite.setDepth(DEPTH.charBase + y + (this.id === 'player' ? 0.5 : 0))
     this.shadow.setPosition(x, y - 3)

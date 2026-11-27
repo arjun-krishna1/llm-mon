@@ -18,7 +18,7 @@ import { Actor } from '../world/Actor'
 import { content, runScript, scriptsRunning } from '../script'
 import type { EmoteKind, NpcDef, WorldApi } from '../script'
 import { getUI, setAreaNameProvider, type UIScene } from './UIScene'
-import { ensureTexture } from '../assets'
+import { ensureTexture, isPlaceholder } from '../assets'
 
 export interface OverworldData {
   map?: string
@@ -140,6 +140,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     this.cameras.main.setRoundPixels(true)
     this.player = new Actor(this, { id: 'player', sprite: 'player', x: 0, y: 0 })
     this.player.onGrass = (x, y) => !!this.map?.tileAt(x, y).grass
+    if (this.textures.exists('chars/player_run') && !isPlaceholder('chars/player_run')) this.player.runTexKey = 'chars/player_run'
     setAreaNameProvider(() => this.zoneName || String(this.map?.props.name ?? ''))
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.map?.destroy()
@@ -669,7 +670,8 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       return
     }
     const sign = map.objectAt('sign', f.x, f.y)
-    if (sign) {
+    // signs are read from below (facing up) unless the object sets `anySide`
+    if (sign && (p.facing === 'up' || sign.props.anySide)) {
       const pr = sign.props
       if (pr.script) void this.run(String(pr.script), undefined, { sign })
       else if (pr.text) void this.runInline(async (s) => s.say(unescape(String(pr.text))))
@@ -1089,13 +1091,14 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       state.money = Math.floor(state.money / 2)
       state.healParty()
       const hp = state.healPoint.map ? state.healPoint : content.healPoint ?? { map: content.startMap ?? '_test', spawn: content.startSpawn ?? 'start' }
-      await this.loadMap(hp.map, hp.spawn, 'down')
+      await this.loadMap(hp.map, hp.spawn, 'up')
       state.setFlag('just_whited_out')
       this.currentMusic = ''
       this.playMapMusic()
       await this.ui.fade(0, FADE_MS)
       await this.runOnEnter()
-      await this.ui.say('{player} hurried back to a safe place\nand patched up the team…')
+      if (content.whiteOutScript) await this.run(content.whiteOutScript)
+      else await this.ui.say('{player} hurried back to a safe place\nand patched up the team…')
     } finally {
       this.lockCount--
     }

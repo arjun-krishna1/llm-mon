@@ -65,6 +65,7 @@ function pixels(rows: string[], colors: Record<string, string>) {
 export function imageManifest(): ImageAsset[] {
   const list: ImageAsset[] = []
   for (const id of CHAR_IDS) list.push({ key: `chars/${id}`, w: 48, h: 96, fw: 16, fh: 24 })
+  list.push({ key: 'chars/player_run', w: 48, h: 96, fw: 16, fh: 24 })
   list.push(
     {
       key: 'fx/emote_exclaim', w: 16, h: 16,

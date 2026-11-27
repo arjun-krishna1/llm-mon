@@ -46,12 +46,12 @@ export const DEPTH = {
 export const TIMING = {
   fadeIn: 220,
   /** Platforms + sprites sliding in from opposite sides. */
-  slideIn: 800,
+  slideIn: 720,
   /** Wild mon brightening from its dark intro tint. */
   litUp: 220,
   hudSlide: 220,
   /** Auto-advancing battle chatter: hold after the line is fully typed. */
-  textHold: 430,
+  textHold: 390,
   /** Shorter hold for lines that lead straight into an animation. */
   textHoldShort: 350,
   /** HP drain speed: ms per bar pixel (48 px bar). */
@@ -67,7 +67,7 @@ export const TIMING = {
   popMs: 220,
   shakeGapMs: 430,
   shakeMs: 360,
-  trainerSlide: 340,
+  trainerSlide: 300,
   fadeOut: 320,
   screenFade: 140,
 }

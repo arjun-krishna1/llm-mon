@@ -288,7 +288,7 @@ export class UIScene extends Phaser.Scene {
           state.addMoney(-info.price * n)
           state.addItem(info.id, n)
           money.refresh?.()
-          audio.sfx('save')
+          audio.sfx('select') // purchase / sale chime (not the save jingle)
           await this.say('Here you are! Thank you!')
         }
       }
@@ -315,7 +315,7 @@ export class UIScene extends Phaser.Scene {
         state.removeItem(id, n)
         state.addMoney(price * n)
         money.refresh?.()
-        audio.sfx('save')
+        audio.sfx('select') // purchase / sale chime (not the save jingle)
         await this.say(`Turned over the ${info.name} and received $${price * n}.`)
       }
     }
