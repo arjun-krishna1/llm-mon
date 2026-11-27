@@ -340,7 +340,7 @@ export class BattleScene extends Phaser.Scene {
         while (events[j]?.type === 'move_used') j++
         const act = events[j]
         const mode = this.peekMode(e.text, events[i + 1])
-        if (act && mode === 'auto' && (act.type === 'move_anim' || act.type === 'faint' || act.type === 'catch_throw')) {
+        if (act && mode === 'auto' && (act.type === 'move_anim' || act.type === 'faint' || act.type === 'catch_throw' || act.type === 'send_out')) {
           await this.flushText()
           await Promise.all([
             this.text(e.text, mode, true),

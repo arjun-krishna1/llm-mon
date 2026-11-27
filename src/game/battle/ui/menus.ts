@@ -138,7 +138,7 @@ export function moveMenu(scene: Phaser.Scene, stack: WidgetStack, moves: MoveVie
   const ppLabel = new PxText(scene, info.x + 8, info.y + 8, 'PP').setDepth(DEPTH.menu + 1)
   const ppVal = new PxText(scene, info.x + 30, info.y + 8, '').setDepth(DEPTH.menu + 1)
   const chip = scene.add.image(info.x + info.w / 2, info.y + 31, 'ui/type_neutral').setOrigin(0.5, 0.5).setDepth(DEPTH.menu + 1)
-  const labels = [0, 1, 2, 3].map((i) => moves[i]?.name ?? '-')
+  const labels = [0, 1, 2, 3].map((i) => moves[i]?.name ?? '')
   const colors = labels.map((_, i) => (moves[i] ? undefined : 'grey') as TextColorName | undefined)
   const onMove = (i: number) => {
     const mv = moves[i]

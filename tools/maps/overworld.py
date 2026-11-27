@@ -220,7 +220,9 @@ def objects(m):
     m.item(21, 49, 'patch', 'item_route_hidden_patch', hidden=True)
     m.item(10, 65, 'patch', 'item_route_patch')
     m.item(29, 79, 'debugger', 'item_route_debugger')
-    m.sign(18, 82, script='route.field_notes')
+    m.sign(18, 82, script='route.field_notes')   # on the stump itself
+    m.tile('detail2', 19, 82, 'notes', tileset='props')
+    m.tile('detail2', 18, 83, 'notes', tileset='props')
     m.npc('rt_hiker', 31, 57, 'man', script='route.hiker', facing='left', movement='look')
 
     # ---------------------------------------------------------------- SoMa Node

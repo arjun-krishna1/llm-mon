@@ -1,6 +1,7 @@
 {
  "tiles": {
-  "blocker": 0
+  "blocker": 0,
+  "notes": 1
  },
  "stamps": {}
 }

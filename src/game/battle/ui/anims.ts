@@ -46,6 +46,15 @@ export const MOVE_OVERRIDES: Record<string, { anim?: AnimKey; color?: number; pa
   static_howl: { particle: 'bfx/pixel', color: TYPE_COLOR.glitch },
 }
 
+/**
+ * Where a projectile/wave first appears: a third of the way from the attacker toward the
+ * target, so nothing sparkles on the user's own body (reads as a self-hit otherwise).
+ */
+function launch(c: AnimCtx, b: { x: number; y: number }): { x: number; y: number } {
+  const u = c.stage.center(c.side)
+  return { x: Math.round(u.x + (b.x - u.x) * 0.33), y: Math.round(u.y + (b.y - u.y) * 0.33) }
+}
+
 function sideSign(side: Side): number {
   return side === 'player' ? 1 : -1
 }
@@ -127,8 +136,8 @@ const heavy: AnimFn = async (c) => {
 }
 
 const beam: AnimFn = async (c) => {
-  const a = c.stage.center(c.side)
   const b = c.stage.center(c.target)
+  const a = launch(c, b)
   const ps = particles(c, 10)
   const dx = b.x - a.x
   const dy = b.y - a.y
@@ -149,8 +158,8 @@ const beam: AnimFn = async (c) => {
 }
 
 const burst: AnimFn = async (c) => {
-  const a = c.stage.center(c.side)
   const b = c.stage.center(c.target)
+  const a = launch(c, b)
   // shot
   const orb = c.scene.add.image(a.x, a.y, 'bfx/orb').setDepth(DEPTH.fx).setTint(c.color)
   await animate(c.scene, 240, (k) => {
@@ -181,8 +190,8 @@ const burst: AnimFn = async (c) => {
 }
 
 const wave: AnimFn = async (c) => {
-  const a = c.stage.center(c.side)
   const b = c.stage.center(c.target)
+  const a = launch(c, b)
   const g = c.scene.add.graphics().setDepth(DEPTH.fx)
   const tm = c.stage.mon[c.target]
   const th = home(c.target)
@@ -266,8 +275,8 @@ const buff: AnimFn = async (c) => {
 }
 
 const debuff: AnimFn = async (c) => {
-  const a = c.stage.center(c.side)
   const b = c.stage.center(c.target)
+  const a = launch(c, b)
   const g = c.scene.add.graphics().setDepth(DEPTH.fx)
   const tm = c.stage.mon[c.target]
   const ps = particles(c, 6)
