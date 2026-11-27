@@ -3,10 +3,7 @@
 // `screen` entries open full-screen with fades and return to the menu when they resolve;
 // `action` entries run their own flow and close the menu.
 //
-// Example (PromptDex, first item like a GBA dex, shown once the dex is owned):
-//   import { PromptDexScreen } from './screens/PromptDexScreen'
-//   { id: 'dex', label: () => 'PROMPTDEX', order: 5, when: () => state.flag('got_dex'),
-//     screen: (ui) => new PromptDexScreen(ui, ui.stack).run() },
+// Example: the PromptDex entry below (between LLMMON and BAG, shown once flag `got_dex` is set).
 
 import type { UIScene } from '../scenes/UIScene'
 import { state } from '../state'
@@ -14,11 +11,12 @@ import { PartyScreen } from './screens/PartyScreen'
 import { BagScreen } from './screens/BagScreen'
 import { PlayerCard } from './screens/PlayerCard'
 import { OptionsScreen } from './screens/OptionsScreen'
+import { PromptDexScreen } from './screens/PromptDexScreen'
 
 export interface StartMenuEntry {
   id: string
   label: () => string
-  /** Sort key (lower = higher in the list). Built-ins: 10 party, 30 bag, 40 card, 50 save, 60 options, 99 exit. */
+  /** Sort key (lower = higher in the list). Built-ins: 10 party, 20 dex, 30 bag, 40 card, 50 save, 60 options, 99 exit. */
   order: number
   /** Only listed while this returns true. */
   when?: () => boolean
@@ -30,6 +28,7 @@ export interface StartMenuEntry {
 
 export const START_MENU_ENTRIES: StartMenuEntry[] = [
   { id: 'party', label: () => 'LLMMON', order: 10, when: () => state.party.length > 0, screen: (ui) => new PartyScreen(ui, ui.stack, { mode: 'view' }).run() },
+  { id: 'dex', label: () => 'PROMPTDEX', order: 20, when: () => state.flag('got_dex'), screen: (ui) => new PromptDexScreen(ui, ui.stack).run() },
   { id: 'bag', label: () => 'BAG', order: 30, screen: (ui) => new BagScreen(ui, ui.stack, { mode: 'view' }).run() },
   { id: 'card', label: () => state.playerName.toUpperCase(), order: 40, screen: (ui) => new PlayerCard(ui, ui.stack).run() },
   { id: 'save', label: () => 'SAVE', order: 50, action: (ui) => ui.saveFlow() },

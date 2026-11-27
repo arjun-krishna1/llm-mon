@@ -299,12 +299,49 @@ Depths: tile layers 0..n, shadows 50, characters 100 + feet y, `over` layers
 `registerStartMenuEntry` from an imported module):
 
 ```ts
-{ id: 'dex', label: () => 'PROMPTDEX', order: 5, when: () => state.flag('got_dex'),
-  screen: (ui) => new PromptDexScreen(ui, ui.stack).run() }
+{ id: 'dex', label: () => 'PROMPTDEX', order: 20, when: () => state.flag('got_dex'),
+  screen: (ui) => new PromptDexScreen(ui, ui.stack).run() }   // (this one is built in)
 ```
 
 `screen` entries open full-screen with fades and come back to the menu; `action` entries run a
-flow and close the menu. Built-in orders: party 10, bag 30, card 40, save 50, options 60, exit 99.
+flow and close the menu. Built-in orders: party 10, dex 20, bag 30, card 40, save 50, options 60, exit 99.
+
+## 5c. PromptDex and Storage screens
+
+**PromptDex** (`src/game/ui/screens/PromptDexScreen.ts`) — start-menu entry `PROMPTDEX`
+(between LLMMON and BAG) once flag **`got_dex`** is set; or `new PromptDexScreen(scene, stack).run()`.
+Read-only: uses `state.seen` / `state.caught` and BATTLE-CORE data via `monInfo`
+(`dexOrder`, `speciesDex`, `speciesAreas`).
+
+- List: every species in dex order, 7 rows, smooth scroll, ▲/▼ indicators; ↑/↓ move, ←/→ jump a
+  page; cursor position is remembered between openings. Unseen = `----------`; seen = icon + grey
+  name; caught = icon + name + orb mark. The dex number is the `NO.xxx` readout on the display.
+- Display: front sprite if seen (unseen: `???`). Data panel: name, type chips; caught → the flavour
+  rows (`dex.stats`, e.g. CONTEXT / LAB); seen only → "CATCH IT TO RECORD MORE DATA.".
+  Header: `SEEN n  CAUGHT m`.
+- A on a caught entry → data page (`DexDetailScreen`): sprite with idle bob, `audio.cry(id)`,
+  category, chips, the two blurb lines, CONTEXT / LAB / AREA (encounter tables containing the
+  species, "Route 101"; "Unknown" otherwise), base-stat bars. ←/→ (or ↑/↓) page through caught
+  entries; A/B back. Unseen/seen entries answer A with `bump`.
+
+**Model Storage** (`src/game/ui/screens/StorageScreen.ts`) — from a script: `await s.storage()`
+(plays `pc_on`, fades in, … `pc_off` on close), or point any map npc/sign/prop `script` at the
+built-in script id **`storage.open`**. Outside scripts: `openStorage(getUI(game))`.
+
+- Box grid 6×5 (30 per box) + party column; hand cursor; info bar = hovered mon's name, level and
+  type pills. Grid rows wrap through the box header; on the header ←/→ switch boxes (◀ ▶ shown
+  only when more than one box is in use). Right of column 6 / left of column 1 = party column.
+- A on a mon: box → WITHDRAW / MOVE / SUMMARY / CANCEL; party → DEPOSIT / SUMMARY / CANCEL.
+  MOVE grabs the mon (A drops: swap with a mon, or onto an empty slot = end of the list; B cancels).
+  SUMMARY reuses `SummaryScreen` (it now takes an optional mon list: `new SummaryScreen(scene,
+  stack, index, mons = state.party)`). B closes without confirmation.
+- Rules (refusals shown in a dialog box): can't deposit the last party member or the last
+  conscious one; can't withdraw into a party of 6; 8 boxes max. **Mons are fully healed (HP,
+  status, PP) when deposited or withdrawn** (classic PC behaviour).
+- State: `state.box` stays a flat, compact `MonInstance[]`; box k = `box.slice(30k, 30k+30)`, so a
+  deposit always appends (to the last box). Only `state.party` / `state.box` change; the normal
+  save persists both. Helpers exported for tools/tests: `boxCount`, `boxPage`, `depositMon`,
+  `withdrawMon`, `depositRefusal`, `withdrawRefusal`.
 
 ## 5. UI kit (for BATTLE-UI and screens)
 
@@ -424,7 +461,7 @@ frame the player is idle. Engine flags: `has_run`, `trainer_<id>_defeated`,
 except Title/Boot.
 
 BATTLE-CORE data is reached only via `src/game/adapters/monInfo.ts`
-(`speciesName`, `speciesInfo`, `monStats`, `monMaxHp`, `expProgress`,
+(`speciesName`, `speciesInfo`, `dexOrder`, `speciesDex`, `speciesAreas`, `typeShort`, `typeColor`, `monStats`, `monMaxHp`, `expProgress`,
 `createMon`, `healMon`, `moveInfo`, `typeName`, `itemInfo`, `useFieldItem`,
 `encounterRate`, `rollEncounter`, `wildRequest`, `tutorialRequest`,
 `trainerRequest`, `trainerInfo`). It loads BATTLE-CORE through an eager
@@ -435,7 +472,7 @@ BATTLE-CORE data is reached only via `src/game/adapters/monInfo.ts`
 Texture keys are the path under `public/assets/game/` without the extension,
 minus the `sprites/` prefix: `chars/player` (frames 0–11 = row×3+col, rows
 down/up/left/right), `fx/shadow`, `fx/grass_rustle` (0–3), `fx/emote_exclaim`
-(+ generated `fx/emote_question|heart|dots|note`), `fx/orb_big` (frames 0–3,
+(+ `fx/emote_question|heart|dots|music` from ART, procedural fallbacks; `fx/emote_note` aliases `emote_music`), `chars/rival`, `battle/rival_front`, `ui/dex_bg`, `ui/storage_bg`, `ui/slot`, `ui/slot_sel`, `fx/orb_big` (frames 0–3,
 32×32), `fx/truck`, `fx/satchel`, `chars/hallucihound` (NPC-usable sheet), `battle/bg_grass`,
 `battle/trainer_back` (0–3), `mons/<id>_front|_back|_icon` (icon frames 0–1),
 `ui/frame_dialog|menu|battle`, `ui/cursor`, `ui/arrow_down`, `ui/type_<type>` …

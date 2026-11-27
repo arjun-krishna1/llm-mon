@@ -18,12 +18,14 @@ export interface ImageAsset {
   fh?: number
   /** 'auto2' = 2 square frames along the long axis (party icons); 'strip4' = 4 equal frames along the long axis. */
   frames?: 'grid' | 'auto2' | 'strip4'
+  /** Missing file → no placeholder (a procedural texture is made later instead). */
+  optional?: boolean
   /** Optional procedural fallback instead of the magenta box. */
   fallback?: (ctx: CanvasRenderingContext2D, w: number, h: number) => void
 }
 
 export const CHAR_IDS = ['player', 'mom', 'prof', 'aide', 'boy', 'girl', 'man', 'woman', 'elder', 'techie',
-  'nurse', 'clerk', 'trainer_m', 'trainer_f', 'hallucihound']
+  'nurse', 'clerk', 'trainer_m', 'trainer_f', 'hallucihound', 'rival']
 
 export const TYPE_IDS = ['neutral', 'myth', 'logic', 'tool', 'speed', 'open', 'vision', 'glitch']
 
@@ -111,6 +113,7 @@ export function imageManifest(): ImageAsset[] {
     { key: 'battle/prof_front', w: 64, h: 96 },
     { key: 'battle/trainer_m_front', w: 64, h: 64 },
     { key: 'battle/trainer_f_front', w: 64, h: 64 },
+    { key: 'battle/rival_front', w: 64, h: 64 },
     { key: 'ui/frame_dialog', w: 24, h: 24, fallback: frameFallback(P.paper, P.frame) },
     { key: 'ui/frame_menu', w: 24, h: 24, fallback: frameFallback(P.paper, P.frame) },
     { key: 'ui/frame_battle', w: 24, h: 24, fallback: frameFallback(P.paper, [0x283048, 0x6c54bc, 0x9078dc, 0xbca8f0]) },
@@ -130,7 +133,15 @@ export function imageManifest(): ImageAsset[] {
     { key: 'ui/title_logo', w: 160, h: 64 },
     { key: 'ui/orb_slots', w: 64, h: 8 },
     { key: 'ui/starter_select_bg', w: 240, h: 160 },
+    // PromptDex + Model Storage (docs/ART_CATALOG_SPRITES.md "PromptDex and Model Storage")
+    { key: 'ui/dex_bg', w: 240, h: 160 },
+    { key: 'ui/storage_bg', w: 240, h: 160 },
+    { key: 'ui/slot', w: 20, h: 20 },
+    { key: 'ui/slot_sel', w: 20, h: 20 },
   )
+  // Emote bubbles drawn by ART (procedural versions in makeProceduralTextures are the fallback;
+  // a missing file is simply skipped there, so no placeholder is registered for these).
+  for (const e of ['question', 'heart', 'dots', 'music']) list.push({ key: `fx/emote_${e}`, w: 16, h: 16, optional: true })
   for (const t of TYPE_IDS) list.push({ key: `ui/type_${t}`, w: 32, h: 12 })
   for (const id of allSpeciesIds()) {
     list.push({ key: `mons/${id}_front`, w: 64, h: 64 })
@@ -168,6 +179,7 @@ export function finalizeAssets(textures: Phaser.Textures.TextureManager, list: I
   const missing: string[] = []
   for (const a of list) {
     if (!textures.exists(a.key)) {
+      if (a.optional) continue
       missing.push(a.key)
       makePlaceholder(textures, a.key, a.w, a.h, a.fallback, a.fw, a.fh)
       if (!a.fallback) placeholders.add(a.key)
@@ -282,6 +294,11 @@ export function makeProceduralTextures(textures: Phaser.Textures.TextureManager)
     heart: { rows: ['........', '.xx.xx..', 'xxxxxxx.', 'xxxxxxx.', '.xxxxx..', '..xxx...', '...x....'], color: '#e06c98' },
     dots: { rows: ['........', '........', '........', '........', '........', '........', 'x.x.x...'], color: '#383840' },
     note: { rows: ['...xxx..', '...x.x..', '...x....', '...x....', '.xxx....', 'xxxx....', '.xx.....'], color: '#2c9458' },
+  }
+  // ART ships the music-note bubble as fx/emote_music; the engine's emote kind is 'note'.
+  if (textures.exists('fx/emote_music') && !textures.exists('fx/emote_note')) {
+    const src = textures.get('fx/emote_music').getSourceImage() as HTMLImageElement
+    textures.addImage('fx/emote_note', src)
   }
   for (const [name, g] of Object.entries(glyphs)) {
     const key = `fx/emote_${name}`

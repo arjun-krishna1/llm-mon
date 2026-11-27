@@ -86,9 +86,16 @@ async function main() {
     const onText = shootOn(g, [
       [/^Hello there/, 'intro_prof'], [/creatures called LLMMON/, 'intro_mon'], [/Very low perplexity/, 'intro_named'], [/about to begin/, 'intro_player'],
     ])
+    // letter-grid name entry: START jumps to OK, A confirms the default name
+    await g.drive((s) => !!(s.ui.top && s.ui.top.cls === 'NameEntryScreen'), { onText })
+    await sleep(FAST ? 100 : 600)
+    await g.shot('intro_name', 'Name entry')
+    await g.press('START')
+    await sleep(FAST ? 100 : 300)
+    await g.press('A')
     await g.drive((s) => s.info.scenes.includes('Overworld') && s.ui.dlg === 'waiting', {
       onText,
-      choice: async (prompt, labels) => { await g.shot('intro_name', 'Name choice'); return pickLabel(labels, /^Maya$/) },
+      choice: async (prompt, labels) => pickLabel(labels, /^Maya$/),
     })
   })
 
@@ -136,7 +143,7 @@ async function main() {
         onText: shootOn(g, [[/HOW TO BE A TRAINER/, 'notebook_cover'], [/BATTLES: Wild/, 'notebook_battles']]),
       })
     }
-    for (const [x, y] of [[3, 2], [1, 2], [5, 2], [1, 7], [7, 2]]) await g.readAt(x, y, { onText: shootOn(g, [[/47 browser tabs/, 'home_pc']]) })
+    for (const [x, y] of [[3, 2], [1, 3], [5, 2], [1, 7], [7, 2]]) await g.readAt(x, y, { onText: shootOn(g, [[/47 browser tabs/, 'home_pc']]) })
     const s = await g.snap()
     check(!!s.flags.visited_2f, 'flag visited_2f')
     check(!!s.flags.found_box_patch && (s.bag?.patch ?? 1) > 0, 'found the Patch in the moving box')

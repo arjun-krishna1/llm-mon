@@ -12,6 +12,7 @@ import { getUI, type UIScene } from '../scenes/UIScene'
 import type { SayOptions } from '../ui/DialogBox'
 import type { ListOptions } from '../ui/ListMenu'
 import type { NameEntryOptions } from '../ui/screens/NameEntryScreen'
+import { openStorage } from '../ui/screens/StorageScreen'
 import { getScript } from './registry'
 
 export type EmoteKind = 'exclaim' | 'question' | 'heart' | 'dots' | 'note'
@@ -352,6 +353,11 @@ export class ScriptApi {
   // ------------------------------------------------------------ shops
   shop(itemIds: string[], greeting?: string): Promise<void> {
     return this.ui.shop(itemIds, greeting)
+  }
+
+  /** Model Storage System (box grid + party; withdraw / deposit / move / summary). pc_on / pc_off + fades. */
+  storage(): Promise<void> {
+    return openStorage(this.ui)
   }
 
   /**

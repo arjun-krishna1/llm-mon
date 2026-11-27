@@ -83,6 +83,56 @@ export function speciesInfo(id: string): { name: string; types: string[]; dexTex
   }
 }
 
+/** Species ids in PromptDex order (BATTLE-CORE `dexNo`, then `SPECIES_IDS` order). */
+export function dexOrder(): string[] {
+  const order = data.SPECIES_IDS ?? core.SPECIES_IDS
+  const ids = Array.isArray(order) && order.length ? (order as string[]) : allSpeciesIds()
+  const no = (id: string) => Number(SPECIES()[id]?.dexNo ?? 9999)
+  return [...ids].sort((a, b) => no(a) - no(b))
+}
+
+export interface DexEntry {
+  /** Dex number (1-based; falls back to the position in dexOrder()). */
+  no: number
+  /** e.g. "Fable Fox". */
+  category: string
+  /** Two short blurb lines. */
+  lines: [string, string]
+  /** Flavour rows, e.g. [{ label: 'Context', value: '200K tokens' }, { label: 'Lab', value: 'Anthropic' }]. */
+  flavour: { label: string; value: string }[]
+  baseStats: Stats
+}
+
+/** PromptDex data for a species (SpeciesDef.dex + base stats), with safe fallbacks. */
+export function speciesDex(id: string): DexEntry {
+  const s = SPECIES()[id] ?? {}
+  const dex = (s.dex ?? {}) as AnyRec
+  const lines = Array.isArray(dex.lines) ? (dex.lines as string[]).map(String) : String(dex.text ?? '').split('\n')
+  const flavour = Array.isArray(dex.stats)
+    ? (dex.stats as AnyRec[]).map((r) => ({ label: String(r.label ?? ''), value: String(r.value ?? '') }))
+    : []
+  const base = (s.baseStats ?? {}) as Partial<Stats>
+  const baseStats = {} as Stats
+  for (const k of STAT_KEYS) baseStats[k] = Number(base[k] ?? 0)
+  return {
+    no: Number(s.dexNo ?? dexOrder().indexOf(id) + 1),
+    category: String(dex.category ?? ''),
+    lines: [lines[0] ?? '', lines[1] ?? ''],
+    flavour,
+    baseStats,
+  }
+}
+
+/** Display names of the encounter tables that contain a species ("route_101" → "Route 101"). */
+export function speciesAreas(id: string): string[] {
+  const out: string[] = []
+  for (const [tid, t] of Object.entries(ENCOUNTERS())) {
+    const slots = Array.isArray(t.slots) ? (t.slots as AnyRec[]) : []
+    if (slots.some((sl) => sl.speciesId === id)) out.push(String(t.name ?? titleCase(tid)))
+  }
+  return out
+}
+
 export function monName(mon: MonInstance): string {
   return mon.nickname || speciesName(mon.speciesId)
 }
@@ -164,6 +214,18 @@ export function moveInfo(id: string): { name: string; type: string; power: numbe
 
 export function typeName(id: string): string {
   return String(TYPES()[id]?.name ?? titleCase(id))
+}
+
+/** 3-letter type abbreviation ("MYT") for tight HUDs. */
+export function typeShort(id: string): string {
+  return String(TYPES()[id]?.short ?? id.slice(0, 3)).toUpperCase()
+}
+
+/** Suggested type colour as a number (0xe08a3c), grey if unknown. */
+export function typeColor(id: string): number {
+  const c = String(TYPES()[id]?.color ?? '#a8a29a')
+  const n = parseInt(c.replace('#', ''), 16)
+  return Number.isFinite(n) ? n : 0xa8a29a
 }
 
 // ---------------------------------------------------------------- items

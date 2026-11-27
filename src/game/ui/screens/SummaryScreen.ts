@@ -10,15 +10,19 @@ import { ensureTexture, isPlaceholder } from '../../assets'
 import { drawExpBar, drawHpBar, drawPanel, drawStripes } from '../draw'
 import { Screen } from './Screen'
 import type { WidgetStack } from '../WidgetStack'
+import type { MonInstance } from '../../types'
 
 export class SummaryScreen extends Screen<number> {
   private index: number
   private page = 0
   private dyn: Phaser.GameObjects.Container
+  /** The list being browsed (default: the party; StorageScreen passes a box page). */
+  private mons: MonInstance[]
 
-  constructor(scene: Phaser.Scene, stack: WidgetStack, index: number) {
+  constructor(scene: Phaser.Scene, stack: WidgetStack, index: number, mons: MonInstance[] = state.party) {
     super(scene, stack)
     this.index = index
+    this.mons = mons
     const bg = this.gfx()
     drawStripes(bg, 240, 160, 0x48709c, 0x4c76a4)
     this.dyn = scene.add.container(0, 0)
@@ -28,7 +32,7 @@ export class SummaryScreen extends Screen<number> {
 
   private build(): void {
     this.dyn.removeAll(true)
-    const mon = state.party[this.index]
+    const mon = this.mons[this.index]
     if (!mon) return
     const add = <T extends Phaser.GameObjects.GameObject>(o: T): T => {
       this.dyn.add(o)
@@ -141,12 +145,12 @@ export class SummaryScreen extends Screen<number> {
       this.page--
       audio.sfx('select')
       this.build()
-    } else if (controls.justPressed('down') && state.party.length > 1) {
-      this.index = (this.index + 1) % state.party.length
+    } else if (controls.justPressed('down') && this.mons.length > 1) {
+      this.index = (this.index + 1) % this.mons.length
       audio.sfx('select')
       this.build()
-    } else if (controls.justPressed('up') && state.party.length > 1) {
-      this.index = (this.index - 1 + state.party.length) % state.party.length
+    } else if (controls.justPressed('up') && this.mons.length > 1) {
+      this.index = (this.index - 1 + this.mons.length) % this.mons.length
       audio.sfx('select')
       this.build()
     }
