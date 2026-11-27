@@ -22,6 +22,13 @@ SPEC = {
     'gym':          ('ext_gym', 7, 5, [3], 48),
     'shed':         ('ext_shed', 3, 3, [1], 40),
 }
+# Round-3 additions: built after everything else so older tile ids never move.
+SPEC_CITY = {
+    'house_green':  ('ext_house_orange', 5, 4, [2], 48),
+    'apartment':    ('ext_apartment', 6, 6, [2, 3], 48),
+    'cafe':         ('ext_cafe', 5, 4, [2], 48),
+}
+SPEC_ALL = dict(SPEC, **SPEC_CITY)
 
 GREYS = P.STONE + P.ROCK + P.WHITE[:2] + P.METAL + P.ROOF_SLATE + P.UI_FRAME
 
@@ -101,11 +108,41 @@ def _fix_gym(s):
     _glass_fix(s, [(19, 89, 9, 22), (86, 89, 9, 22)])
 
 
-FIXES = {'house_orange': _fix_orange, 'token_mart': _fix_mart, 'gym': _fix_gym}
+def _remap_cols(s, region, cols, ramp):
+    x0, y0, w, h = region
+    for y in range(y0, y0 + h):
+        for x in range(x0, x0 + w):
+            if 56 <= x <= 71 and y <= 30 and s.get(x, y) not in P.ROOF_ORANGE:
+                continue    # leave the brick chimney alone
+            if s.get(x, y) in cols:
+                c = s.get(x, y)
+                lum = (c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11)
+                lo = min(q[0] * 0.3 + q[1] * 0.59 + q[2] * 0.11 for q in cols)
+                hi = max(q[0] * 0.3 + q[1] * 0.59 + q[2] * 0.11 for q in cols)
+                t = 0 if hi == lo else (lum - lo) / (hi - lo)
+                s.set(x, y, ramp[min(len(ramp) - 1, int(t * len(ramp)))])
+
+
+def _fix_green(s):
+    _fix_orange(s)
+    # roof only: orange family above the eaves -> a fresh green ramp
+    cols = set()
+    for y in range(0, 64):
+        for x in range(s.w):
+            c = s.get(x, y)
+            if c[3] == 255 and (c in P.ROOF_ORANGE or (c[0] > c[2] + 90 and c[1] < c[0] * 0.75)):
+                cols.add(c)
+    if cols:
+        _remap_cols(s, (0, 0, s.w, 64), cols,
+                          [P.TREE[0], P.CLOTH_GREEN[0], P.TREE[2], P.CLOTH_GREEN[1], P.TREE[3],
+                           P.CLOTH_GREEN[2], P.TREE[4]])
+
+
+FIXES = {'house_green': _fix_green, 'house_orange': _fix_orange, 'token_mart': _fix_mart, 'gym': _fix_gym}
 
 
 def building(name):
-    raw, wt, foot, doors, cols = SPEC[name]
+    raw, wt, foot, doors, cols = SPEC_ALL[name]
     s = genart.sprite(raw, width=wt * T, colors=cols, sat=1.3)
     fx = FIXES.get(name)
     if fx:
@@ -118,7 +155,7 @@ def building(name):
 
 
 def cell_props(name, ht, over_rows, doors):
-    wt = SPEC[name][1]
+    wt = SPEC_ALL[name][1]
 
     def fn(i, j):
         if j < over_rows:

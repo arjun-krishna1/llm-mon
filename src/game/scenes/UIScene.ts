@@ -19,6 +19,7 @@ import { PartyScreen, type PartyOptions } from '../ui/screens/PartyScreen'
 import { BagScreen, type BagOptions } from '../ui/screens/BagScreen'
 import { PlayerCard } from '../ui/screens/PlayerCard'
 import { SummaryScreen } from '../ui/screens/SummaryScreen'
+import { NameEntryScreen, type NameEntryOptions } from '../ui/screens/NameEntryScreen'
 
 export class UIScene extends Phaser.Scene {
   stack = new WidgetStack()
@@ -196,6 +197,18 @@ export class UIScene extends Phaser.Scene {
   }
   openSummary(index: number): Promise<number> {
     return new SummaryScreen(this, this.stack, index).run()
+  }
+
+  /** Letter-grid naming screen with screen fades. Resolves with the confirmed name. */
+  async nameEntry(o: NameEntryOptions): Promise<string> {
+    await this.fade(1, 160)
+    const scr = new NameEntryScreen(this, this.stack, o)
+    const p = scr.run()
+    await this.fade(0, 160)
+    const name = await p
+    await this.fade(1, 160)
+    await this.fade(0, 160)
+    return name
   }
 
   async saveFlow(): Promise<boolean> {

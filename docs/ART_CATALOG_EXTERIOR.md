@@ -54,6 +54,9 @@ Stamps: copy `layers.base` into `detail` and `layers.over` into `over` at the sa
 | `mailbox` | 433 | solid, detail layer |
 | `planter` | 439 | stone flower box, solid, detail layer |
 | `crate` | 440 | wooden crate, solid, detail layer |
+| `plaza_inlay` | 912 |  |
+| `crosswalk` | 913 |  |
+| `bollard` | 914 |  |
 
 ## Stamps (`stamps`)
 
@@ -74,6 +77,13 @@ Stamps: copy `layers.base` into `detail` and `layers.over` into `over` at the sa
 | `token_mart` | 5x7 | 3 | (2,6) | Token Mart: violet roof, gold coin "T" sign, awning |
 | `gym` | 7x8 | 3 | (3,7) | closed gym-like arena: boarded-up doors, brain-circuit emblem |
 | `shed` | 3x5 | 2 | (1,4) | small tool shed |
+| `kiosk` | 1x2 | 1 | - |  |
+| `streetlight_modern` | 1x2 | 1 | - |  |
+| `bike_rack` | 2x1 | 0 | - |  |
+| `billboard` | 3x2 | 1 | - |  |
+| `house_green` | 5x7 | 3 | (2,6) |  |
+| `apartment` | 6x9 | 3 | (2,8), (3,8) |  |
+| `cafe` | 5x7 | 3 | (2,6) |  |
 
 Buildings: every `base` cell is `solid` except the door cell(s) on the bottom row, which carry `door: true` (walkable; put the `warp` object there). The path should run along the row directly below the stamp (the door step is drawn inside the stamp). Roof rows above the footprint are `over` and walkable, so the player can pass behind a building. Leave one free row between a building's over rows and anything solid above it if you want that walk-behind lane.
 

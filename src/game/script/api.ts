@@ -11,6 +11,7 @@ import { createMon, itemInfo, monName, speciesName, trainerRequest, tutorialRequ
 import { getUI, type UIScene } from '../scenes/UIScene'
 import type { SayOptions } from '../ui/DialogBox'
 import type { ListOptions } from '../ui/ListMenu'
+import type { NameEntryOptions } from '../ui/screens/NameEntryScreen'
 import { getScript } from './registry'
 
 export type EmoteKind = 'exclaim' | 'question' | 'heart' | 'dots' | 'note'
@@ -142,11 +143,14 @@ export class ScriptApi {
     this.ui.showBanner(text)
   }
   /** Offer names from a list (plus the current one); sets state.playerName. */
-  async chooseName(prompt: string, presets: string[]): Promise<string> {
-    const opts = [...new Set([...presets])]
-    const i = await this.ui.ask(prompt, opts, { cancelIndex: null, x: 238, y: 2, anchor: 'tr' })
-    state.playerName = opts[Math.max(0, i)]
+  /** Player naming: letter-grid screen (presets offered via "PICK A NAME FOR ME"); sets state.playerName. */
+  async chooseName(prompt: string, presets: string[] = []): Promise<string> {
+    state.playerName = await this.ui.nameEntry({ title: prompt, initial: state.playerName, max: 8, icon: 'chars/player', presets })
     return state.playerName
+  }
+  /** Generic naming screen (nicknames etc.); resolves with the confirmed text. */
+  nameEntry(o: NameEntryOptions): Promise<string> {
+    return this.ui.nameEntry(o)
   }
 
   // ------------------------------------------------------------ timing / screen

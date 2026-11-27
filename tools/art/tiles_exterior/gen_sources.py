@@ -103,6 +103,30 @@ PROMPTS = {
         "tall, front view: a slim white-and-teal lattice antenna tower on a small square concrete base "
         "with a tiny equipment box, two small dish antennas on the sides, a round red beacon light at "
         "the very top, dark outline.", []),
+    'ext_apartment': (VIEW + FOOT.format(w=6, h=8) +
+        "A neat three-storey city apartment block, same pixel style as the reference: flat roof seen "
+        "from above with a grey rooftop AC unit and a small antenna, warm sand-coloured brick walls "
+        "with white trim, three rows of identical windows with blue glass and small balconies on the "
+        "upper floors, a glass entrance door with a small canopy centred on the bottom edge, grey "
+        "stone base.", [REF_HOUSE]),
+    'ext_cafe': (VIEW + FOOT.format(w=5, h=6) +
+        "A small cosy city cafe, same pixel style as the reference: low terracotta-and-cream building "
+        "with a flat parapet roof, a green and white striped awning over a big front window showing "
+        "cups and cakes, a small round hanging sign with a white coffee cup icon, a glass door "
+        "centred on the bottom edge, two potted plants either side of the door.", [REF_HOUSE]),
+    'ext_kiosk': ("A single slim futuristic info terminal kiosk for a GBA-era RPG city street, 1 tile wide "
+        "and 2 tiles tall, front view: white and teal rounded casing on a small base, a glowing "
+        "light-cyan screen in the upper half, a small keypad below it, dark outline.", []),
+    'ext_billboard': ("A single wide billboard for a GBA-era RPG city, 3 tiles wide and 2 tiles tall, front "
+        "view: a wide rectangular sign panel with a dark metal frame standing on two metal posts, the "
+        "panel is a bright sky-blue gradient poster with a simple cute round creature silhouette in "
+        "white, small lamps on top of the frame, no text.", []),
+    'ext_streetlight': ("A single modern city street light for a GBA-era RPG, 1 tile wide and 2 tiles tall, "
+        "front view: slim dark grey metal pole on a small round base, a curved arm at the top holding a "
+        "flat white LED lamp head that glows soft yellow underneath, dark outline.", []),
+    'ext_bikerack': ("A single city bike rack with one parked bicycle for a GBA-era RPG, 2 tiles wide and 1 "
+        "tile tall, front view at a slight top-down angle: three silver hoop stands on the ground, a "
+        "small teal bicycle leaning in one of them, dark outline.", []),
 }
 
 

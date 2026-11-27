@@ -56,12 +56,19 @@ def _key_border(im):
     return im
 
 
-def sprite(name, width=None, height=None, colors=48, sat=1.3):
-    key = (name, width, height, colors, sat)
+def sprite(name, width=None, height=None, colors=48, sat=1.3, key_holes=False):
+    key = (name, width, height, colors, sat, key_holes)
     if key in _cache:
         return _cache[key].copy()
     src = Image.open(os.path.join(RAW, name + '.png'))
     im = _key_border(src)
+    if key_holes:   # enclosed background (e.g. inside hoops): strict magenta only
+        px = im.load()
+        for y in range(im.height):
+            for x in range(im.width):
+                r, gg, b, a = px[x, y]
+                if a and r > 190 and b > 190 and gg < 90:
+                    px[x, y] = (0, 0, 0, 0)
     if sat != 1.0:
         a = im.getchannel('A')
         im = ImageEnhance.Color(im.convert('RGB')).enhance(sat).convert('RGBA')

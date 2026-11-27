@@ -175,5 +175,170 @@ def build():
     save(starter_select_bg(), UI, 'starter_select_bg.png')
 
 
+
+# ------------------------------------------------- PromptDex / Storage ----
+from common import rect, hline, vline, put  # noqa: E402
+
+DEX = {
+    'header': (4, 4, 232, 14),          # title strip (text area below)
+    'header_text': (22, 7, 150, 8),     # draw "PROMPTDEX" / counts here
+    'list': (6, 22, 116, 132),          # left list panel outer rect
+    'list_inner': (10, 26, 108, 124),   # paper area for rows (pitch 16 -> 7 rows + 12px)
+    'screen': (126, 22, 108, 84),       # right display (glass) outer rect
+    'screen_inner': (130, 26, 100, 76), # glass area; centre a 64x64 sprite at (148, 32)
+    'info': (126, 110, 108, 44),        # right info panel outer rect
+    'info_inner': (130, 114, 100, 36),  # paper area for name/type/text
+}
+
+STORAGE = {
+    'box_header': (6, 6, 136, 20),      # box name bar, arrows baked at both ends
+    'box_name': (24, 12, 100, 8),       # text area for the box name
+    'grid_panel': (6, 30, 136, 110),    # rack panel around the slot grid
+    'grid_origin': (14, 36),            # top-left of slot (0,0)
+    'grid_pitch': 20, 'grid_cols': 6, 'grid_rows': 5,   # 20x20 slots, 16px icon at +2,+2
+    'info_bar': (6, 144, 136, 12),      # one-line info under the grid
+    'party_header': (148, 6, 86, 20),
+    'party_title': (166, 12, 60, 8),
+    'party_panel': (148, 30, 86, 126),
+    'party_origin': (152, 34),          # slot i at (152, 34 + 20*i), i=0..5; name at x+24
+    'party_pitch': 20,
+}
+
+
+def _panel(im, r, rings, fill, radius=2):
+    from ui import ring_frame
+    x, y, w, h = r
+    im.alpha_composite(ring_frame(w, h, rings, fill, radius=radius), (x, y))
+
+
+def _bevel_bg(W, H, base, light, dark):
+    im = new(W, H, base)
+    for y in range(H):
+        for x in range(W):
+            if (x + y * 2) % 8 == 0 and (x // 4 + y // 4) % 2 == 0:
+                put(im, x, y, dark)
+    hline(im, 0, W - 1, 0, light)
+    vline(im, 0, 0, H - 1, light)
+    hline(im, 0, W - 1, H - 1, P.OUTLINE)
+    vline(im, W - 1, 0, H - 1, P.OUTLINE)
+    return im
+
+
+def dex_bg():
+    F = P.UI_FRAME
+    im = _bevel_bg(240, 160, F[0], F[1], (32, 38, 58, 255))
+    # header strip: amber band with a teal lens LED and two small lights
+    _panel(im, DEX['header'], [P.OUTLINE, P.UI_ACCENT[2]], P.UI_ACCENT[1], radius=2)
+    rect(im, 8, 8, 6, 6, P.OUTLINE)
+    rect(im, 9, 8, 4, 6, P.ROOF_TEAL[1])
+    rect(im, 8, 9, 6, 4, P.ROOF_TEAL[1])
+    put(im, 9, 9, P.WHITE[3]); put(im, 10, 9, P.ROOF_TEAL[3])
+    for i, c in enumerate((P.HP_RED[1], P.HP_YELLOW[1], P.HP_GREEN[1])):
+        rect(im, 212 + i * 7, 9, 4, 4, P.OUTLINE)
+        rect(im, 213 + i * 7, 10, 2, 2, c)
+    # left list panel (paper)
+    _panel(im, DEX['list'], [P.OUTLINE, F[2], F[0]], P.UI_PAPER[2], radius=3)
+    x, y, w, h = DEX['list_inner']
+    for i in range(1, h // 16):
+        hline(im, x + 2, x + w - 3, y + i * 16 - 1, P.UI_PAPER[1])
+    # right display: glass screen with scanlines
+    _panel(im, DEX['screen'], [P.OUTLINE, F[2], F[0]], P.GLASS[2], radius=3)
+    x, y, w, h = DEX['screen_inner']
+    for yy in range(y, y + h):
+        for xx in range(x, x + w):
+            t = (yy - y) / h
+            c = P.GLASS[3] if t < 0.15 else P.GLASS[2]
+            if yy % 2 == 1:
+                c = P.GLASS[2] if t < 0.15 else (150, 206, 232, 255)
+            put(im, xx, yy, c)
+    # floor ellipse for the creature
+    for yy in range(y + 58, y + 70):
+        for xx in range(x + 14, x + w - 14):
+            dx, dy = (xx - (x + w / 2)) / (w / 2 - 14), (yy - (y + 64)) / 5
+            if dx * dx + dy * dy <= 1:
+                put(im, xx, yy, P.GLASS[1] if dx * dx + dy * dy > 0.6 else (122, 184, 222, 255))
+    # info panel
+    _panel(im, DEX['info'], [P.OUTLINE, F[2], F[0]], P.UI_PAPER[2], radius=3)
+    # speaker grille + hinge details on the shell
+    for i in range(5):
+        rect(im, 228, 158 - 2, 1, 1, F[1])
+    return im
+
+
+def storage_bg():
+    D = P.CLOTH_DARK
+    im = _bevel_bg(240, 160, D[0], D[1], (26, 28, 38, 255))
+    # rack rails with screws
+    for x in (2, 143, 237):
+        vline(im, x, 2, 157, D[1])
+        for y in range(8, 160, 24):
+            put(im, x, y, P.METAL[2])
+    # box header with arrows
+    _panel(im, STORAGE['box_header'], [P.OUTLINE, P.ROOF_TEAL[2]], P.ROOF_TEAL[1], radius=2)
+    _panel(im, STORAGE['party_header'], [P.OUTLINE, P.UI_ACCENT[2]], P.UI_ACCENT[1], radius=2)
+    bx, by, bw, bh = STORAGE['box_header']
+    for i, (ax, d) in enumerate(((bx + 6, -1), (bx + bw - 8, 1))):
+        for k in range(4):
+            vline(im, ax + (k if d > 0 else 3 - k), by + 6 + k, by + bh - 7 - k, P.WHITE[3])
+    # grid panel: dark terminal glass with a subtle grid glow
+    _panel(im, STORAGE['grid_panel'], [P.OUTLINE, P.ROOF_SLATE[2], P.OUTLINE], (30, 52, 66, 255), radius=2)
+    ox, oy = STORAGE['grid_origin']
+    pt = STORAGE['grid_pitch']
+    for r in range(STORAGE['grid_rows']):
+        for c in range(STORAGE['grid_cols']):
+            im.alpha_composite(slot(), (ox + c * pt, oy + r * pt))
+    # info bar
+    _panel(im, STORAGE['info_bar'], [P.OUTLINE], (30, 52, 66, 255), radius=1)
+    # party column
+    _panel(im, STORAGE['party_panel'], [P.OUTLINE, P.ROOF_SLATE[2], P.OUTLINE], (30, 52, 66, 255), radius=2)
+    px_, py_ = STORAGE['party_origin']
+    for i in range(6):
+        im.alpha_composite(slot(), (px_, py_ + i * STORAGE['party_pitch']))
+        hline(im, px_ + 24, px_ + 76, py_ + i * 20 + 15, P.ROOF_SLATE[1])
+    # blinking-LED strip at the bottom of the party rack (static art)
+    for i in range(6):
+        put(im, 152 + i * 4, 157, P.HP_GREEN[1] if i % 3 else P.UI_ACCENT[2])
+    return im
+
+
+def slot():
+    """20x20 recessed slot: dark well, shadow top-left, light rim bottom-right."""
+    im = new(20, 20)
+    rect(im, 1, 1, 18, 18, (22, 36, 48, 255))
+    hline(im, 1, 18, 0, P.OUTLINE)
+    vline(im, 0, 1, 18, P.OUTLINE)
+    hline(im, 1, 18, 19, P.ROOF_SLATE[2])
+    vline(im, 19, 1, 18, P.ROOF_SLATE[2])
+    hline(im, 2, 17, 1, (14, 22, 32, 255))
+    vline(im, 1, 2, 17, (14, 22, 32, 255))
+    for c in ((0, 0), (19, 0), (0, 19), (19, 19)):
+        pass
+    return im
+
+
+def slot_sel():
+    """20x20 selected slot: amber frame with a warm inner glow."""
+    im = slot()
+    A = P.UI_ACCENT
+    hline(im, 0, 19, 0, A[1]); hline(im, 0, 19, 19, A[0])
+    vline(im, 0, 0, 19, A[1]); vline(im, 19, 0, 19, A[0])
+    hline(im, 1, 18, 1, A[2]); vline(im, 1, 1, 18, A[2])
+    hline(im, 1, 18, 18, A[1]); vline(im, 18, 1, 18, A[1])
+    for (x, y) in ((2, 2), (17, 2), (2, 17), (17, 17)):
+        put(im, x, y, A[2])
+    return im
+
+
+_old_build = build
+
+
+def build():  # noqa: F811
+    _old_build()
+    save(dex_bg(), UI, 'dex_bg.png')
+    save(storage_bg(), UI, 'storage_bg.png')
+    save(slot(), UI, 'slot.png')
+    save(slot_sel(), UI, 'slot_sel.png')
+
+
 if __name__ == '__main__':
     build()

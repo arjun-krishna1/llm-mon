@@ -263,6 +263,30 @@ def _water_texture(x, y, f, var=0):
     return W[1]
 
 
+ST = P.STONE
+
+
+def _pave_texture(x, y, var=0):
+    """Light stone slabs, 8x8 in a running bond, lit top-left, period 16."""
+    x %= 16; y %= 16
+    row = y // 8
+    sx = (x + (4 if row else 0)) % 8
+    sy = y % 8
+    slab = (((x + (4 if row else 0)) % 16) // 8, row)
+    tone = ST[2] if slab == (1, 0) or slab == (0, 1) and False else ST[3]
+    if sy == 7 or sx == 7:
+        return ST[1] if (x + y) % 3 == 0 else ST[2]   # joint
+    if sy == 0 or sx == 0:
+        return ST[4] if tone == ST[3] else ST[3]       # sunlit slab lip
+    if tone == ST[2]:
+        return ST[2] if (x * 3 + y) % 7 else ST[3]
+    if var == 1 and (x, y) in {(10, 3), (11, 4), (11, 5), (12, 5), (3, 11), (4, 12)}:
+        return ST[2]                    # hairline cracks
+    if (x * 5 + y * 3) % 29 == 0:
+        return ST[2]
+    return ST[3]
+
+
 def render_area(kind, nb, frame=0, var=0):
     mask = _area_mask(nb)
     N = 48
@@ -289,7 +313,7 @@ def render_area(kind, nb, frame=0, var=0):
                         col = G[0]
                 else:
                     if m(x, y + 1) or m(x + 1, y) or m(x - 1, y) or m(x, y - 1):
-                        col = G[1]
+                        col = G[0] if kind == 'pavement' else G[1]
                 c.px[ty][tx] = col
                 continue
             # material pixel
@@ -309,6 +333,14 @@ def render_area(kind, nb, frame=0, var=0):
                     col = D[0] if gy % 2 == 0 else D[1]
                 elif not m(x, y + 2) or not m(x + 2, y):
                     col = D[2]
+            elif kind == 'pavement':
+                col = _pave_texture(gx, gy, var)
+                if edge_n or edge_w or edge_s or edge_e:
+                    col = ST[0]                 # kerb outline
+                elif n2 or w2:
+                    col = ST[4]                 # kerb top, sunlit
+                elif not m(x, y + 2) or not m(x + 2, y):
+                    col = ST[1]                 # kerb face in shade
             elif kind == 'sand':
                 col = _sand_texture(gx, gy)
                 if edge_n or edge_w:
@@ -517,4 +549,65 @@ def reeds():
     for x in range(2, 15):
         c.set(x, 15, P.TREE[0] if x % 3 else P.TREE[1])
         c.set(x, 14, TG[1] if x % 2 else TG[2])
+    return c
+
+
+# --------------------------------------------------------------- city
+def manhole():
+    c = Canvas(T, T)
+    for y in range(T):
+        for x in range(T):
+            c.px[y][x] = _pave_texture(x, y)
+    M = P.METAL
+    for x, y in c.ellipse_mask(8, 8, 5.6, 5.6):
+        c.set(x, y, M[0])
+    for x, y in c.ellipse_mask(8, 8, 4.6, 4.6):
+        dx, dy = x - 7.5, y - 7.5
+        c.set(x, y, M[2] if dx + dy < -2 else M[1])
+    for x in range(5, 11):          # grip slots
+        if x % 2:
+            c.set(x, 6, M[0]); c.set(x, 9, M[0])
+    c.set(5, 5, M[3]); c.set(6, 4, M[3])
+    return c
+
+
+def drain():
+    c = Canvas(T, T)
+    for y in range(T):
+        for x in range(T):
+            c.px[y][x] = _pave_texture(x, y)
+    M = P.METAL
+    c.rect(3, 9, 10, 5, M[0])
+    for x in range(4, 12):
+        for y in range(10, 13):
+            c.set(x, y, M[1] if x % 2 else P.OUTLINE)
+    c.hline(3, 12, 9, M[2])
+    return c
+
+
+def plaza_inlay():
+    """Decorative paving: a teal-and-cream compass diamond, tiles in a grid."""
+    c = Canvas(T, T)
+    for y in range(T):
+        for x in range(T):
+            d = abs(x - 7.5) + abs(y - 7.5)
+            if d < 3:
+                col = P.ROOF_TEAL[2] if (x < 8) == (y < 8) else P.ROOF_TEAL[1]
+            elif d < 4:
+                col = P.ROOF_TEAL[0]
+            elif d < 7:
+                col = P.WALL_CREAM[2] if (x + y) % 2 else P.WALL_CREAM[3]
+            elif d < 8:
+                col = ST[1]
+            else:
+                col = ST[3] if (x in (0, 15) or y in (0, 15)) is False else ST[2]
+            c.px[y][x] = col
+    return c
+
+
+def crosswalk():
+    c = Canvas(T, T)
+    for y in range(T):
+        for x in range(T):
+            c.px[y][x] = ST[1] if (x // 4) % 2 else (P.WHITE[3] if y % 8 else P.WHITE[2])
     return c

@@ -235,6 +235,48 @@ def scene_check():
     return scale(sc, 4)
 
 
+def dex_screen():
+    import screens as S
+    scr = L(UI, 'dex_bg.png').copy()
+    text5(scr, S.DEX['header_text'][0], S.DEX['header_text'][1] - 1, 'PromptDex', P.WHITE[3], P.UI_ACCENT[0])
+    x, y, w, h = S.DEX['list_inner']
+    names = ['001 Claude Fable', '002 GPT 5.5', '003 GLM', '004 Gemma 4', '005 GPT-5.4 mini', '006 Mistral', '007 ----------']
+    for i, n in enumerate(names):
+        ic = L(SPRITES, 'mons', ['claude_fable', 'gpt_5_5', 'glm', 'gemma_4', 'gpt_5_4_mini', 'mistral_medium', 'kimi'][i] + '_icon.png')
+        if i < 6:
+            scr.alpha_composite(ic.crop((0, 0, 16, 16)), (x + 1, y + i * 16))
+        text5(scr, x + 19, y + i * 16 + 4, n[4:] if i < 6 else '----------', P.UI_TEXT, P.UI_TEXT_SHADOW)
+    scr.alpha_composite(L(UI, 'cursor.png'), (x + w - 10, y + 2 * 16 + 4))
+    scr.alpha_composite(L(SPRITES, 'mons', 'glm_front.png'), (148, 32))
+    xi, yi, wi, hi = S.DEX['info_inner']
+    text5(scr, xi + 2, yi + 2, 'GLM', P.UI_TEXT, P.UI_TEXT_SHADOW)
+    scr.alpha_composite(L(UI, 'type_logic.png'), (xi + 64, yi + 1))
+    text5(scr, xi + 2, yi + 14, 'Open-weight', P.UI_TEXT, P.UI_TEXT_SHADOW)
+    text5(scr, xi + 2, yi + 25, 'constellation', P.UI_TEXT, P.UI_TEXT_SHADOW)
+    return scale(scr, 4)
+
+
+def storage_screen():
+    import screens as S
+    scr = L(UI, 'storage_bg.png').copy()
+    text5(scr, *S.STORAGE['box_name'][:2], 'BOX 1', P.WHITE[3], P.ROOF_TEAL[0])
+    text5(scr, *S.STORAGE['party_title'][:2], 'PARTY', P.WHITE[3], P.UI_ACCENT[0])
+    ids = ['gemma_4', 'gpt_5_4_mini', 'mistral_medium', 'gemini_flash', 'claude_haiku', 'kimi', 'glm_max']
+    ox, oy = S.STORAGE['grid_origin']
+    for i, sid in enumerate(ids):
+        c, r = i % 6, i // 6
+        scr.alpha_composite(L(SPRITES, 'mons', sid + '_icon.png').crop((0, 0, 16, 16)), (ox + c * 20 + 2, oy + r * 20 + 2))
+    scr.alpha_composite(L(UI, 'slot_sel.png'), (ox + 2 * 20, oy))
+    scr.alpha_composite(L(SPRITES, 'mons', 'mistral_medium_icon.png').crop((0, 0, 16, 16)), (ox + 42, oy + 2))
+    px_, py_ = S.STORAGE['party_origin']
+    for i, (sid, n) in enumerate((('glm', 'GLM'), ('deepseek_flash', 'DeepSk'))):
+        scr.alpha_composite(L(SPRITES, 'mons', sid + '_icon.png').crop((0, 0, 16, 16)), (px_ + 2, py_ + i * 20 + 2))
+        text5(scr, px_ + 24, py_ + i * 20 + 5, n, P.WHITE[3], P.OUTLINE)
+    x, y, w, h = S.STORAGE['info_bar']
+    text5(scr, x + 4, y + 3, 'Mistral Lv4', P.WHITE[3], P.OUTLINE)
+    return scale(scr, 4)
+
+
 # Orb centres on starter_select_bg (also documented in the catalog).
 STARTER_ORBS = [(72, 84), (120, 84), (168, 84)]
 
@@ -246,6 +288,8 @@ def build(char_ids, mon_ids):
     out['ui'] = save(ui_sheet(), PREVIEW, 'ui_4x.png')
     out['title'] = save(title_screen(), PREVIEW, 'title_4x.png')
     out['starter'] = save(starter_screen(), PREVIEW, 'starter_select_4x.png')
+    out['dex'] = save(dex_screen(), PREVIEW, 'dex_4x.png')
+    out['storage'] = save(storage_screen(), PREVIEW, 'storage_4x.png')
     sc = scene_check()
     if sc is not None:
         out['scene'] = save(sc, PREVIEW, 'chars_in_scene_4x.png')

@@ -54,6 +54,10 @@ without extension (matches `src/game/assets.ts`).
   4 legs, near legs lighter); steps A/B are a diagonal-pair prowl. 2–3 stray
   magenta glitch pixels change every frame, so it flickers while prowling
   (and when cycling stand/A/B in place). Same 1px bob on step frames.
+- `rival` (key `chars/rival`, 48×96, standard layout) — Dana, the
+  neighbour kid / rival: short choppy auburn hair poking out of a white
+  sports visor with a teal brim, teal zip-up jacket with a white zipper,
+  dark leggings, white sneakers.
 - `player_run` (key `chars/player_run`, 48×96, same layout/rows/cols as
   `player`): running variant — upper body leans 1px forward on side views,
   wider stride (feet up to ±5px), feet lifted higher on front/back views,
@@ -95,6 +99,10 @@ Ids: `claude_fable`, `gpt_5_5`, `glm`, `hallucihound`, `gemma_4`,
 | `shadow.png` | 16×8 | translucent ellipse (palette SHADOW), for jumps/ledges |
 | `orb_throw.png` | 64×16 | Prompt Orb frames: 0 closed, 1 tilt-left, 2 tilt-right, 3 open (lid up, glow) |
 | `orb_big.png` | 128×32 | the same Prompt Orb at 32×32, 4 frames: 0 closed, 1 tilt-left, 2 tilt-right, 3 open (lid hinged back, glow). For the starter-select satchel pockets and the catch close-up. Orb body fills ~29px; centre (15.5, 15.5) |
+| `emote_question.png` | 16×16 | same bubble as `emote_exclaim`, blue "?" |
+| `emote_heart.png` | 16×16 | same bubble, pink heart |
+| `emote_dots.png` | 16×16 | same bubble, "…" (three navy dots) |
+| `emote_music.png` | 16×16 | same bubble, violet music note |
 | `truck.png` | **48×40** exactly | "Mythos Movers" truck (3/4 view facing left/down, cream cargo box with an orange diamond + "MM" livery). One clean sprite: a single connected opaque region, alpha strictly 0/255, opaque bbox x 2–45, y 0–39 (wheels touch the bottom row). Safe to tween as one image (drive away to the left); also usable split into 16px tiles |
 | `satchel.png` | 16×16 | professor's satchel on the ground |
 
@@ -108,11 +116,12 @@ steel equator ring with a teal prompt-gem. Original — not a red/white ball.
 | `bg_grass.png` | 240×112 | banded sky + clouds, tree line, meadow; draw at (0,0); message box covers y≥112 |
 | `platform_enemy.png` | 128×32 | grass pad |
 | `platform_player.png` | 128×32 | grass pad |
-| `trainer_back.png` | 256×64 | 4 frames 64×64: 0 idle, 1 wind-up (orb in hand), 2 release, 3 follow-through |
+| `trainer_back.png` | 256×64 | 4 frames 64×64: 0 idle, 1 wind-up (orb in hand), 2 release, 3 follow-through. Matches the overworld player: dark navy hair, orange hoodie, teal headphones round the neck |
 | `prof_front.png` | 64×96 | intro portrait, full body, bottom-anchored |
 | `trainer_m_front.png`, `trainer_f_front.png` | 64×64 | opponent trainer fronts, full body |
+| `rival_front.png` | 64×64 | rival Dana, arms crossed, smirk; same visor/jacket as `chars/rival` |
 
-`prof_front`, `trainer_m_front` and `trainer_f_front` are reduced with the
+`prof_front`, `trainer_m_front`, `trainer_f_front` and `rival_front` are reduced with the
 same pipeline as the creature sprites, so they share their pixel density:
 sub-pixel linework softened before a box downscale, ≤16 colours, specks
 removed, a solid 1px `#28222e` outline, skin forced onto the SKIN ramp, then
@@ -195,3 +204,32 @@ glitch = CLOTH_PINK/CLOTH_RED.
 | `title_bg.png` | 240×160 | sunset, mythic fox-creature on a crag at right; leave top-centre for the logo; "PRESS START" reads well at y≈136 in cream `#fcf6e2` with dark shadow |
 | `title_logo.png` | 160×64 | "LLMMON" (arched, amber→orange, dark + cream outline, teal gem in the O) over "MYTHOS" with diamond ornaments; place at (40,6) |
 | `starter_select_bg.png` | 240×160 | open satchel on grass; three empty pockets. **Orb centres: (72,84), (120,84), (168,84)** — draw `fx/orb_big` frame 0 (32×32) centred there (top-left = centre − 16); dialog box covers y≥112 |
+
+### PromptDex and Model Storage
+
+All rects are `(x, y, w, h)` in screen pixels on the 240×160 image. They are
+also the `DEX` / `STORAGE` dicts in `tools/art/sprites/screens.py`.
+
+`ui/dex_bg.png` 240×160: dark slate device shell.
+
+| area | rect | notes |
+| --- | --- | --- |
+| header strip (amber, teal lens LED left, 3 lights right) | (4, 4, 232, 14) | title text area (22, 7, 150, 8), white text with `#c04820` shadow |
+| list panel (paper) | outer (6, 22, 116, 132) | inner (10, 26, 108, 124); rows have a 16px pitch with faint divider lines at y = 26+16k−1, giving 7 rows; a 16×16 icon at (10, 26+16k) and text at x=29, y=30+16k |
+| display screen (glass + scanlines + floor ellipse) | outer (126, 22, 108, 84) | inner (130, 26, 100, 76); put the 64×64 front sprite at (148, 32); its feet land on the floor ellipse |
+| info panel (paper) | outer (126, 110, 108, 44) | inner (130, 114, 100, 36): name, then a type chip at (194, 115), then 2 text lines |
+
+`ui/storage_bg.png` 240×160: server-rack / terminal look. The empty slots
+are already baked in.
+
+| area | rect | notes |
+| --- | --- | --- |
+| box header (teal, ◀ ▶ baked at both ends) | (6, 6, 136, 20) | box name text area (24, 12, 100, 8) |
+| grid panel | (6, 30, 136, 110) | **slot grid: 6 cols × 5 rows of 20×20, origin (14, 36), pitch 20**; slot (c, r) top-left = (14+20c, 36+20r); draw a 16×16 icon at +2,+2 |
+| info bar | (6, 144, 136, 12) | one text line at (10, 147) |
+| party header (amber) | (148, 6, 86, 20) | title text at (166, 12) |
+| party column | (148, 30, 86, 126) | **6 slots, origin (152, 34), pitch 20 vertically**; slot i top-left = (152, 34+20i), icon at +2,+2, name at (176, 39+20i); faint underline at y=49+20i |
+
+`ui/slot.png` 20×20: an empty recessed cell (the same one baked into the
+grid). `ui/slot_sel.png` 20×20: the selected cell, an amber frame with a glow;
+draw it over a slot at the same top-left.

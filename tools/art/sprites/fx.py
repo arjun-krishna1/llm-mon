@@ -40,6 +40,77 @@ def emote_exclaim():
     return grid_to_image(rows, cm)
 
 
+BUBBLE = [
+    '................',
+    '...oooooooooo...',
+    '..owwwwwwwwwwo..',
+    '.owwwwwwwwwwwwo.',
+    '.owwwwwwwwwwwwo.',
+    '.owwwwwwwwwwwwo.',
+    '.owwwwwwwwwwwwo.',
+    '.owwwwwwwwwwwwo.',
+    '.owwwwwwwwwwwso.',
+    '.owwwwwwwwwwwso.',
+    '.owwwwwwwwwwsso.',
+    '..ossssssssssO..',
+    '...ooooo.sooo...',
+    '........oso.....',
+    '.........oo.....',
+    '................',
+]
+
+
+def emote(glyph, ox, oy, cols):
+    """Speech bubble (same as emote_exclaim) with a glyph inside."""
+    cm = {'o': OUT, 'O': OUT, 'w': P.WHITE[3], 's': P.WHITE[1]}
+    im = grid_to_image(BUBBLE, cm)
+    for y, row in enumerate(glyph):
+        for x, ch in enumerate(row):
+            if ch in cols:
+                put(im, ox + x, oy + y, cols[ch])
+    return im
+
+
+def emote_question():
+    g = ['.rrrr.',
+         'rRrrRr',
+         '....Rr',
+         '...rR.',
+         '..rR..',
+         '......',
+         '..rR..']
+    return emote(g, 5, 3, {'r': P.ROOF_BLUE[2], 'R': P.ROOF_BLUE[0]})
+
+
+def emote_heart():
+    g = ['.rr.rr.',
+         'rwrrrrR',
+         'rrrrrrR',
+         '.rrrrR.',
+         '..rrR..',
+         '...R...']
+    return emote(g, 4, 3, {'r': P.CLOTH_PINK[1], 'R': P.CLOTH_PINK[0], 'w': P.WHITE[3]})
+
+
+def emote_dots():
+    g = ['..........',
+         '..........',
+         'rR..rR..rR',
+         'RR..RR..RR']
+    return emote(g, 3, 4, {'r': P.UI_FRAME[1], 'R': P.UI_FRAME[0]})
+
+
+def emote_music():
+    g = ['...RRRR',
+         '...RrrR',
+         '...R..R',
+         '...R..R',
+         '.rRR.rR',
+         'rRRRrRR',
+         '.RR..R.']
+    return emote(g, 4, 3, {'r': P.ROOF_VIOLET[2], 'R': P.ROOF_VIOLET[0]})
+
+
 def _blade(im, x, y0, h, lean, cols):
     """One grass blade from (x, y0) upwards h px, leaning by `lean` px at the tip."""
     for i in range(h):
@@ -281,6 +352,10 @@ def satchel():
 
 def build():
     save(emote_exclaim(), SPRITES, 'fx', 'emote_exclaim.png')
+    save(emote_question(), SPRITES, 'fx', 'emote_question.png')
+    save(emote_heart(), SPRITES, 'fx', 'emote_heart.png')
+    save(emote_dots(), SPRITES, 'fx', 'emote_dots.png')
+    save(emote_music(), SPRITES, 'fx', 'emote_music.png')
     save(grass_rustle(), SPRITES, 'fx', 'grass_rustle.png')
     save(grass_overlay(), SPRITES, 'fx', 'grass_overlay.png')
     save(item_ball(), SPRITES, 'fx', 'item_ball.png')
@@ -290,9 +365,6 @@ def build():
     save(truck(), SPRITES, 'fx', 'truck.png')
     save(satchel(), SPRITES, 'fx', 'satchel.png')
 
-
-if __name__ == '__main__':
-    build()
 
 
 # ------------------------------------------------------------- big orb ----
@@ -416,3 +488,7 @@ def orb_big(size=24):
                            orb_big_open(size))):
         sheet.paste(f, (i * size, 0))
     return sheet
+
+
+if __name__ == '__main__':
+    build()

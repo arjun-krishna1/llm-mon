@@ -18,6 +18,15 @@ const KEYMAP: Record<string, Button[]> = {
 
 const BUTTONS: Button[] = ['up', 'down', 'left', 'right', 'A', 'B', 'START']
 
+/** Buttons for a source code: keyboard codes via KEYMAP, virtual `V:<btn>` / gamepad `G:<btn>` map 1:1. */
+function codeButtons(code: string): Button[] | undefined {
+  if (code.startsWith('V:') || code.startsWith('G:')) {
+    const b = code.slice(2) as Button
+    return BUTTONS.includes(b) ? [b] : undefined
+  }
+  return KEYMAP[code]
+}
+
 class Controls {
   private down = new Set<string>() // physical codes held
   private pressedRaw = new Set<Button>() // pressed since last sample
@@ -34,35 +43,76 @@ class Controls {
   subTick = 0
   private acc = 0
 
-  attach(): void {
-    const kd = (e: KeyboardEvent) => {
-      const btns = KEYMAP[e.code]
-      if (!btns) return
-      e.preventDefault()
-      for (const l of this.listeners) l()
-      if (this.down.has(e.code)) return // auto-repeat
-      this.down.add(e.code)
-      for (const b of btns) {
-        this.pressedRaw.add(b)
-        if (isDir(b)) {
-          this.dirStack = this.dirStack.filter((d) => d !== b)
-          this.dirStack.push(b)
-        }
+  /**
+   * Press a source code (keyboard `KeyboardEvent.code`, or a virtual code from touch /
+   * gamepad: `V:<button>`, `G:<button>`). Every input device goes through here.
+   */
+  pressCode(code: string): void {
+    const btns = codeButtons(code)
+    if (!btns) return
+    for (const l of this.listeners) l()
+    if (this.down.has(code)) return // auto-repeat
+    this.down.add(code)
+    for (const b of btns) {
+      this.pressedRaw.add(b)
+      if (isDir(b)) {
+        this.dirStack = this.dirStack.filter((d) => d !== b)
+        this.dirStack.push(b)
       }
     }
-    const ku = (e: KeyboardEvent) => {
-      const btns = KEYMAP[e.code]
-      if (!btns) return
+  }
+
+  releaseCode(code: string): void {
+    const btns = codeButtons(code)
+    if (!btns || !this.down.has(code)) return
+    this.down.delete(code)
+    for (const b of btns) if (isDir(b) && !this.isPhysDown(b)) this.dirStack = this.dirStack.filter((d) => d !== b)
+  }
+
+  isCodeDown(code: string): boolean {
+    return this.down.has(code)
+  }
+
+  attach(): void {
+    window.addEventListener('keydown', (e) => {
+      if (!KEYMAP[e.code]) return
       e.preventDefault()
-      this.down.delete(e.code)
-      for (const b of btns) if (isDir(b) && !this.isPhysDown(b)) this.dirStack = this.dirStack.filter((d) => d !== b)
-    }
-    window.addEventListener('keydown', kd)
-    window.addEventListener('keyup', ku)
+      this.pressCode(e.code)
+    })
+    window.addEventListener('keyup', (e) => {
+      if (!KEYMAP[e.code]) return
+      e.preventDefault()
+      this.releaseCode(e.code)
+    })
     window.addEventListener('blur', () => {
       this.down.clear()
       this.dirStack = []
     })
+  }
+
+  // ------------------------------------------------------------ gamepad
+  private padDown = new Set<string>()
+
+  /** Poll the Gamepad API (standard mapping): d-pad / left stick, A=0, B=1 (also 2), Start=9 (also 8). */
+  private pollGamepads(): void {
+    const pads = typeof navigator !== 'undefined' && navigator.getGamepads ? navigator.getGamepads() : []
+    const now = new Set<string>()
+    for (const gp of pads) {
+      if (!gp || !gp.connected) continue
+      const b = (i: number) => !!gp.buttons[i]?.pressed
+      const ax = gp.axes[0] ?? 0
+      const ay = gp.axes[1] ?? 0
+      if (b(12) || ay < -0.5) now.add('G:up')
+      if (b(13) || ay > 0.5) now.add('G:down')
+      if (b(14) || ax < -0.5) now.add('G:left')
+      if (b(15) || ax > 0.5) now.add('G:right')
+      if (b(0)) now.add('G:A')
+      if (b(1) || b(2)) now.add('G:B')
+      if (b(9) || b(8)) now.add('G:START')
+    }
+    for (const c of now) if (!this.padDown.has(c)) this.pressCode(c)
+    for (const c of this.padDown) if (!now.has(c)) this.releaseCode(c)
+    this.padDown = now
   }
 
   /** Called on any key press (used to unlock audio). */
@@ -71,7 +121,7 @@ class Controls {
   }
 
   private isPhysDown(b: Button): boolean {
-    for (const code of this.down) if (KEYMAP[code]?.includes(b)) return true
+    for (const code of this.down) if (codeButtons(code)?.includes(b)) return true
     return false
   }
 
@@ -82,6 +132,7 @@ class Controls {
    * only on frames that run logic (presses during 0-tick frames are kept).
    */
   step(deltaMs: number): void {
+    this.pollGamepads()
     this.acc += Math.min(deltaMs, 100)
     let n = 0
     while (this.acc >= FRAME_MS * 0.85 && n < 4) {

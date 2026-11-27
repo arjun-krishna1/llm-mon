@@ -290,6 +290,14 @@ PAL_TF = BASE + P.HAIR_BROWN + P.CLOTH_RED + P.CLOTH_BLUE + P.CLOTH_DARK + P.ROC
 PAL_PLAYER = BASE + P.HAIR_DARK + P.CLOTH_ORANGE + P.ROOF_ORANGE + P.CLOTH_DARK + P.ROOF_TEAL + P.CLOTH_YELLOW + P.CLOTH_BLUE
 
 
+PAL_RIVAL = BASE + [P.HAIR_BROWN[0], P.ROOF_ORANGE[0], P.ROOF_ORANGE[1], P.ROOF_ORANGE[2]] + P.ROOF_TEAL + P.CLOTH_DARK
+
+
+def rival_front():
+    p = raw('spr_rival_front')
+    return fit_sprite(p, 64, 64, colors=16, pal=PAL_RIVAL) if p else new(64, 64)
+
+
 def prof_front():
     p = raw('spr_prof_front')
     return fit_sprite(p, 64, 96, colors=22, green=P.CLOTH_GREEN, pal=PAL_PROF) if p else new(64, 96)
@@ -345,6 +353,45 @@ def darken_hair(spr):
     return Image.fromarray(a.astype(np.uint8))
 
 
+def fix_back_details(spr):
+    """Match the overworld player: teal headphones round the neck (the
+    generator's dark band), and no orange speckles inside the dark hair."""
+    a = np.array(spr).astype(int)
+    H, W = a.shape[:2]
+    hair = {tuple(c[:3]) for c in P.HAIR_DARK}
+    skin = {tuple(c[:3]) for c in P.SKIN}
+    def kind(y, x):
+        if a[y, x, 3] == 0:
+            return '.'
+        c = tuple(a[y, x, :3])
+        return 'h' if c in hair or c == tuple(P.OUTLINE[:3]) else 's' if c in skin else 'o'
+    # orange specks enclosed by hair -> hair highlight
+    for y in range(1, H - 1):
+        for x in range(1, W - 1):
+            if kind(y, x) == 'o' and y < H * 0.55:
+                n = sum(kind(y + dy, x + dx) == 'h' for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+                if n >= 3:
+                    a[y, x, :3] = P.HAIR_DARK[2][:3]
+    # headphones: interior dark pixels in the band just above the hoodie top
+    org = {tuple(c[:3]) for c in P.CLOTH_ORANGE + P.ROOF_ORANGE}
+    cols = range(int(W * 0.25), int(W * 0.5))
+    tops = [y for x in cols for y in range(H) if tuple(a[y, x, :3]) in org and a[y, x, 3]][:]
+    if tops:
+        yh = int(np.percentile([min(y for y in range(H) if tuple(a[y, x, :3]) in org and a[y, x, 3])
+                                for x in cols if any(tuple(a[y, x, :3]) in org and a[y, x, 3] for y in range(H))], 50))
+        teal = [P.ROOF_TEAL[0], P.ROOF_TEAL[1], P.ROOF_TEAL[2]]
+        for y in range(max(1, yh - 6), min(H - 1, yh + 2)):
+            for x in range(int(W * 0.25), int(W * 0.75)):
+                if not a[y, x, 3]:
+                    continue
+                c = a[y, x, :3]
+                lum = c.sum() / 3
+                inner = all(a[y + dy, x + dx, 3] for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+                if lum < 95 and inner and tuple(c) not in org:
+                    a[y, x, :3] = teal[0 if lum < 40 else 1 if lum < 65 else 2][:3]
+    return Image.fromarray(a.astype(np.uint8))
+
+
 def trainer_back():
     p = raw('spr_trainer_back')
     sheet = new(256, 64)
@@ -361,6 +408,7 @@ def trainer_back():
         spr = pixelize(tmp, height=round(64 * 1.0), colors=18, snap=False)
         spr = darken_hair(defringe(spr))
         spr = snap_img(spr, [c[:3] for c in PAL_PLAYER], chroma_w=1.0)
+        spr = fix_back_details(spr)
         im = new(64, 64)
         x = (64 - spr.width) // 2
         im.alpha_composite(spr.crop((0, 0, min(64, spr.width), 64)), (max(0, x), 64 - min(64, spr.height)))
@@ -377,6 +425,7 @@ def build():
     save(trainer_front('m'), SPRITES, 'battle', 'trainer_m_front.png')
     save(trainer_front('f'), SPRITES, 'battle', 'trainer_f_front.png')
     save(trainer_back(), SPRITES, 'battle', 'trainer_back.png')
+    save(rival_front(), SPRITES, 'battle', 'rival_front.png')
 
 
 if __name__ == '__main__':

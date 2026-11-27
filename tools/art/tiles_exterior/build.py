@@ -119,6 +119,12 @@ def build_area(sh, kind, frames=1, props=None):
             cv.append(fr[0])
         sh.newline()
         at['c_variants'] = cv
+    if kind == 'pavement':
+        cv = [at['c'], sh.add(ground.render_area(kind, named['c'], 0, 1)),
+              sh.add(ground.manhole()), sh.add(ground.drain())]
+        sh.newline()
+        at['c_variants'] = cv
+        sh.notes['pavement'] = 'c_variants: plain, cracked, manhole, drain'
     at['blob'] = {k: v[0] for k, v in ids.items()}
     sh.autotiles[kind] = at
 
@@ -195,6 +201,33 @@ def build():
 
     # ---------------------------------------------------------- buildings
     for name in buildings.SPEC:
+        cv, over_rows, doors = buildings.building(name)
+        ht = cv.h // T
+        st = add_stamp(sh, name, cv, over_rows,
+                       buildings.cell_props(name, ht, over_rows, doors))
+        st['door'] = [{'x': d, 'y': ht - 1} for d in doors]
+
+    # ===== Round 3: city kit. APPENDED ONLY - everything above keeps its ids.
+    sh.newline()
+    build_area(sh, 'pavement')
+    sh.add(ground.plaza_inlay(), name='plaza_inlay')
+    sh.add(ground.crosswalk(), name='crosswalk')
+    sh.add(props.bollard(), SOLID, name='bollard')
+    at = {}
+    bykey = {}
+    for nm, conn in props.FENCE_NAMES.items():
+        i = sh.add(props.hedge(conn), SOLID)
+        at[nm] = i
+        bykey[conn] = i
+    at['byConnection'] = bykey
+    sh.autotiles['hedge'] = at
+    sh.newline()
+    add_anim_stamp(sh, 'kiosk', props.kiosk_frames(), 1, [600, 600])
+    add_stamp(sh, 'streetlight_modern', props.streetlight_modern(), over_rows=1)
+    add_stamp(sh, 'bike_rack', props.bike_rack())
+    add_stamp(sh, 'billboard', props.billboard(), over_rows=1)
+    sh.newline()
+    for name in buildings.SPEC_CITY:
         cv, over_rows, doors = buildings.building(name)
         ht = cv.h // T
         st = add_stamp(sh, name, cv, over_rows,

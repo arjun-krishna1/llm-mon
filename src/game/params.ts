@@ -6,6 +6,8 @@ export const params = {
   debug: q.get('debug') === '1',
   fast: q.get('fast') === '1',
   newGame: q.get('new') === '1',
+  /** ?touch=1 forces on-screen controls, ?touch=0 hides them; null = auto (coarse pointer). */
+  touch: q.get('touch') === '1' ? true : q.get('touch') === '0' ? false : null,
   seed: q.has('seed') ? Number(q.get('seed')) : null,
   map: q.get('map'),
   spawn: q.get('spawn'),

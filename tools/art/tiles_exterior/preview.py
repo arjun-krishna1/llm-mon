@@ -61,6 +61,8 @@ class Map:
             tid = blob[key]
             cv = self.cat['autotiles'][kind].get('c_variants')
             if key == '11111111' and cv:
+                if kind == 'pavement':      # manhole/drain are placed by hand
+                    cv = cv[:1] * 6 + cv[1:2]
                 tid = cv[(x * 7 + y * 13 + (x * y) % 5) % len(cv)]
             self.set(layer, x, y, tid)
 
@@ -123,7 +125,7 @@ def rect(x0, y0, x1, y1):
 
 
 def town(cat):
-    W, H = 40, 26
+    W, H = 40, 40
     m = Map(cat, W, H)
     tiles = cat['tiles']
 
@@ -135,8 +137,8 @@ def town(cat):
             m.tile('ground', x, y, 'grass_' + v)
 
     # paths: route exit north, main street, south branch, door stubs
-    path = rect(19, 0, 20, 15) | rect(4, 14, 37, 15) | rect(9, 16, 10, 25)
-    path |= rect(21, 16, 22, 25) | rect(23, 24, 28, 25)
+    path = rect(19, 0, 20, 15) | rect(4, 14, 37, 15) | rect(9, 16, 10, 27)
+    path |= rect(21, 16, 22, 27) | rect(23, 24, 28, 25)
     m.area('path', path)
 
     # pond with a small inlet
@@ -216,6 +218,36 @@ def town(cat):
     # fences: white picket garden west of the pond, wood fence by the ledge
     m.fence('white', rect(4, 17, 8, 17) | rect(4, 17, 4, 20) | rect(4, 20, 8, 20))
     m.fence('wood', rect(29, 19, 29, 24) | {(30, 19)})
+
+    # ---- city corner (south): paved street + plaza, apartment, cafe, kiosk...
+    pave = rect(4, 36, 37, 39) | rect(10, 28, 21, 35)
+    m.area('pavement', pave)
+    pc = cat['autotiles']['pavement']['c_variants']
+    m.set('ground', 13, 37, pc[2]); m.set('ground', 30, 38, pc[3])
+    for x in range(24, 27):
+        for y in (36, 37, 38, 39):
+            m.tile('ground', x, y, 'crosswalk')
+    m.tile('ground', 15, 34, 'plaza_inlay')
+    m.stamp('fountain', 14, 30)
+    m.stamp('house_green', 4, 29)
+    m.stamp('cafe', 22, 29)
+    m.stamp('apartment', 28, 27)
+    m.stamp('billboard', 17, 28)
+    m.stamp('kiosk', 11, 30)
+    m.stamp('streetlight_modern', 10, 34)
+    m.stamp('streetlight_modern', 21, 34)
+    m.stamp('streetlight_modern', 27, 34)
+    m.stamp('bike_rack', 34, 35)
+    for x in (12, 13, 18, 19):
+        m.tile('detail', x, 35, 'bollard')
+    m.fence('wood', set())
+    hedge = rect(10, 27, 16, 27) | rect(36, 28, 36, 34)
+    by = cat['autotiles']['hedge']['byConnection']
+    for (x, y) in hedge:
+        conn = ''.join(d for d, (dx, dy) in (('n', (0, -1)), ('e', (1, 0)), ('s', (0, 1)),
+                                              ('w', (-1, 0))) if (x + dx, y + dy) in hedge)
+        m.set('detail', x, y, by[conn])
+    m.tile('detail', 20, 31, 'planter'); m.tile('detail', 11, 33, 'planter')
     return m
 
 
@@ -230,7 +262,7 @@ def load_anims(tsj):
 def char_sprites():
     sp = []
     for nm, (x, y, row) in {'player': (20, 17, 0), 'mom': (9, 15, 3), 'boy': (25, 16, 2),
-                            'girl': (16, 25, 1)}.items():
+                            'girl': (16, 25, 1), 'woman': (17, 34, 0), 'techie': (25, 37, 2)}.items():
         p = os.path.join(CHARS, nm + '.png')
         if not os.path.exists(p):
             continue
@@ -264,6 +296,11 @@ def main():
     fx, fy = 22 * T, 12 * T
     fr = img.crop((fx, fy, fx + 240, fy + 160))
     fr.resize((960, 640), Image.NEAREST).save(os.path.join(PV, 'scene_frame2_4x.png'))
+    fx, fy = 9 * T, 27 * T + 8
+    fr = img.crop((fx, fy, fx + 240, fy + 160))
+    fr.resize((960, 640), Image.NEAREST).save(os.path.join(PV, 'scene_frame_city_4x.png'))
+    fr = img.crop((0, 26 * T, 40 * T, 40 * T))
+    fr.resize((fr.width * 3, fr.height * 3), Image.NEAREST).save(os.path.join(PV, 'scene_city_3x.png'))
     # animated tiles check: pond + flowers, 4 frames
     frames = [m.render(sheet, f, anims).crop((4 * T, 16 * T, 20 * T, 26 * T)) for f in range(4)]
     frames = [f.resize((f.width * 3, f.height * 3), Image.NEAREST) for f in frames]

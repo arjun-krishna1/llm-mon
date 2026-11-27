@@ -99,8 +99,8 @@ FENCE_NAMES = {
 
 
 # ------------------------------------------------------------ generated
-def _fit(name, w=None, h=None, colors=32, sat=1.2):
-    return genart.sprite(name, width=w, height=h, colors=colors, sat=sat)
+def _fit(name, w=None, h=None, colors=32, sat=1.2, holes=False):
+    return genart.sprite(name, width=w, height=h, colors=colors, sat=sat, key_holes=holes)
 
 
 def _place(sprite, cw, ch, shadow=True, sx=None):
@@ -219,3 +219,96 @@ def signal_tower_frames():
             if on.get(x, y)[3] == 0:
                 on.set(x, y, P.FLOWER['red'])
     return [on, off]
+
+
+# ------------------------------------------------------------- city kit
+def bollard():
+    c = Canvas(T, T)
+    M = P.METAL
+    for x in range(5, 12):
+        c.put(x + 1, 15, P.SHADOW)
+    rows = ['..ooo..',
+            '.oHhmo.',
+            'oHhmmdo',
+            'oyYyydo',
+            'oHhmmdo',
+            'oHhmmdo',
+            'oyYyydo',
+            'oHhmmdo',
+            'oHhmmdo',
+            'ohmmddo',
+            '.ooooo.']
+    lg = {'o': O, 'H': M[3], 'h': M[2], 'm': M[1], 'd': M[0],
+          'y': P.CLOTH_YELLOW[1], 'Y': P.CLOTH_YELLOW[2]}
+    c.pmap(5, 4, rows, lg)
+    return c
+
+
+def hedge(conn):
+    """Clipped box hedge; conn = subset of 'nesw' joined neighbours."""
+    TR = P.TREE
+    c = Canvas(T, T)
+    x0 = 0 if 'w' in conn else 1
+    x1 = 15 if 'e' in conn else 14
+    y0 = 0 if 'n' in conn else 2
+    y1 = 15 if 's' in conn else 14
+    inside = lambda x, y: x0 <= x <= x1 and y0 <= y <= y1  # noqa: E731
+    front = 0 if 's' in conn else 4      # rows of darker front face
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            lx = (x + 2 * ((y // 3) % 2)) % 4
+            ly = y % 3
+            is_front = y > y1 - front
+            ramp = (TR[1], TR[2], TR[3]) if is_front else (TR[2], TR[3], TR[4])
+            if ly == 0 and lx in (0, 1):
+                col = ramp[2]           # sunlit leaf tip
+            elif ly == 2 and lx in (1, 2):
+                col = ramp[0]           # shade under the leaf clump
+            else:
+                col = ramp[1]
+            if is_front and y == y1 - front + 1:
+                col = TR[1]
+            c.px[y][x] = col
+    # outline on the free sides
+    for y in range(T):
+        for x in range(T):
+            if not inside(x, y):
+                continue
+            if (x == x0 and 'w' not in conn) or (x == x1 and 'e' not in conn) or \
+               (y == y0 and 'n' not in conn) or (y == y1 and 's' not in conn):
+                c.px[y][x] = O
+    if 's' not in conn:
+        for x in range(x0 + 1, min(T, x1 + 2)):
+            c.put(x, 15, P.SHADOW)
+    return c
+
+
+def kiosk_frames():
+    s = _fit('ext_kiosk', h=30, colors=32, sat=1.2)
+    base = _place(s, T, 32)
+    glow = set(P.GLASS) | set(P.SKY) | set(P.WATER)
+    scr = [(x, y) for y in range(32) for x in range(T) if base.px[y][x] in glow]
+    a, b = base.copy(), base.copy()
+    for x, y in scr:
+        a.px[y][x] = P.GLASS[3] if (y % 3 == 0) else P.GLASS[2]
+        b.px[y][x] = P.GLASS[2] if (y % 3 == 0) else P.GLASS[1]
+    # blinking cursor line on frame a
+    if scr:
+        ys = sorted(set(y for _, y in scr))
+        xs = sorted(set(x for x, _ in scr))
+        yy = ys[len(ys) // 2]
+        for x in xs[1:3]:
+            a.set(x, yy, P.WHITE[3])
+    return [a, b]
+
+
+def billboard():
+    return _place(_fit('ext_billboard', w=46, colors=40), 48, 32)
+
+
+def streetlight_modern():
+    return _place(_fit('ext_streetlight', h=30, colors=32), T, 32)
+
+
+def bike_rack():
+    return _place(_fit('ext_bikerack', w=30, colors=32, holes=True), 32, T)

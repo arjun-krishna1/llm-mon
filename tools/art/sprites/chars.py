@@ -679,6 +679,48 @@ HAIR['cap'] = {
 '''),
 }
 
+# Rival Dana: short choppy auburn hair poking out of a white sports visor
+# with a teal brim (accessory ramp: A brim, a band, b highlight).
+HAIR['sporty'] = {
+    'down': T('''
+|...h.h....h.h...
+|....hhhhhhhh....
+|...hhjhhhhjhh...
+|..abbaaaaaaaaa..
+|.AAAAAAAAAAAAAA.
+|..hhhh.hh.hhhh..
+|..hh.h....h.hh..
+|.hh..........hh.
+|.hh..........hh.
+|..h..........h..
+'''),
+    'up': T('''
+|...h.h....h.h...
+|....hhhhhhhh....
+|...hhjhhhhjhh...
+|..aaaaaAAaaaaa..
+|..hhhhhhhhhhhh..
+|.hhhhhhhhhhhhhh.
+|.hhhhhhhhhhhhhh.
+|.hhhhhhhhhhhhhh.
+|.hhhhhhhhhhhhhh.
+|..hhhhhhhhhhhh..
+|...hhh.hh.hhh...
+'''),
+    'left': T('''
+|......h.h..h....
+|.....hhhhhhhh...
+|....hhjhhhhjhh..
+|...abbaaaaaaaa..
+|AAAAAAAhhhhhhhh.
+|...hh.hhhhhhhhh.
+|...h....hhhhhhh.
+|.........hhhhhh.
+|.........hhhhh..
+|..........hhh...
+'''),
+}
+
 # ---------------------------------------------------------------- torsos ---
 # Torso templates are placed so their LAST row is frame y=16.
 # 'kid' = 5 rows (y12..16), 'adult' = 6 rows (y11..16).
@@ -1399,6 +1441,22 @@ def define():
 |.....abbaaaaaa..
 |.....AAAAAAAAaa.
 '''), 'over', 'head')]})
+    auburn = [P.HAIR_BROWN[0], P.ROOF_ORANGE[0], P.ROOF_ORANGE[1]]
+    C['rival'] = Char('rival', 'sporty', auburn, P.ROOF_TEAL[:3], P.CLOTH_DARK,
+                      shoes=[P.WHITE[0], P.WHITE[2]], body='kid', legs='pants',
+                      acc=[P.ROOF_TEAL[1], P.WHITE[2], P.WHITE[3]],
+                      extras={('down', None): [(12, T('''
+|......dwwd......
+|.......ww.......
+|.......ww.......
+|.......ww.......
+'''), 'cdC')],
+                              ('up', None): [(13, T('''
+|......CCCC......
+'''), 'cdC')],
+                              ('left', None): [(12, T('''
+|.....dd.........
+'''), 'cdC')]})
     return C
 
 
@@ -1417,9 +1475,6 @@ def build():
     out['hallucihound'] = hs
     return out
 
-
-if __name__ == '__main__':
-    build()
 
 
 # ------------------------------------------------------------ HalluciHound --
@@ -1656,3 +1711,7 @@ def player_run_sheet():
                  acc2=[P.ROOF_TEAL[1], P.CLOTH_DARK[1], P.ROOF_TEAL[3]],
                  body='kid_run', legs='run', extras=dict(PLAYER_EXTRAS))
     return rc.sheet()
+
+
+if __name__ == '__main__':
+    build()
