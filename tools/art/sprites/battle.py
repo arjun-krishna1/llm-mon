@@ -277,6 +277,9 @@ def chunky(path, w, h, colors=14):
 
 
 FACE_PAINT = False
+# People portraits keep their own (<=16) reduced colours like the creature
+# sprites: snapping them to the tile palette turned olive/grey cloth brown.
+PORTRAIT_SNAP = False
 
 
 def solid_outline(spr):
@@ -293,10 +296,11 @@ def fit_sprite(path, W, H, colors=20, margin=1, snap=True, anchor='bottom', gree
     spr = pixelize(kp, width=W - 2 * margin, height=H - margin, colors=min(colors, 16), snap=False)
     os.remove(kp)
     spr = defringe(spr)
-    spr = skin_remap(spr)
-    if green:
-        spr = remap_green(spr, green)
-    if snap:
+    if PORTRAIT_SNAP:
+        spr = skin_remap(spr)
+        if green:
+            spr = remap_green(spr, green)
+    if snap and PORTRAIT_SNAP:
         spr = snap_img(spr, [c[:3] for c in pal] if pal else None, chroma_w=1.0)
     spr = solid_outline(spr)
     im = new(W, H)

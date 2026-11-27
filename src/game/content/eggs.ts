@@ -20,10 +20,10 @@ def('egg.cerebral_valley', (s) => rotate(s, 'cv', [
 ]))
 
 def('egg.coffee_sign', (s) => say(s,
-  'BLUE BOTTLE COFFEE\nPop-up cart. Pour-overs, made slowly, on purpose.',
+  'BLUE BOTTLE COFFEE\nPop-up cart.\fPour-overs, made slowly, on purpose.',
   'A chalk note: “Good things take time. So does this line.”'))
 
-def('egg.coffee_cart', (s) => say(s, 'A little coffee cart. A kettle, a scale, and a barista who is concentrating very hard.'))
+def('egg.coffee_cart', (s) => say(s, 'A little coffee cart.\fA kettle, a scale, and a barista who is concentrating very hard.'))
 
 def('egg.barista', async (s) => {
   const B = 'Barista'
@@ -49,11 +49,11 @@ def('egg.queue1', (s) => rotate(s, 'q1', [
 
 def('egg.queue2', (s) => rotate(s, 'q2', [
   ['I don’t even drink coffee. I just come for the line. Best networking in the city.'],
-  ['The person behind me is an angel investor. The person behind HIM is also an angel investor.'],
+  ['The person behind me is an angel investor.\fThe person behind HIM is also an angel investor.'],
 ]))
 
 def('egg.not_hacker_house', (s) => rotate(s, 'hh', [
-  ['A sign on the bike rack:\n“THIS IS NOT A HACKER HOUSE. PLEASE STOP KNOCKING.”', 'Six bikes. One sleeping bag. A whiteboard visible through the window.'],
+  ['A sign on the bike rack:\n“THIS IS NOT A HACKER HOUSE.\fPLEASE STOP KNOCKING.”', 'Six bikes. One sleeping bag. A whiteboard visible through the window.'],
   ['A smaller sign below:\n“Demo day is Sunday. Sleep is Monday.”'],
 ]))
 
@@ -87,7 +87,7 @@ def('egg.scooter', (s) => rotate(s, 'sc', [
 def('egg.vc_vest', async (s) => {
   const V = 'VC in a fleece vest'
   if (s.flag('egg_vc_done')) {
-    await line(s, V, 'Still thinking about your round? Take your time. Not too much time. Markets move.')
+    await line(s, V, 'Still thinking about your round?\fTake your time. Not too much time. Markets move.')
     return
   }
   await line(s, V, 'You. Kid with the LLMMON. Pre-seed, pre-product, pre-idea. I love it.')
@@ -128,8 +128,8 @@ def('egg.caltrain', (s) => rotate(s, 'ct', [
 ]))
 
 def('egg.parking', (s) => say(s,
-  '2 HR PARKING 8AM-6PM EXCEPT TUES. NO PARKING 2ND & 4TH THURS. TOW AWAY 4-7PM.',
-  'PERMIT ONLY SUNDAYS. LOADING ZONE ON FULL MOONS. You read it three times and decide to walk.'))
+  '2 HR PARKING 8AM-6PM EXCEPT TUES.\fNO PARKING 2ND & 4TH THURS. TOW AWAY 4-7PM.',
+  'PERMIT ONLY SUNDAYS. LOADING ZONE ON FULL MOONS.\fYou read it three times and decide to walk.'))
 
 // ============================================================================ interiors
 def('egg.tokens_monthly', (s) => rotate(s, 'tm', [

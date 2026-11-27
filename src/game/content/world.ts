@@ -178,7 +178,7 @@ def('soma.woman', (s) => say(s,
 def('soma.elder', (s) => eggLine(s, 'selder', [
   ['SoMa Node used to be warehouses as far as the eye could see.',
     'Now it’s warehouse-sized GPUs. Progress! It’s very warm in summer.'],
-  ['See that tall tower over the rooftops? You can see it from everywhere in the city.', 'It can see you too. Wave.'],
+  ['See that tall tower over the rooftops?\fYou can see it from everywhere in the city.', 'It can see you too. Wave.'],
 ]))
 
 def('soma.man', (s) => say(s,
