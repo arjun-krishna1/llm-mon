@@ -34,6 +34,9 @@ What the battle scene does with state (do not repeat it in scripts):
 - `result.prize` is added with `state.addMoney`;
 - a caught mon goes to `state.addMon` (party, or box when full) + `markSeen` / `markCaught`;
 - every enemy sent out is `markSeen`;
+- after a catch: "Give a nickname to the caught X?" YES/NO (phase `nickname-yesno`) →
+  ENGINE `NameEntryScreen` (phase `nickname`, max 10; empty or the species name = no nickname)
+  → `mon.nickname`; then the PromptDex line (first catch, `dex_register` sfx);
 - with a full party the catch adds "X was sent to storage." (`addMon` puts it in `state.box`);
 - `lose` is just reported: the engine white-outs unless `request.safety`.
 
@@ -44,7 +47,7 @@ in with party pips, throws; reappears with the lose line + prize), `scripted`
 
 Playtest hook: with `?debug=1`, `__llmmon.battleInfo()` returns `{ phase, text, box,
 prompt, outcome, view }` while a battle runs. `phase` is one of `intro`, `text`,
-`text-wait` (waiting for A), `command`, `moves`, `party`, `bag`, `bag-party`, `anim`,
+`text-wait` (waiting for A), `command`, `nickname-yesno`, `nickname`, `moves`, `party`, `bag`, `bag-party`, `anim`,
 `damage`, `faint`, `exp`, `levelup`, `learn-yesno`, `learn-pick`, `learn-stop`,
 `catch`, `playback`, `end`. `?fast=1` zeroes every animation/hold (A is still needed on
 `text-wait` lines; a whole battle takes ~2 s of mashing A).
@@ -122,6 +125,21 @@ Hits (blink + shake, `hit`/`hit_super`/`hit_weak`), stat arrows, status swirls,
 faint, throws and catches live in `Stage.ts`.
 
 ## Audio used
+
+Cries (`audio.cry`): on every pop-out (both sides, with the white flash), when a wild mon
+lights up, and the `faint: true` cry as the faint drop starts. The scene remembers each
+cry's `cryDurationMs` and waits for it before the next move animation / orb throw /
+post-faint beat. StarterSelect cries when a creature fades in (throttled to one per
+500 ms while scrolling) and again on confirm before the orb sfx.
+
+Trainer battles: the engine plays `request.music` (e.g. `battle_rival`); any
+`trainer.sprite` key works (`battle/rival_front` or bare `rival_front`), and sprites
+missing from the boot manifest are loaded in `BattleScene.preload`. When a trainer sends
+out their next mon, their party pips slide in first with fallen mons greyed.
+Super-effective hits add a 2-frame white flash before the blink and a harder shake;
+effectiveness / critical lines get a +250 ms hold.
+
+### Music + sfx ids
 
 Music: the engine starts `battle_wild` / `battle_trainer` before launch; the battle
 switches to `victory` when the last enemy faints or on a catch, and fades music out on

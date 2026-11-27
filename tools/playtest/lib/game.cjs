@@ -430,6 +430,25 @@ class Game {
       await this.press('A')
       return
     }
+    if (top.cls === 'ListMenu' && b.phase === 'nickname-yesno') {
+      // Default: decline the nickname. H.nickname = 'NAME' (letters A-Z) types it on the NameEntryScreen.
+      const nick = H.nickname ? await (typeof H.nickname === 'function' ? H.nickname(s) : H.nickname) : null
+      await this.pick(nick ? 0 : 1, 'Battle')
+      if (nick) {
+        await this.waitBattleTop('NameEntryScreen', 'nickname')
+        await sleep(this.fast ? 40 : 300)
+        let cx = 0, cy = 0
+        for (const ch of String(nick).toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10)) {
+          const i = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.indexOf(ch)
+          const tx = i % 9, ty = Math.floor(i / 9)
+          while (cy !== ty) { await this.press(ty > cy ? 'down' : 'up'); cy += ty > cy ? 1 : -1; await sleep(60) }
+          while (cx !== tx) { await this.press(tx > cx ? 'right' : 'left'); cx += tx > cx ? 1 : -1; await sleep(60) }
+          await this.press('A'); await sleep(80)
+        }
+        await this.press('START'); await sleep(120); await this.press('A')
+      }
+      return
+    }
     if (top.cls === 'ListMenu') { // some other yes/no
       await sleep(this.fast ? 30 : 400)
       await this.press('A')

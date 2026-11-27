@@ -9,8 +9,11 @@ text('home.fridge', 'Nearly empty. A note from Mom on the door says: GROCERIES (
 text('home.kitchen', 'The kettle’s already on. Mom has her priorities straight.')
 text('home.boxes', 'Moving boxes, labelled MISC, MISC 2 and DEFINITELY NOT MISC.')
 text('home.table', 'A bowl of shiny apples. Welcome-home snacks!')
-text('home.pc', 'Your trusty PC! It’s restoring 47 browser tabs from the old house...',
-  '...This could take a while. Maybe later.')
+def('home.pc', async (s) => {
+  s.sfx('pc_on')
+  await say(s, 'Your trusty PC! It\u2019s restoring 47 browser tabs from the old house...', '...This could take a while. Maybe later.')
+  s.sfx('pc_off')
+})
 text('home.bed', 'Your bed! It already feels like home.\n...Because it’s the same bed.')
 text('home.bookshelf', 'Your comic collection. Issue #1:\n“The Adventures of Captain Backprop”.')
 def('home.boxes_2f', async (s) => {
@@ -26,19 +29,22 @@ def('home.boxes_2f', async (s) => {
 text('home.bin', 'Empty. The movers were very thorough.')
 
 // ============================================================================ neighbour
-def('neighbor.dana', async (s) => {
-  if (!s.flag('met_dana')) {
-    await line(s, 'Dana',
-      'Oh! You must be the new neighbours! I’m Dana. I label data from home.',
-      'Today it’s “cat or croissant”. You’d be amazed how hard it gets after lunch.',
+def('neighbor.mom', async (s) => {
+  const R = 'Rosa'
+  if (!s.flag('met_rosa')) {
+    await line(s, R,
+      'Oh! You must be the new neighbours! I\u2019m Rosa, Dana\u2019s mom. I label data from home.',
+      'Today it\u2019s \u201ccat or croissant\u201d. You\u2019d be amazed how hard it gets after lunch.',
       'If you ever need anything, just knock!')
-    s.setFlag('met_dana')
+    s.setFlag('met_rosa')
     return
   }
-  if (s.flag(F.rescueDone)) {
-    await line(s, 'Dana', 'Milo hasn’t stopped talking about your LLMMON. Thank you. I think.')
+  if (s.flag('rival_beaten')) {
+    await line(s, R, 'Dana says you beat her on Route 101.\fShe\u2019s been re-reading the type chart all evening.')
+  } else if (s.flag(F.rescueDone)) {
+    await line(s, R, 'Dana ran off to SoMa Node with her new LLMMON.\fMilo hasn\u2019t stopped talking about yours.')
   } else {
-    await line(s, 'Dana', 'Croissant. Croissant. Cat. ...No, croissant. Oh, hello again, {player}!')
+    await line(s, R, 'Croissant. Croissant. Cat. ...No, croissant. Oh, hello again, {player}!')
   }
 })
 
@@ -96,7 +102,11 @@ def('center.techie', (s) => say(s,
 def('center.woman', (s) => say(s,
   'My LLMMON caught context rot on the route. It smelled like old log files!',
   'All better now. The nurse here is a miracle worker.'))
-text('center.terminal', 'A storage terminal. The screen reads:\n“Model Storage System is syncing...”', 'A spinner goes round and round. Better come back later.')
+def('center.terminal', async (s) => {
+  s.sfx('pc_on')
+  await say(s, 'A storage terminal. The screen reads:\n\u201cModel Storage System is syncing...\u201d', 'A spinner goes round and round. Better come back later.')
+  s.sfx('pc_off')
+})
 
 // ============================================================================ Token Mart
 def('mart.clerk', async (s) => {

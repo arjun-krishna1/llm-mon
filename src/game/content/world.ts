@@ -92,10 +92,20 @@ text('soma.road_closed', 'ROAD CLOSED\nSurvey team at work. Thanks for waiting!'
 text('soma.gym_door',
   'ALIGNMENT GYM\nThe doors are boarded up.',
   'A note on the door:\n“Leader away at a safety conference.”', '“Please stay aligned until we reopen!”')
-text('soma.locked_house', 'It’s locked. A sticky note on the door:\n“At a hackathon. Back in 48 hours. Or 72.”')
+text('soma.apartment', 'NODE HEIGHTS APARTMENTS\nResidents only. Badge in, please.',
+  'A sticky note under the buzzer:\n\u201cAt a hackathon. Back in 48 hours. Or 72.\u201d')
+text('soma.cafe', 'CAFE LATENCY\nClosed for a menu fine-tune.', 'A chalkboard: \u201cToday\u2019s special: cold brew, served in under 200 ms.\u201d')
+def('soma.kiosk', async (s) => {
+  s.sfx('pc_on')
+  await say(s, 'NODE PLAZA API STATUS\nModel Center: OK. Token Mart: OK.',
+    'Alignment Gym: DEGRADED\n(leader away at a conference)', 'Coffee: PARTIAL OUTAGE.')
+  s.sfx('pc_off')
+})
+text('soma.billboard', 'A billboard: \u201cIS YOUR LLMMON TOO VERBOSE?\u201d', '\u201cTry SUMMARIZE! Now 40% shorter. Results may vary.\u201d')
 text('soma.fountain', 'The Node Plaza fountain. A plaque reads:\n“All requests flow through here.”')
 
 def('soma.end_sign', async (s) => {
+  s.setFlag('heard_road_closed')
   await say(s,
     'THANK YOU FOR PLAYING!',
     'You’ve reached the end of the LLMMON Mythos vertical slice.',
@@ -103,9 +113,26 @@ def('soma.end_sign', async (s) => {
   s.setFlag(F.sawEnd)
 })
 
-def('soma.guard', (s) => say(s,
-  'Sorry, kid. The road north is closed.\fThe Alignment Survey team is still checking what’s up ahead.',
-  'They keep saying “two more weeks”. They’ve said that for three months.'))
+def('soma.guard', async (s) => {
+  await say(s,
+    'Sorry, kid. The road north is closed.\fThe Alignment Survey team is still checking what\u2019s up ahead.',
+    'They keep saying \u201ctwo more weeks\u201d. They\u2019ve said that for three months.')
+  s.setFlag('heard_road_closed')
+})
+
+// Stepping away from the closed road (after the guard or the end sign): the end card, once.
+def('soma.end', async (s) => {
+  if (s.flag('saw_end_card')) return
+  s.setFlag('saw_end_card')
+  await say(s, 'The road north will open one day.', `Until then, ${starterName(s)} looks ready for whatever comes next.`)
+  if (await s.yesNo('Save your progress before the credits roll?')) {
+    if (s.state.save()) {
+      s.sfx('save')
+      await s.say('{player} saved the game.')
+    }
+  }
+  await s.endCard()
+})
 
 def('soma.girl', (s) => say(s,
   'They say the Alignment Gym leader can tell if a LLMMON is being sincere.',

@@ -59,14 +59,14 @@ const TRAINER_LIST: TrainerDef[] = [
 // The rival: neighbour Dana takes the starter that beats yours (myth > logic >
 // tool > myth) plus one Route 101 catch. Id = rival_dana_<her starter>; CONTENT
 // picks the id from the player's starter. Lines are in src/game/content (rival.ts).
-function rival(starter: string, catchId: string, catchMoves?: string[]): TrainerDef {
+function rival(starter: string, starterLevel: number, starterMoves: string[] | undefined, catchId: string, catchLevel: number, catchMoves?: string[]): TrainerDef {
   return {
     id: `rival_dana_${starter}`,
     trainerClass: 'Rival',
     name: 'Dana',
     sprite: 'rival_front',
     overworldSprite: 'rival',
-    party: [{ speciesId: catchId, level: 5, moves: catchMoves }, { speciesId: starter, level: 7 }],
+    party: [{ speciesId: catchId, level: catchLevel, moves: catchMoves }, { speciesId: starter, level: starterLevel, moves: starterMoves }],
     preBattle: ['Ready or not, here I come!'],
     loseText: 'What?! I had the type advantage! I checked the chart TWICE!',
     postBattle: ['Next time I\u2019m reading the whole chart.'],
@@ -74,9 +74,9 @@ function rival(starter: string, catchId: string, catchMoves?: string[]): Trainer
   }
 }
 TRAINER_LIST.push(
-  rival('gpt_5_5', 'gemma_4', ['autocomplete', 'small_talk', 'fork_strike']), // vs Claude Fable
-  rival('glm', 'gpt_5_4_mini'), // vs GPT 5.5
-  rival('claude_fable', 'mistral_medium'), // vs GLM
+  rival('gpt_5_5', 8, undefined, 'gemma_4', 6, ['autocomplete', 'small_talk', 'fork_strike']), // vs Claude Fable
+  rival('glm', 6, ['graph_paw', 'pattern_guard', 'logic_spark'], 'gpt_5_4_mini', 4), // vs GPT 5.5
+  rival('claude_fable', 5, ['warm_nudge', 'guardrail', 'tiny_myth'], 'mistral_medium', 2), // vs GLM
 )
 
 export const TRAINERS: Record<string, TrainerDef> = Object.fromEntries(TRAINER_LIST.map((t) => [t.id, t]))

@@ -56,7 +56,7 @@ module.exports = async function world(ctx) {
   await seg('neighbor', async () => {
     await g.takeWarp('neighbor')
     await g.shot('neighbor', 'Neighbour house')
-    await g.talkTo('nb_dana', { onText: shootOn(g, [[/I’m Dana/, 'neighbor_dana']]) })
+    await g.talkTo('nb_mom', { onText: shootOn(g, [[/I’m Rosa/, 'neighbor_mom']]) })
     await g.talkTo('nb_milo')
     await g.readAllSigns()
     await g.takeWarp('overworld')
@@ -229,7 +229,20 @@ module.exports = async function world(ctx) {
     await g.talkTo('rt_tiana')
     await g.readAt(23, 38)
     await g.shot('route_north_sign', 'Route 101 north sign')
+    // rival Dana ambushes you at the north end of the route (trigger row 36)
+    g.handlers = { ...battleShooter('rival'), onText: shootOn(g, [[/Took you long enough/, 'rival_ambush'], [/You won\. Fair and square/, 'rival_after']]) }
     await g.walkTo({ x: 21, y: 33 }, { run: true })
+    s = await g.snap()
+    if (!s.flags.rival_beaten) {
+      // lost (white-out): patch up and try once more from the route's north end
+      console.log('   rival battle lost; rematch')
+      await g.page.evaluate(() => { window.__llmmon.heal(); return window.__llmmon.warp('overworld', 21, 38) })
+      await sleep(2500)
+      await g.walkTo({ x: 21, y: 33 }, { run: true })
+      s = await g.snap()
+    }
+    check(!!s.flags.rival_beaten, 'rival Dana battled + beaten at the north end of Route 101')
+    g.handlers = { ...battleShooter('tr') }
     await sleep(FAST ? 100 : 1200)
     await g.shot('soma_arrival', 'Arriving in SoMa Node')
     s = await g.snap()
@@ -306,20 +319,31 @@ module.exports = async function world(ctx) {
   await seg('soma_north', async () => {
     await g.readAt(12, 17, { walk: { run: true } }) // gym door
     await g.shot('gym', 'Alignment Gym (closed)')
-    await g.readAt(33, 16, { walk: { run: true } })
+    await g.readAt(32, 18, { walk: { run: true } }) // apartment door (locked)
     await g.talkTo('sn_techie', { walk: { run: true } })
     await g.talkTo('sn_girl', { walk: { run: true } })
     await g.talkTo('sn_guard', { walk: { run: true } })
     await g.readAt(21, 9)
     await g.readAt(23, 10, { onText: shootOn(g, [[/THANK YOU/, 'end_sign']]) })
-    const s = await g.snap()
+    let s = await g.snap()
     check(!!s.flags.saw_end_sign, 'read the end sign')
+    await g.talkTo('dana', { walk: { run: true } })
+    // stepping away from the closed road: save prompt, then the end card, then the title
+    await g.walkTo({ x: 22, y: 11 }, { run: true })
+    g.endSave = null
+    await g.walkTo({ x: 22, y: 12 }, { onInterrupt: async () => 'stop' })
+    await g.waitIdle({ choice: async () => { g.endSave = { info: (await g.snap()).info }; return 0 } }, 12000).catch(() => {})
+    await sleep(FAST ? 300 : 1500)
+    await g.shot('end_card', 'End card')
+    await g.page.waitForFunction(() => window.__ptSnap && window.__ptSnap() && window.__ptSnap().title === 'press', null, { timeout: 180000 })
+    s = await g.snap()
+    check(!!s.flags.saw_end_card, 'end card shown, back at the title')
   })
 
   // ======================================================== save → reload → continue
   await seg('save_reload', async () => {
-    await require('./menu.cjs').save(g, { check, sleep, FAST })
-    const before = await g.snap()
+    // the end card already offered a save; otherwise save from the start menu
+    const before = g.endSave || (await require('./menu.cjs').save(g, { check, sleep, FAST }), await g.snap())
     await g.goto('') // same URL minus ?new=1 (a real reload of a fresh tab)
     await g.page.waitForFunction(() => window.__ptSnap && window.__ptSnap() && window.__ptSnap().title === 'press', null, { timeout: 20000 })
     await sleep(FAST ? 200 : 1500)

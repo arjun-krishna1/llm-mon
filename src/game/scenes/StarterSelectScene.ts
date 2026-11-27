@@ -47,6 +47,8 @@ export class StarterSelectScene extends Phaser.Scene {
   private frame = 0
   private busy = true
   private monTween?: Phaser.Tweens.Tween
+  private cryTimer?: Phaser.Time.TimerEvent
+  private lastCry = -9999
   phase = 'intro'
   private orbKey = 'fx/orb_throw'
   /** Half the orb size (8 for the 16px orb, 16 for orb_big). */
@@ -103,6 +105,8 @@ export class StarterSelectScene extends Phaser.Scene {
   private async begin(): Promise<void> {
     this.highlight(this.index, true)
     await tween(this, this.fader, 300, { alpha: 0 })
+    audio.cry(this.ids[this.index])
+    this.lastCry = this.time.now
     this.busy = false
     this.phase = 'browse'
   }
@@ -177,6 +181,15 @@ export class StarterSelectScene extends Phaser.Scene {
     this.monTween?.stop()
     this.mon.setTexture(ensureTexture(this, `mons/${id}_front`, 64, 64))
     this.mon.setPosition(o.x, this.monY(o.y) + 4).setAlpha(0)
+    // cry once the creature has faded in (throttled so scrolling past orbs isn't noisy)
+    this.cryTimer?.remove()
+    if (!instant) {
+      this.cryTimer = this.time.delayedCall(params.fast ? 0 : 220, () => {
+        if (this.index !== i || this.time.now - this.lastCry < 500) return
+        this.lastCry = this.time.now
+        audio.cry(id)
+      })
+    }
     this.monTween = this.tweens.add({ targets: this.mon, alpha: 1, y: this.monY(o.y), duration: instant || params.fast ? 1 : 260, ease: 'Quad.Out' })
     // name plate + chip
     const name = sp.name
@@ -218,6 +231,8 @@ export class StarterSelectScene extends Phaser.Scene {
       return
     }
     this.phase = 'chosen'
+    audio.cry(id)
+    if (!params.fast) await new Promise<void>((r) => this.time.delayedCall(audio.cryDurationMs(id), r))
     // the chosen orb hops and flashes once before the scene fades out
     audio.sfx('orb_throw')
     const orb = this.orbs[this.index]

@@ -6,6 +6,7 @@ import type { ContentConfig } from '../script/registry'
 import './story'
 import './world'
 import './interiors'
+import './rival'
 
 export { chooseStarter } from './story'
 
@@ -19,4 +20,14 @@ export const content: ContentConfig = {
   namePresets: ['Arjun', 'Maya', 'Kai', 'Noor', 'Theo'],
   startMoney: 3000,
   whiteOutScript: 'story.after_whiteout',
+  endCard: {
+    title: 'LLMMON MYTHOS',
+    subtitle: 'Vertical Slice',
+    continued: 'To be continued\u2026',
+    credits: [
+      'STARRING', 'Claude Fable', 'GPT 5.5', 'GLM', '',
+      'AND', 'Dana, your rival', 'Prof. Karpathy', 'Mom', 'one very confident HalluciHound', '',
+      'THANK YOU FOR PLAYING',
+    ],
+  },
 }

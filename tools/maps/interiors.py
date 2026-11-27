@@ -130,9 +130,8 @@ def home_2f():
     S = m.stamp
     S('stairs_down', 8, 2)
     S('window', 1, 0)
-    S('bed', 1, 2)
+    S('bed_wide', 1, 2)
     S('desk_pc', 3, 1)
-    S('chair_n', 3, 3)
     S('bookshelf', 5, 1)
     S('clock', 7, 0)
     S('poster', 9, 0)
@@ -148,7 +147,7 @@ def home_2f():
     m.props['onEnter'] = 'home.enter_2f'
     signs(m, [(3, 2)], 'home.pc')
     signs(m, [(4, 2)], 'home.notebook')
-    signs(m, [(1, 2), (1, 3)], 'home.bed')
+    signs(m, [(1, 3), (2, 3)], 'home.bed')
     signs(m, [(5, 2), (6, 2)], 'home.bookshelf')
     signs(m, [(1, 7), (2, 7)], 'home.boxes_2f')
     signs(m, [(7, 2)], 'home.bin')
@@ -164,17 +163,17 @@ def neighbor():
     S('clock', 6, 0)
     S('door_inner', 7, 0)
     S('fridge', 9, 1)
-    S('bed', 1, 2)
+    S('bed_wide_pink', 1, 2)
     S('stool', 6, 3)
     S('plant', 9, 5)
     S('cushion', 5, 4, base='detail2')
     S('bin', 1, 6)
     exit_mat(m, 5, 'mat_exit_red', 'neighbor_door')
-    m.npc('nb_dana', 7, 4, 'woman', script='neighbor.dana', facing='left')
+    m.npc('nb_mom', 7, 4, 'woman', script='neighbor.mom', facing='left')
     m.npc('nb_milo', 4, 5, 'boy', script='neighbor.milo', facing='up', movement='look')
     signs(m, [(4, 2), (5, 2)], 'neighbor.bookshelf')
     signs(m, [(9, 2)], 'neighbor.fridge')
-    signs(m, [(1, 2), (1, 3)], 'neighbor.bed')
+    signs(m, [(1, 3), (2, 3)], 'neighbor.bed')
     return m
 
 
@@ -223,6 +222,7 @@ def center():
     for y in range(5, 9):
         m.tile('ground', 6, y, 'floor_center_inlay')
     S('window_teal', 1, 0)
+    S('wall_emblem_center', 5, 0)
     S('heal_machine', 5, 1)
     S('clock', 8, 0)
     S('window_teal', 9, 0)
@@ -231,7 +231,7 @@ def center():
     S('plant', 11, 3)
     S('bench', 1, 6)
     S('bench', 9, 6)
-    S('terminal_free', 11, 6)
+    S('pc_storage', 11, 6)
     S('plant', 1, 7)
     exit_mat(m, 6, 'mat_exit_teal', 'center_door')
     m.spawn('counter', 6, 5, facing='up')
@@ -247,6 +247,7 @@ def mart():
     S = m.stamp
     counter(m, 'shop', 1, 3, 4, register_at=2)
     S('window_violet', 1, 0)
+    S('wall_emblem_mart', 6, 0)
     S('mart_shelf', 4, 1)
     S('mart_shelf', 6, 1)
     S('mart_shelf', 8, 1)
@@ -276,6 +277,7 @@ def soma_house():
     S('plant', 9, 1)
     rug(m, 'rug_teal', 5, 4, 4, 2)
     S('cushion', 6, 5, base='detail2')
+    S('sofa', 6, 6)
     S('table', 2, 4)
     S('chair_s', 2, 3)
     S('chair_n', 3, 6)

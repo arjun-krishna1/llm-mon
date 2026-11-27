@@ -4,6 +4,7 @@
 
 import type { Dir } from '../config'
 import { F, def, line, say, starterName, walkTo, type S } from './util'
+import { rivalInLab } from './rival'
 
 const PROF = 'Prof. Karpathy'
 const MOM = 'Mom'
@@ -54,7 +55,7 @@ def('story.arrival', async (s) => {
   s.sfx('door')
   s.hide('hv_mover')
   await s.wait(400)
-  s.sfx('run')
+  s.sfx('truck')
   await s.moveProp('truck', 'down 3, left 11', 2800, 'Sine.In')
   s.despawnProp('truck')
   await s.wait(300)
@@ -93,12 +94,8 @@ def('story.arrival', async (s) => {
 // ============================================================================ home
 def('home.mom_lab_call', async (s) => {
   if (s.flag(F.momLabCall)) return
-  for (let i = 0; i < 2; i++) {
-    s.sfx('select')
-    await s.wait(140)
-    s.sfx('select')
-    await s.wait(500)
-  }
+  s.sfx('phone')
+  await s.wait(900)
   await s.emote('mom', 'note')
   s.face('mom', 'up')
   await s.say('Brrring! Brrring!')
@@ -250,6 +247,7 @@ async function labDex(s: S): Promise<void> {
     'You’ll need these to fill it, too.')
   await s.giveItem('prompt_orb', 5)
   s.setFlag(F.gotDex)
+  await rivalInLab(s)
   await line(s, PROF,
     'Weaken a wild LLMMON, then throw a Prompt Orb.\fA good prompt is short, specific and a little bit lucky.',
     'Route 101 leads north to SoMa Node.\fThere’s a Model Center to heal your team, and a Token Mart for supplies.',
@@ -259,6 +257,10 @@ async function labDex(s: S): Promise<void> {
 def('lab.prof', async (s) => {
   if (!s.flag(F.gotDex)) {
     await labDex(s)
+    return
+  }
+  if (!s.getFlag('rival_starter')) {
+    await rivalInLab(s)
     return
   }
   const seen = s.state.seen.length

@@ -67,5 +67,7 @@ the autopilot reads maps from the snapshot (`out/dist/assets/game/maps`).
   `readAt(x, y)`, `takeWarp(toMap)`, `drive(until, handlers)` (dialogue pages
   with reading time, choices, anonymous widgets, battles, starter select),
   battle policy per encounter (`win` / `run` / `catch` / `lose`, Patch when low),
+  catch nickname prompt (`nickname-yesno`): NO by default, `handlers.nickname = 'NAME'`
+  (A–Z, or a function of the snapshot) types it on the NameEntryScreen,
   `shot(name)`, `frames(name, n, ms, action)`, segment timing + audio log.
 - `segments/world.cjs`, `segments/menu.cjs` — the slice script and start-menu driver.

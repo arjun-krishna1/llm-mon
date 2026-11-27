@@ -12,13 +12,15 @@ import { audio } from '../audio'
 import { params } from '../params'
 import { rng } from '../rng'
 import { state } from '../state'
-import type { BattleRequest, BattleResult } from '../types'
+import type { BattleRequest, BattleResult, MonInstance } from '../types'
 import { DialogBox } from '../ui/DialogBox'
 import { Window } from '../ui/Window'
 import { WidgetStack } from '../ui/WidgetStack'
+import { assetUrl } from '../assets'
 import { choice } from '../ui/ListMenu'
 import { PartyScreen } from '../ui/screens/PartyScreen'
 import { BagScreen } from '../ui/screens/BagScreen'
+import { NameEntryScreen } from '../ui/screens/NameEntryScreen'
 import { Battle, getItem, getMove, getSpecies, type BattleEvent, type BattleInput, type Side } from '../battle/core'
 import { DEPTH, LAYOUT, TIMING } from '../battle/ui/constants'
 import { Stage, type PipState } from '../battle/ui/Stage'
@@ -60,6 +62,7 @@ export class BattleScene extends Phaser.Scene {
   private firstText = true
   /** After the defeated trainer reappears every line waits for A. */
   private trainerTalk = false
+  private enemySentOut = false
   private victoryStarted = false
   private wasCaughtBefore = false
   private phase = 'intro'
@@ -83,9 +86,18 @@ export class BattleScene extends Phaser.Scene {
     this.nextTextMode = null
     this.firstText = true
     this.trainerTalk = false
+    this.enemySentOut = false
     this.victoryStarted = false
     this.phase = 'intro'
     this.ended = false
+  }
+
+  /** Lazily load art the boot manifest doesn't list (e.g. a new trainer sprite like battle/rival_front). */
+  preload(): void {
+    const sprite = this.req.trainer?.sprite
+    if (!sprite) return
+    const key = sprite.includes('/') ? sprite : `battle/${sprite}`
+    if (!this.textures.exists(key)) this.load.image(key, assetUrl(key))
   }
 
   create(): void {
@@ -313,7 +325,7 @@ export class BattleScene extends Phaser.Scene {
     }
     await this.box.say(text, { keepOpen: true })
     if (mode === 'auto') {
-      this.pendingHold = /fainted!$/.test(text) ? TIMING.textHold + 150 : TIMING.textHold
+      this.pendingHold = /fainted!$|super effective|not very effective|critical hit/.test(text) ? TIMING.textHold + 250 : TIMING.textHold
       this.holdFrom = this.time.now
     }
   }
@@ -395,10 +407,17 @@ export class BattleScene extends Phaser.Scene {
           if (!e.fromOrb) {
             await st.litUp()
           } else {
+            if (this.enemySentOut && this.req.kind === 'trainer') {
+              // the trainer's remaining team: fallen mons show as greyed pips
+              st.showPips('enemy', this.req.enemyParty.map((m) => pipOf(m.hp, m.status)))
+              await st.slidePipsIn(['enemy'])
+              await wait(this, 450)
+            }
             void st.hidePips('enemy')
             await wait(this, 100)
             await st.enemySendOut(e.mon.speciesId)
           }
+          this.enemySentOut = true
           hud.setMon(e.mon)
           await hud.slideIn()
         } else {
@@ -422,7 +441,7 @@ export class BattleScene extends Phaser.Scene {
       case 'move_used':
         return
       case 'move_anim': {
-        await wait(this, 120)
+        await Promise.all([wait(this, 120), st.cryDone()])
         this.phase = 'anim'
         await playMoveAnim(this, st, e)
         return
@@ -485,6 +504,7 @@ export class BattleScene extends Phaser.Scene {
         }
         if (e.fled) await Promise.all([st.flee(e.side), wait(this, 200).then(() => st.hud[e.side].slideOut())])
         else await Promise.all([st.faint(e.side), wait(this, 120).then(() => st.hud[e.side].slideOut())])
+        await st.cryDone()
         return
       }
       case 'exp_gain': {
@@ -516,8 +536,8 @@ export class BattleScene extends Phaser.Scene {
       case 'item_used':
         return
       case 'catch_throw':
+        await Promise.all([wait(this, 100), st.cryDone()])
         this.phase = 'catch'
-        await wait(this, 100)
         await st.catchThrow()
         return
       case 'catch_shake':
@@ -543,7 +563,9 @@ export class BattleScene extends Phaser.Scene {
         return
       case 'battle_end':
         this.outcome = e.outcome
+        if (e.outcome === 'caught' && e.caught) await this.askNickname(e.caught)
         if (e.outcome === 'caught' && e.caught && !this.wasCaughtBefore) {
+          audio.sfx('dex_register')
           await this.text(`${getSpecies(e.caught.speciesId).name}'s data was added to the PromptDex.`, 'wait')
         }
         if (e.outcome === 'caught' && e.caught && state.party.length >= 6) {
@@ -552,6 +574,25 @@ export class BattleScene extends Phaser.Scene {
         }
         return
     }
+  }
+
+  /** "Give a nickname to the caught X?" YES/NO → NameEntryScreen. Empty / unchanged = no nickname. */
+  private async askNickname(mon: MonInstance): Promise<void> {
+    const species = getSpecies(mon.speciesId).name
+    await this.flushText()
+    await this.box.say(`Give a nickname to the caught ${species}?`, { keepOpen: true })
+    this.phase = 'nickname-yesno'
+    const yes = (await choice(this, this.stack, ['YES', 'NO'], { x: 238, y: 110, anchor: 'br', depth: DEPTH.menu, cancelIndex: 1 })) === 0
+    if (!yes) return
+    this.phase = 'nickname'
+    await this.fade(1)
+    const scr = new NameEntryScreen(this, this.stack, { title: `${species}'s nickname?`, initial: '', max: 10, icon: `mons/${mon.speciesId}_icon` })
+    const p = scr.run()
+    await this.fade(0)
+    const name = (await p).trim()
+    this.fader.setAlpha(1)
+    await this.fade(0)
+    if (name && name !== species) mon.nickname = name
   }
 
   private async levelFlash(): Promise<void> {

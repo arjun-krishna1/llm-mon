@@ -22,7 +22,13 @@ runs twice. Order below = story order.
 | `route_hiker_heal` | `route.hiker` | The hiker on the east path has used his one-time "clear your cache" heal. |
 | `healed_at_center` | `center.nurse` | First Model Center heal (one-time explanation of the heal point). The nurse also calls `setHealPoint('center', 'counter')`. |
 | `saw_end_sign` | `soma.end_sign` | Read the end-of-slice sign (for playtests). |
-| `met_dana` | `neighbor.dana` | Dana introduced herself. |
+| `heard_road_closed` | `soma.guard`, `soma.end_sign` | Enables the end-card trigger on the avenue just south of the closed road (row 12). |
+| `saw_end_card` | `soma.end` | The end card has rolled (offered a save first). Never repeats. |
+| `met_rival` | `rival.intro` (trigger outside your front door once `mom_lab_call` is set) | Dana introduced herself and ran off to the lab. |
+| `rival_starter` | `rivalInLab()` (end of the PromptDex scene, or talking to the professor) | Species id Dana took: the one that beats yours (myth > logic > tool > myth). |
+| `rival_lost_once` | `rival.ambush` | You lost to Dana at least once (white-out; she waits for a rematch with a different line). |
+| `rival_beaten` | `rival.ambush` | Beat Dana at the north end of Route 101 (trigger row 36). She then stands at the SoMa fountain (spawned by the overworld `onEnter` hook `overworld.enter`). |
+| `met_rosa`, `dana_line` | neighbour mom / fountain Dana | Intro done / line rotation. |
 | `mom_line`, `aide_line` | Mom / aide | Counters that rotate their idle lines. |
 
 Heal point: new game = `home_1f` / `entrance` (Mom heals your team when you

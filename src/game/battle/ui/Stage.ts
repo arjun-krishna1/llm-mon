@@ -56,7 +56,27 @@ export class Stage {
     for (let i = 0; i < 8; i++) t.add(String(i), 0, i * 8, 0, 8, 8)
   }
 
+  /** Species currently drawn per side (for cries). */
+  readonly species: Record<Side, string> = { player: '', enemy: '' }
+  /** scene.time.now when the last cry ends; the next sfx-heavy beat waits for it. */
+  private cryUntil = 0
+
+  /** Play a species cry and remember how long it rings. */
+  cry(speciesId: string, faint = false): void {
+    if (!speciesId) return
+    audio.cry(speciesId, faint ? { faint: true } : undefined)
+    if (params.fast) return
+    this.cryUntil = Math.max(this.cryUntil, this.scene.time.now + audio.cryDurationMs(speciesId, faint ? { faint: true } : undefined))
+  }
+
+  /** Resolves once the last cry has finished (so the next sfx doesn't step on it). */
+  async cryDone(): Promise<void> {
+    const left = this.cryUntil - this.scene.time.now
+    if (left > 0) await new Promise<void>((r) => this.scene.time.delayedCall(left, r))
+  }
+
   setMonTexture(side: Side, speciesId: string): void {
+    this.species[side] = speciesId
     const key = ensureTexture(this.scene, `mons/${speciesId}_${side === 'enemy' ? 'front' : 'back'}`, 64, 64)
     this.mon[side].setTexture(key).clearTint().setScale(1).setAlpha(1).clearMask()
     this.home(side)
@@ -158,6 +178,7 @@ export class Stage {
   /** Wild mon brightens from its intro tint. */
   async litUp(): Promise<void> {
     const e = this.mon.enemy
+    this.cry(this.species.enemy)
     await animate(this.scene, TIMING.litUp, (k) => e.setTint(mixColor(DARK_TINT, 0xffffff, k)))
     e.clearTint()
   }
@@ -198,15 +219,19 @@ export class Stage {
     c.setVisible(true)
   }
 
-  async slidePipsIn(): Promise<void> {
+  async slidePipsIn(sides: Side[] = ['enemy', 'player']): Promise<void> {
     const e = this.pips.enemy
     const p = this.pips.player
-    e.setPosition(-80, 26)
-    p.setPosition(W + 4, 90)
-    await Promise.all([
-      tween(this.scene, e, TIMING.hudSlide, { x: 0, ease: 'Cubic.Out' }),
-      tween(this.scene, p, TIMING.hudSlide, { x: W - 74, ease: 'Cubic.Out' }),
-    ])
+    const all: Promise<void>[] = []
+    if (sides.includes('enemy')) {
+      e.setPosition(-80, 26)
+      all.push(tween(this.scene, e, TIMING.hudSlide, { x: 0, ease: 'Cubic.Out' }))
+    }
+    if (sides.includes('player')) {
+      p.setPosition(W + 4, 90)
+      all.push(tween(this.scene, p, TIMING.hudSlide, { x: W - 74, ease: 'Cubic.Out' }))
+    }
+    await Promise.all(all)
   }
 
   async hidePips(side: Side): Promise<void> {
@@ -250,6 +275,7 @@ export class Stage {
     const m = this.mon[side]
     if (side === 'player') this.playerResting = false
     m.setVisible(true).setScale(0.15).clearTint()
+    this.cry(speciesId)
     // white silhouette on top that fades out once the mon is full size
     const ov = this.scene.add.image(m.x, m.y, m.texture.key).setOrigin(0.5, 1).setDepth(m.depth + 1).setTintFill(0xffffff).setScale(0.15)
     await tween(this.scene, [m, ov], TIMING.popMs, { scale: 1, ease: 'Back.Out' })
@@ -328,6 +354,12 @@ export class Stage {
     const m = this.mon[side]
     audio.sfx(effectiveness > 1 ? 'hit_super' : effectiveness < 1 ? 'hit_weak' : 'hit')
     if (effectiveness > 1 || crit) this.shakeCamera(effectiveness > 1 ? 3 : 2, 220)
+    if (effectiveness > 1 && !params.fast) {
+      // 2-frame white flash on the target, then the usual blink + harder shake
+      m.setTintFill(0xffffff)
+      await frames(this.scene, 2, () => undefined)
+      m.clearTint()
+    }
     const n = TIMING.hitBlinks
     const amp = effectiveness > 1 ? 3 : effectiveness < 1 ? 1 : 2
     if (side === 'player') this.playerResting = false
@@ -358,7 +390,7 @@ export class Stage {
   /** Faint: cry-ish sfx, the sprite slides down behind its platform edge. */
   async faint(side: Side): Promise<void> {
     const m = this.mon[side]
-    audio.sfx('faint')
+    this.cry(this.species[side], true)
     if (side === 'player') this.playerResting = false
     const bottom = side === 'enemy' ? LAYOUT.enemyMon.y : LAYOUT.playerMon.y
     const shape = this.scene.make.graphics({ x: 0, y: 0 }, false)

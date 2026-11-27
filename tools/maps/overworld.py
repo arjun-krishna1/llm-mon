@@ -65,7 +65,7 @@ SOMA = [
     '.____________ZZ_______######',  # 18 main street / apartment doors x32-33
     '.____________ZZ____________.',  # 19
     '..E####.____________.M####..',  # 20 soma_house (green) / plaza / mart
-    '..#####._____+______.#####..',  # 21
+    '..#####._____+__W-__.#####..',  # 21 bike rack
     '..#####._?______$___.#####..',  # 22 kiosk / bench
     '..#####.!___O--____!.#####..',  # 23 fountain
     '..#####._@__---__@__.#####..',  # 24
@@ -76,7 +76,7 @@ SOMA = [
     'TTTTTThh____________hhTTTTTT',  # 29 south square
     'TTTTTTh,V##______,n#,hTTTTTT',  # 30 billboard
     'TTTTTThr###!____!,yr,hTTTTTT',  # 31
-    'TTTTTTh,y,,W-____,P,,hTTTTTT',  # 32 bike rack
+    'TTTTTTh,y,,______,P,,hTTTTTT',  # 32
     'TTTTTThhhS#______hhhhhTTTTTT',  # 33 town sign
     'TTTTTThhh##,,,,,,hhhhhTTTTTT',  # 34 hedge gate: grass between paving and the dirt road
 ]
@@ -184,7 +184,8 @@ def rows():
 
 def build():
     R = rows()
-    m = MapDef('overworld', W, len(R), tilesets=['exterior'], props={'name': 'HAYES VALLEY', 'music': 'hayes_valley'})
+    m = MapDef('overworld', W, len(R), tilesets=['exterior'],
+               props={'name': 'HAYES VALLEY', 'music': 'hayes_valley', 'onEnter': 'overworld.enter'})
     m.paint(R, LEGEND, scatter=35)
     objects(m)
     return m
@@ -261,6 +262,12 @@ def objects(m):
     m.sign(18, 34, script='soma.town_sign', anySide=True)
     m.sign(21, 9, script='soma.road_closed')
     m.npc('sn_guard', 22, 10, 'man', script='soma.guard', facing='down')
+    # stepping away from the closed road after hearing about it rolls the end card (once)
+    m.trigger(21, 12, 3, 1, 'soma.end', ifFlag='heard_road_closed', unlessFlag='saw_end_card')
+    # rival Dana: meets you outside your house, ambushes you at the north end of Route 101
+    m.trigger(12, 98, 1, 1, 'rival.intro', ifFlag='mom_lab_call', unlessFlag='met_rival')
+    m.trigger(13, 99, 1, 1, 'rival.intro', ifFlag='mom_lab_call', unlessFlag='met_rival')
+    m.trigger(20, 36, 4, 1, 'rival.ambush', ifFlag='rival_starter', unlessFlag='rival_beaten')
     m.npc('sn_girl', 16, 19, 'girl', script='soma.girl', facing='down', movement='wander', radius=2)
     m.npc('sn_techie', 23, 15, 'techie', script='soma.techie', facing='left')
     m.npc('sn_woman', 26, 21, 'woman', script='soma.woman', facing='left', movement='look')
