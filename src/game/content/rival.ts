@@ -106,17 +106,24 @@ def('rival.ambush', async (s) => {
   await s.move('dana', Array(Math.max(0, p.y - 32)).fill('down') as Array<'down'>, { speed: 'run' })
   s.face('player', 'up')
   await s.emote('dana', 'exclaim')
+  const typeMove = ({ gpt_5_5: 'Tool Tap', glm: 'Logic Spark', claude_fable: 'Tiny Myth' } as Record<string, string>)[hers]
   if (s.flag(RIVAL_FLAGS.lostOnce)) {
-    await line(s, DANA, 'Back for a rematch? Good. I was getting bored winning against the tall grass.')
+    await line(s, DANA, 'Back for a rematch? Good.\fI was getting bored winning against the tall grass.')
   } else {
+    const mins = Math.max(1, Math.floor(s.state.playTimeMs / 60000))
     await line(s, DANA,
-      '{player}! Took you long enough. I’ve been here for, like, eleven whole minutes.',
-      `I caught a partner on the route AND ${s.speciesName(hers)} learned a type move.`,
-      'Let’s see whose prompt engineering is better!')
+      `{player}! Took you long enough.\f${mins} whole minutes since you moved in, and you\u2019re only just here?`,
+      `I caught a partner on the route.\fAND ${s.speciesName(hers)} learned ${typeMove} this morning.`,
+      'It can only pull it off once so far. Once is all it needs!')
   }
-  const r = await s.trainerBattle(`rival_dana_${hers}`, { music: 'battle_rival' })
+  // fair fight: she patches your team up first
+  await line(s, DANA, 'Hold on. I\u2019m not beating you while you\u2019re rate-limited. Stand still.')
+  await s.healParty()
+  await line(s, DANA, 'There. Full context window. No excuses!')
+  const id = s.flag(RIVAL_FLAGS.lostOnce) ? `rival_dana_${hers}_rematch` : `rival_dana_${hers}`
+  const r = await s.trainerBattle(id, { music: 'battle_rival' })
   if (r.outcome !== 'win') {
-    // the engine has already whited out to the heal point; she waits for a rematch
+    // the engine has already whited out to the heal point; she waits for a (slightly easier) rematch
     s.setFlag(RIVAL_FLAGS.lostOnce)
     return
   }

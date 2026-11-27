@@ -582,7 +582,7 @@ export class BattleScene extends Phaser.Scene {
     await this.flushText()
     await this.box.say(`Give a nickname to the caught ${species}?`, { keepOpen: true })
     this.phase = 'nickname-yesno'
-    const yes = (await choice(this, this.stack, ['YES', 'NO'], { x: 238, y: 110, anchor: 'br', depth: DEPTH.menu, cancelIndex: 1 })) === 0
+    const yes = (await choice(this, this.stack, ['YES', 'NO'], { x: 238, y: 66, anchor: 'br', depth: DEPTH.menu, cancelIndex: 1 } /* above the player plate (ENGINE QA fix) */)) === 0
     if (!yes) return
     this.phase = 'nickname'
     await this.fade(1)

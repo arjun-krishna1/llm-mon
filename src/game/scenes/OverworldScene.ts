@@ -887,7 +887,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
   async emote(id: string, kind: EmoteKind): Promise<void> {
     const a = this.actor(id)
     if (!a) return
-    const key = `fx/emote_${kind}`
+    const key = `fx/emote_${kind === 'music' ? 'note' : kind}` // 'music' is an alias of 'note'
     if (kind === 'exclaim') audio.sfx('exclaim')
     const x = a.px
     const y = a.py + TILE - 24 - 16

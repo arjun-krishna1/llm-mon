@@ -26,6 +26,21 @@ const parent = document.getElementById('game')!
 const touch = touchWanted() ? new TouchControls() : null
 
 /**
+ * Phaser's FIT derives one side from the other and rounds (e.g. 319.98 CSS px at dpr 3),
+ * which makes a column of device pixels uneven. Pin the canvas CSS size to the exact
+ * value (W·k/dpr) after every scale refresh.
+ */
+let exactCanvas: { w: number; h: number } | null = null
+function applyExactCanvas(): void {
+  const c = (globalThis as { __llmmonGame?: Phaser.Game }).__llmmonGame?.canvas
+  if (!c || !exactCanvas) return
+  c.style.width = `${exactCanvas.w}px`
+  c.style.height = `${exactCanvas.h}px`
+  c.style.marginLeft = '0px'
+  c.style.marginTop = '0px'
+}
+
+/**
  * Largest scale inside w x h (CSS px) that is a whole number of DEVICE pixels per game
  * pixel, so a phone at devicePixelRatio 3 can show 4 device px per pixel (320 CSS px wide)
  * and stay perfectly sharp. Fractional only below 1 device px.
@@ -62,6 +77,8 @@ function fitParent(): void {
   const top = mode === 'below' ? snap(Math.max(0, (vh - (h + 8 + zoneH)) / 2)) : snap(Math.max(0, (vh - h) / 2))
   parent.style.width = `${w}px`
   parent.style.height = `${h}px`
+  exactCanvas = { w, h }
+  applyExactCanvas()
   parent.style.position = 'absolute'
   parent.style.left = `${left}px`
   parent.style.top = `${top}px`
@@ -93,6 +110,11 @@ const game = new Phaser.Game({
   render: { antialiasGL: false, pixelArt: true },
   scene: [BootScene, TitleScene, IntroScene, OverworldScene, UIScene, BattleScene, StarterSelectScene, EndCardScene],
 })
+
+const g = globalThis as { __llmmonGame?: Phaser.Game }
+g.__llmmonGame = game
+game.scale.on(Phaser.Scale.Events.RESIZE, () => applyExactCanvas())
+game.events.once(Phaser.Core.Events.READY, () => applyExactCanvas())
 
 game.events.on(Phaser.Core.Events.PRE_STEP, (_time: number, delta: number) => {
   controls.step(delta)

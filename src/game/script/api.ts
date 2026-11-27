@@ -15,7 +15,7 @@ import type { NameEntryOptions } from '../ui/screens/NameEntryScreen'
 import { openStorage } from '../ui/screens/StorageScreen'
 import { getScript } from './registry'
 
-export type EmoteKind = 'exclaim' | 'question' | 'heart' | 'dots' | 'note'
+export type EmoteKind = 'exclaim' | 'question' | 'heart' | 'dots' | 'note' | 'music'
 
 export interface NpcDef {
   id: string

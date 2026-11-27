@@ -34,7 +34,11 @@ export function wildBattleRequest(mon: MonInstance, opts: Partial<BattleRequest>
 /** Builds the trainer's party fresh each time (trainers do not keep damage between battles). */
 export function trainerBattleRequest(trainerId: string, rng: Rng, opts: Partial<BattleRequest> = {}): BattleRequest {
   const t = getTrainer(trainerId)
-  const enemyParty = t.party.map((p) => createMon(p.speciesId, p.level, rng, { moves: p.moves }))
+  const enemyParty = t.party.map((p) => {
+    const m = createMon(p.speciesId, p.level, rng, { moves: p.moves, ivs: p.ivs })
+    if (p.pp) for (const slot of m.moves) if (p.pp[slot.id] !== undefined) slot.pp = p.pp[slot.id]
+    return m
+  })
   return {
     kind: 'trainer',
     enemyParty,
@@ -43,6 +47,7 @@ export function trainerBattleRequest(trainerId: string, rng: Rng, opts: Partial<
     canCatch: false,
     background: 'grass',
     music: 'battle_trainer',
+    ...(t.aiRandomness !== undefined ? { aiRandomness: t.aiRandomness } : {}),
     ...opts,
   }
 }

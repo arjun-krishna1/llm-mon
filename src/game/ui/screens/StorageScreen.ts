@@ -21,7 +21,7 @@ import { healMon, monName, speciesTypes } from '../../adapters/monInfo'
 import { ensureTexture } from '../../assets'
 import { DialogBox } from '../DialogBox'
 import { ListMenu } from '../ListMenu'
-import { PxText, measure, type TextStyle } from '../text'
+import { PxText, fitLabel, measure, type TextStyle } from '../text'
 import { Screen } from './Screen'
 import { SummaryScreen } from './SummaryScreen'
 import { fitText, handTexture, typePill, type Adders } from './screenKit'
@@ -218,8 +218,8 @@ export class StorageScreen extends Screen<void> {
     for (let i = 0; i < 6; i++) {
       const m = state.party[i]
       this.setIcon(this.partyIcons[i], m)
-      const name = m ? fitText(this.scene, FONT.dialog, monName(m), PARTY_NAME_MAX) : ''
-      this.partyNames[i].setText(name)
+      // never chop mid-word: condensed → mini caps → whole words (see fitLabel)
+      this.partyNames[i].setLabel(m ? fitLabel(this.scene, monName(m), PARTY_NAME_MAX) : { text: '', font: FONT.dialog, spacing: 0 })
       if (m && m.hp <= 0) this.partyNames[i].setColor(0xf0a8a0, 0x401a1a)
       else this.partyNames[i].setColor(WHITE.color!, WHITE.shadowColor)
     }

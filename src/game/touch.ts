@@ -13,6 +13,8 @@ export function touchWanted(): boolean {
 const CSS = `
 #touch { position: fixed; inset: 0; pointer-events: none; z-index: 10; user-select: none; -webkit-user-select: none; touch-action: none; }
 #touch .tc { position: absolute; pointer-events: auto; touch-action: none; -webkit-tap-highlight-color: transparent; }
+/* generous invisible hit area around every control (dead-zone tolerance) */
+#touch .tc::after { content: ''; position: absolute; inset: -12px; border-radius: 16px; }
 #touch .dpad { border-radius: 50%; }
 #touch .dpad .arm { position: absolute; background: #40507c; border: 3px solid #283048; box-shadow: inset 0 3px 0 #6880b8; }
 #touch .dpad .arm.h { left: 4%; right: 4%; top: 34%; bottom: 34%; border-radius: 10px; }
@@ -25,7 +27,7 @@ const CSS = `
 #touch .btn.a { background: #c04820; box-shadow: inset 0 4px 0 #f07830, 0 3px 0 #283048; }
 #touch .btn.on, #touch .pill.on { transform: translateY(2px); filter: brightness(1.25); box-shadow: inset 0 2px 0 #6880b8; }
 #touch .pill { border-radius: 999px; background: #283048; border: 2px solid #6880b8; color: #d4dae6;
-  font: 700 11px/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
+  font: 700 13px/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
 `
 
 type Rect = { x: number; y: number; w: number; h: number }
@@ -125,7 +127,8 @@ export class TouchControls {
     const place = (el: HTMLElement, cx: number, cy: number, w: number, h: number) => {
       Object.assign(el.style, { left: `${Math.round(cx - w / 2)}px`, top: `${Math.round(cy - h / 2)}px`, width: `${Math.round(w)}px`, height: `${Math.round(h)}px` })
     }
-    const d = Math.max(96, Math.min(190, left.w * 0.86, left.h * 0.8))
+    // arms are ~1/3 of the pad: keep each ≥ 48px including the invisible hit margin
+    const d = Math.max(132, Math.min(190, left.w * 0.86, left.h * 0.8))
     place(this.dpad, left.x + left.w / 2, left.y + left.h / 2, d, d)
     // triangles on the arms
     const t = Math.round(d * 0.07)
@@ -141,9 +144,9 @@ export class TouchControls {
     // GBA-style diagonal: B lower-left, A upper-right
     place(this.b, cx - bs * 0.62, cy + bs * 0.32, bs, bs)
     place(this.a, cx + bs * 0.62, cy - bs * 0.32, bs, bs)
-    const pw = Math.max(64, bs * 1.1)
-    const startY = mode === 'below' ? Math.min(right.y + right.h - 22, cy + bs * 1.3) : cy + bs * 1.5
+    const pw = Math.max(84, bs * 1.2)
+    const startY = mode === 'below' ? Math.min(right.y + right.h - 30, cy + bs * 1.3) : cy + bs * 1.5
     const startX = mode === 'below' ? (left.x + left.w + right.x) / 2 : cx
-    place(this.start, startX, startY, pw, 26)
+    place(this.start, startX, startY, pw, 44)
   }
 }

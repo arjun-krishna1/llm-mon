@@ -20,6 +20,8 @@ export interface AiContext {
   options: AiMoveOption[]
   targetHp: number
   selfHpFraction: number
+  /** Chance to pick a random usable move (trainers only). Default 0.1. */
+  randomness?: number
 }
 
 /** Returns the chosen move index, or -1 for Struggle (no usable moves). */
@@ -27,7 +29,7 @@ export function chooseEnemyMove(ctx: AiContext, rng: Rng): number {
   if (ctx.options.length === 0) return -1
   if (ctx.kind !== 'trainer') return pick(rng, ctx.options).index
   // A little unpredictability so trainers do not feel robotic.
-  if (chance(rng, 0.1)) return pick(rng, ctx.options).index
+  if (chance(rng, ctx.randomness ?? 0.1)) return pick(rng, ctx.options).index
   let best = ctx.options[0]
   let bestScore = -Infinity
   for (const opt of ctx.options) {

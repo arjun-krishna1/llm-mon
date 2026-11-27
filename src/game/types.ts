@@ -54,6 +54,8 @@ export interface BattleRequest {
    */
   fleeOnDefeat?: boolean
   defeatText?: string
+  /** (CONTENT/BATTLE-CORE) Trainer AI: chance (0..1) to pick a random usable move instead of the best one. Default 0.1. */
+  aiRandomness?: number
 }
 
 export interface BattleResult {

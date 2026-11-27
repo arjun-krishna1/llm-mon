@@ -857,7 +857,7 @@ export class Battle {
       options.push({ index, moveId: slot.id, expectedDamage, effectUseful: this.effectUseful(move) })
     })
     return chooseEnemyMove(
-      { kind: this.request.kind, options, targetHp: target.hp, selfHpFraction: self.hp / calcStats(self).hp },
+      { kind: this.request.kind, options, targetHp: target.hp, selfHpFraction: self.hp / calcStats(self).hp, randomness: this.request.aiRandomness },
       this.rng,
     )
   }

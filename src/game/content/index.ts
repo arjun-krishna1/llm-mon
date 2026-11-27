@@ -25,9 +25,12 @@ export const content: ContentConfig = {
     subtitle: 'Vertical Slice',
     continued: 'To be continued\u2026',
     credits: [
-      'STARRING', 'Claude Fable', 'GPT 5.5', 'GLM', '',
-      'AND', 'Dana, your rival', 'Prof. Karpathy', 'Mom', 'one very confident HalluciHound', '',
+      'STORY', 'Prof. Karpathy, who explained it twice', 'Mom, who packed a Patch', 'Dana, who read the type chart', '',
+      'CREATURES', 'Claude Fable, GPT 5.5 and GLM', 'Gemma 4, GPT-5.4 mini, Mistral Medium', 'a very rare Gemini Flash', 'one very confident HalluciHound', '',
+      'WORLD', 'Hayes Valley residents', 'the Route 101 tall grass (98% grass)', 'the SoMa Node fountain', 'Cafe Latency (closed for a fine-tune)', '',
+      'MUSIC', 'Battle themes: 4 square waves', 'and a dream', 'Town themes: 1 hopeful triangle', 'Sound effects: noise, with opinions', '',
       'THANK YOU FOR PLAYING',
     ],
+
   },
 }

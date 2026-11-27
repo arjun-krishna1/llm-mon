@@ -114,9 +114,9 @@ async function main() {
 
   // ======================================================== home
   await seg('home_1f', async () => {
-    // the phone rings on the first steps after the arrival (triggers round the mat / below the stairs)
+    // the phone rings as you head into the house (trigger band on row 4)
     g.handlers = { onText: shootOn(g, [[/Brrring|lab on the phone/, 'mom_lab_call']]) }
-    await g.walkTo({ x: 6, y: 6 }, { onInterrupt: async () => 'stop' })
+    await g.walkTo({ x: 6, y: 4 }, { onInterrupt: async () => 'stop' })
     await g.waitIdle()
     g.handlers = {}
     {

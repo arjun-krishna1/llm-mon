@@ -104,8 +104,14 @@ export function typePill(g: Phaser.GameObjects.Graphics, add: Adders, x: number,
   return 15
 }
 
-/** Cut `s` (no ellipsis, like the GBA PC) until it is at most `maxW` px in `font`. */
+/** Fit `s` into `maxW` px in `font` by dropping whole trailing words (never mid-word unless one word is too long). For names prefer fitLabel(). */
 export function fitText(scene: Phaser.Scene, font: string, s: string, maxW: number): string {
+  if (measure(scene, font, s) <= maxW) return s
+  const words = s.split(' ')
+  for (let n = words.length - 1; n >= 1; n--) {
+    const t = words.slice(0, n).join(' ')
+    if (measure(scene, font, t) <= maxW) return t
+  }
   let t = s
   while (t.length > 1 && measure(scene, font, t) > maxW) t = t.slice(0, -1)
   return t.trimEnd()

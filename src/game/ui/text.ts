@@ -47,6 +47,7 @@ export class PxText {
   constructor(scene: Phaser.Scene, x: number, y: number, text = '', style: TextStyle = {}) {
     this.scene = scene
     this.font = style.font ?? FONT.dialog
+    this.baseFont = this.font
     this._x = Math.round(x)
     this._y = Math.round(y)
     const shadow = style.shadow ?? 'full'
@@ -74,9 +75,40 @@ export class PxText {
   setText(t: string): this {
     if (t === this._text) return this
     this._text = t
-    this.main.setText(t)
-    for (const s of this.shadows) s.setText(t)
+    const shown = forFont(this.font, t)
+    this.main.setText(shown)
+    for (const s of this.shadows) s.setText(shown)
     return this
+  }
+
+  /** Switch font (e.g. to the mini font when a label does not fit). */
+  setFont(font: FontKey): this {
+    if (font === this.font) return this
+    this.font = font
+    // keep a mini label vertically centred where a dialog-font line was laid out
+    this.yOff = font === FONT.mini && this.baseFont === FONT.dialog ? 3 : 0
+    this.setPosition(this._x, this._y)
+    // pass the font's native size, or Phaser keeps the old font's size and scales the glyphs
+    const size = (this.scene.cache.bitmapFont.get(font)?.data?.size as number | undefined) ?? undefined
+    this.main.setFont(font, size)
+    for (const s of this.shadows) s.setFont(font, size)
+    const t = this._text
+    this._text = ''
+    return this.setText(t)
+  }
+
+  /** Extra px between glyphs (negative = condensed). */
+  setLetterSpacing(px: number): this {
+    this.spacing = px
+    this.main.setLetterSpacing(px)
+    for (const s of this.shadows) s.setLetterSpacing(px)
+    return this
+  }
+
+  /** Apply a fitLabel() result. */
+  setLabel(l: FittedLabel): this {
+    this.setFont(l.font).setLetterSpacing(l.spacing)
+    return this.setText(l.text)
   }
 
   setColor(color: number, shadowColor?: number): this {
@@ -93,8 +125,9 @@ export class PxText {
   setPosition(x: number, y: number): this {
     this._x = Math.round(x)
     this._y = Math.round(y)
-    this.main.setPosition(this._x, this._y)
-    this.shadows.forEach((s, i) => s.setPosition(this._x + this.offsets[i][0], this._y + this.offsets[i][1]))
+    const dy = this._y + (this.yOff ?? 0)
+    this.main.setPosition(this._x, dy)
+    this.shadows.forEach((s, i) => s.setPosition(this._x + this.offsets[i][0], dy + this.offsets[i][1]))
     return this
   }
 
@@ -128,8 +161,12 @@ export class PxText {
 
   /** Width in pixels of the current text (widest line). */
   get width(): number {
-    return measure(this.scene, this.font, this._text)
+    return measure(this.scene, this.font, this._text, this.spacing)
   }
+
+  private spacing = 0
+  private yOff = 0
+  private baseFont: FontKey = FONT.dialog
 
   /** Every game object (for containers / bulk ops). */
   objects(): Phaser.GameObjects.BitmapText[] {
@@ -147,9 +184,19 @@ function charAdvances(scene: Phaser.Scene, font: string): Record<number, { xAdva
   return (entry?.data?.chars ?? {}) as Record<number, { xAdvance: number; kerning?: Record<number, number> }>
 }
 
+/**
+ * The mini font is caps + digits only (plus the lowercase v of "Lv"): any text routed to it
+ * is upper-cased so nothing silently disappears ("Gemma 4" → "GEMMA 4", not "G 4").
+ */
+export function forFont(font: string, text: string): string {
+  if (font !== FONT.mini) return text
+  return text.replace(/[a-z]/g, (c, i: number) => (c === 'v' && text[i - 1] === 'L' ? c : c.toUpperCase()))
+}
+
 /** Pixel width of `text` (widest line) in a bitmap font, matching BitmapText layout. */
-export function measure(scene: Phaser.Scene, font: string, text: string): number {
+export function measure(scene: Phaser.Scene, font: string, text: string, spacing = 0): number {
   const chars = charAdvances(scene, font)
+  text = forFont(font, text)
   let best = 0
   for (const line of text.split('\n')) {
     let w = 0
@@ -163,6 +210,7 @@ export function measure(scene: Phaser.Scene, font: string, text: string): number
       }
     }
     if (line.length) w -= 1 // trailing tracking
+    if (line.length > 1) w += spacing * ([...line].length - 1)
     best = Math.max(best, w)
   }
   return best
@@ -196,4 +244,33 @@ export function expand(text: string, vars: Record<string, string | number> = {})
     if (k === 'money') return String(state.money)
     return m
   })
+}
+
+export interface FittedLabel {
+  text: string
+  font: FontKey
+  spacing: number
+}
+
+/**
+ * Fit a short label (names, nicknames) into `maxW` px without chopping a word:
+ * dialog font → dialog condensed by 1px → mini font (caps) → drop whole trailing words
+ * (dialog, then condensed) → only if a single word still cannot fit, cut it in the mini font.
+ */
+export function fitLabel(scene: Phaser.Scene, s: string, maxW: number): FittedLabel {
+  const d = FONT.dialog
+  const m = FONT.mini
+  if (measure(scene, d, s) <= maxW) return { text: s, font: d, spacing: 0 }
+  if (measure(scene, d, s, -1) <= maxW) return { text: s, font: d, spacing: -1 }
+  if (measure(scene, m, s) <= maxW) return { text: s, font: m, spacing: 0 }
+  const words = s.split(' ')
+  for (let n = words.length - 1; n >= 1; n--) {
+    const t = words.slice(0, n).join(' ')
+    if (measure(scene, d, t) <= maxW) return { text: t, font: d, spacing: 0 }
+    if (measure(scene, d, t, -1) <= maxW) return { text: t, font: d, spacing: -1 }
+    if (measure(scene, m, t) <= maxW) return { text: t, font: m, spacing: 0 }
+  }
+  let t = s
+  while (t.length > 1 && measure(scene, m, t) > maxW) t = t.slice(0, -1)
+  return { text: t.trimEnd(), font: m, spacing: 0 }
 }

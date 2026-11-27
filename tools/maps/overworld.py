@@ -54,16 +54,16 @@ SOMA = [
     # rows 0-8: forest, the closed road north
     *['TTTTTTTTTTTT.==.TTTTTTTTTTTT'] * 9,
     'TTTTTTTTTTTTfggfTTTTTTTTTTTT',  # 9  road-closed fence
-    '.G######K####..s......A#####',  # 10 gym / cafe / end sign / apartment
-    '.############___......######',  # 11
-    '.############___C###########',  # 12 model center
-    '.############__!############',  # 13
-    '.############___############',  # 14
-    '.############___############',  # 15
-    '.############__!############',  # 16 cafe door x18
+    '.G######K####..shhhhhhA#####',  # 10 gym / cafe / end sign / hedged lot / apartment
+    'h############___P,n#,P######',  # 11 back lot: planters + bench
+    'h############___C###########',  # 12 model center
+    'h############__!############',  # 13
+    'h############___############',  # 14
+    'h############___############',  # 15
+    'h############__!############',  # 16 cafe door x18
     '.#######________############',  # 17 gym door x12 / center doors
-    '.____________ZZ_______######',  # 18 main street / apartment doors x32-33
-    '.____________ZZ____________.',  # 19
+    '._____________+_______######',  # 18 main street / apartment doors x32-33
+    '.__________________________.',  # 19
     '..E####.____________.M####..',  # 20 soma_house (green) / plaza / mart
     '..#####._____+__W-__.#####..',  # 21 bike rack
     '..#####._?______$___.#####..',  # 22 kiosk / bench
@@ -138,7 +138,7 @@ HAYES = [
     'TT.H####..##.==..L######..TT',  # 91 player house / lab
     'TT.#####.....==..#######..TT',  # 92
     'TT.#####.yr..==..#######..TT',  # 93
-    'TT.#####.....==..#######.bTT',  # 94
+    'TT.#####.....==..#######.qTT',  # 94
     'TT.#####.....==..#######..TT',  # 95 (truck prop parks on the drive below)
     'TT.#####%%%..==.....=.....TT',  # 96
     'TT.#####%%%..==.....=.....TT',  # 97 house door x13
@@ -152,7 +152,7 @@ HAYES = [
     'TT..#####....==.F.~~~.|F..TT',  # 105
     'TT..#####.y..==.Fy...n#F..TT',  # 106
     'TT..#####....==.FFFFFFFF..TT',  # 107
-    'TTb.r.=========..w.y..r.b.TT',  # 108 lane
+    'TTq.r.=========..w.y..r.u.TT',  # 108 lane
     *['TTTTTTTTTTTTTTTTTTTTTTTTTTTT'] * 8,  # 109-116
 ]
 
@@ -265,11 +265,11 @@ def objects(m):
     # stepping away from the closed road after hearing about it rolls the end card (once)
     m.trigger(21, 12, 3, 1, 'soma.end', ifFlag='heard_road_closed', unlessFlag='saw_end_card')
     # rival Dana: meets you outside your house, ambushes you at the north end of Route 101
-    m.trigger(12, 98, 1, 1, 'rival.intro', ifFlag='mom_lab_call', unlessFlag='met_rival')
-    m.trigger(13, 99, 1, 1, 'rival.intro', ifFlag='mom_lab_call', unlessFlag='met_rival')
+    m.trigger(12, 98, 1, 1, 'rival.intro', ifFlag='arrived', unlessFlag='met_rival')
+    m.trigger(13, 99, 1, 1, 'rival.intro', ifFlag='arrived', unlessFlag='met_rival')
     m.trigger(20, 36, 4, 1, 'rival.ambush', ifFlag='rival_starter', unlessFlag='rival_beaten')
     m.npc('sn_girl', 16, 19, 'girl', script='soma.girl', facing='down', movement='wander', radius=2)
-    m.npc('sn_techie', 23, 15, 'techie', script='soma.techie', facing='left')
+    m.npc('sn_techie', 22, 14, 'techie', script='soma.techie', facing='left')
     m.npc('sn_woman', 26, 21, 'woman', script='soma.woman', facing='left', movement='look')
     m.npc('sn_elder', 16, 24, 'elder', script='soma.elder', facing='right', movement='look')
     m.npc('sn_man', 14, 27, 'man', script='soma.man', facing='right', movement='wander', radius=2)

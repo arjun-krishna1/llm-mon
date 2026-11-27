@@ -80,3 +80,7 @@ registerScript('test.endcard', async (s) => {
   await s.say('Roll the credits!')
   await s.endCard()
 })
+
+registerScript('test.storage', async (s) => {
+  await s.storage()
+})

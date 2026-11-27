@@ -312,7 +312,7 @@ export class UIScene extends Phaser.Scene {
           state.addMoney(-info.price * n)
           state.addItem(info.id, n)
           money.refresh?.()
-          audio.sfx('stat_up') // short rising chime on a completed purchase / sale (select is swallowed by the YES press)
+          audio.sfx('buy') // completed purchase / sale
           await this.say('Here you are! Thank you!')
         }
       }
@@ -339,7 +339,7 @@ export class UIScene extends Phaser.Scene {
         state.removeItem(id, n)
         state.addMoney(price * n)
         money.refresh?.()
-        audio.sfx('stat_up') // short rising chime on a completed purchase / sale (select is swallowed by the YES press)
+        audio.sfx('buy') // completed purchase / sale
         await this.say(`Turned over the ${info.name} and received $${price * n}.`)
       }
     }

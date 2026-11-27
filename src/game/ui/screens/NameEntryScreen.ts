@@ -26,13 +26,16 @@ export interface NameEntryOptions {
   presets?: string[]
 }
 
-const UPPER = ['ABCDEFGHI', 'JKLMNOPQR', 'STUVWXYZ.']
-const LOWER = ['abcdefghi', 'jklmnopqr', 'stuvwxyz-']
+// 10 columns; the last letter row carries . - ' ! on both pages, the digit row is shared.
+const UPPER = ['ABCDEFGHIJ', 'KLMNOPQRST', "UVWXYZ.-'!", '0123456789']
+const LOWER = ['abcdefghij', 'klmnopqrst', "uvwxyz.-'!", '0123456789']
+const GRID_ROWS = 4
+const COLS = 10
 type Cmd = 'case' | 'space' | 'del' | 'ok' | 'pick'
 
 const GX = 30 // grid left
-const GY = 58 // grid top
-const CW = 20 // cell width
+const GY = 56 // grid top
+const CW = 18 // cell width
 const CH = 16 // cell height
 
 export class NameEntryScreen extends Screen<string> {
@@ -73,18 +76,18 @@ export class NameEntryScreen extends Screen<string> {
     this.root.add(this.caret)
     // grid panel
     drawPanel(g, 22, 52, 196, 104)
-    for (let r = 0; r < 3; r++) for (let c = 0; c < 9; c++) this.letters.push(this.text(GX + c * CW + 4, GY + r * CH + 3, ''))
+    for (let r = 0; r < GRID_ROWS; r++) for (let c = 0; c < COLS; c++) this.letters.push(this.text(GX + c * CW + 4, GY + r * CH + 3, ''))
     // command row(s)
     const row: Array<[Cmd, string]> = [['case', 'abc'], ['space', 'SPACE'], ['del', 'DEL'], ['ok', 'OK']]
     let x = GX
     for (const [id, label] of row) {
       const w = measure(scene, FONT.dialog, label) + 12
-      this.cmds.push({ id, label, x, w, t: this.text(x + 6, GY + 3 * CH + 5, label) })
+      this.cmds.push({ id, label, x, w, t: this.text(x + 6, GY + GRID_ROWS * CH + 5, label) })
       x += w + 6
     }
     if (o.presets?.length) {
       const label = 'PICK A NAME FOR ME'
-      this.cmds.push({ id: 'pick', label, x: GX, w: measure(scene, FONT.dialog, label) + 12, t: this.text(GX + 6, GY + 4 * CH + 5, label) })
+      this.cmds.push({ id: 'pick', label, x: GX, w: measure(scene, FONT.dialog, label) + 12, t: this.text(GX + 6, GY + (GRID_ROWS + 1) * CH + 3, label) })
     }
     this.cursor = this.gfx()
     this.renderGrid()
@@ -92,16 +95,16 @@ export class NameEntryScreen extends Screen<string> {
   }
 
   private get rows(): number {
-    return this.o.presets?.length ? 5 : 4
+    return this.o.presets?.length ? GRID_ROWS + 2 : GRID_ROWS + 1
   }
 
   private rowCmds(r: number): typeof this.cmds {
-    return r === 3 ? this.cmds.filter((c) => c.id !== 'pick') : this.cmds.filter((c) => c.id === 'pick')
+    return r === GRID_ROWS ? this.cmds.filter((c) => c.id !== 'pick') : this.cmds.filter((c) => c.id === 'pick')
   }
 
   private renderGrid(): void {
     const set = this.lower ? LOWER : UPPER
-    for (let r = 0; r < 3; r++) for (let c = 0; c < 9; c++) this.letters[r * 9 + c].setText(set[r][c])
+    for (let r = 0; r < GRID_ROWS; r++) for (let c = 0; c < COLS; c++) this.letters[r * COLS + c].setText(set[r][c])
     const caseCmd = this.cmds.find((c) => c.id === 'case')!
     caseCmd.t?.setText(this.lower ? 'ABC' : 'abc')
   }
@@ -117,11 +120,12 @@ export class NameEntryScreen extends Screen<string> {
     const g = this.cursor
     g.clear()
     g.lineStyle(1, COLORS.accent[0])
-    if (this.cy < 3) {
+    if (this.cy < GRID_ROWS) {
       g.strokeRect(GX + this.cx * CW + 0.5, GY + this.cy * CH + 0.5, CW - 3, CH - 1)
     } else {
       const c = this.rowCmds(this.cy)[this.cx]
-      if (c) g.strokeRect(c.x + 0.5, GY + this.cy * CH + 2.5, c.w, CH - 1)
+      const y = GY + this.cy * CH + (this.cy === GRID_ROWS ? 2.5 : 0.5)
+      if (c) g.strokeRect(c.x + 0.5, y, c.w, CH - 1)
     }
   }
 
@@ -134,11 +138,11 @@ export class NameEntryScreen extends Screen<string> {
   private move(dx: number, dy: number): void {
     const prevRow = this.cy
     this.cy = (this.cy + dy + this.rows) % this.rows
-    const width = (r: number) => (r < 3 ? 9 : this.rowCmds(r).length)
+    const width = (r: number) => (r < GRID_ROWS ? COLS : this.rowCmds(r).length)
     if (dy !== 0 && prevRow !== this.cy) {
       // keep roughly the same horizontal position between grid and command rows
-      const px = prevRow < 3 ? GX + this.cx * CW : (this.rowCmds(prevRow)[this.cx]?.x ?? GX)
-      if (this.cy < 3) this.cx = Math.max(0, Math.min(8, Math.round((px - GX) / CW)))
+      const px = prevRow < GRID_ROWS ? GX + this.cx * CW : (this.rowCmds(prevRow)[this.cx]?.x ?? GX)
+      if (this.cy < GRID_ROWS) this.cx = Math.max(0, Math.min(COLS - 1, Math.round((px - GX) / CW)))
       else {
         const cs = this.rowCmds(this.cy)
         let best = 0
@@ -151,8 +155,8 @@ export class NameEntryScreen extends Screen<string> {
   }
 
   private jumpToOk(): void {
-    this.cy = 3
-    this.cx = this.rowCmds(3).findIndex((c) => c.id === 'ok')
+    this.cy = GRID_ROWS
+    this.cx = this.rowCmds(GRID_ROWS).findIndex((c) => c.id === 'ok')
   }
 
   private type(ch: string): void {
@@ -198,7 +202,7 @@ export class NameEntryScreen extends Screen<string> {
       audio.sfx('select')
     } else if (controls.justPressed('A')) {
       controls.consume('A')
-      if (this.cy < 3) return this.type((this.lower ? LOWER : UPPER)[this.cy][this.cx])
+      if (this.cy < GRID_ROWS) return this.type((this.lower ? LOWER : UPPER)[this.cy][this.cx])
       const c = this.rowCmds(this.cy)[this.cx]
       if (c?.id === 'case') {
         this.lower = !this.lower

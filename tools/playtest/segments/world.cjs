@@ -236,7 +236,7 @@ module.exports = async function world(ctx) {
       g.rivalPre = { party: pre.party, bag: pre.bag }
       console.log('   before rival: party', JSON.stringify(pre.party), 'bag', JSON.stringify(pre.bag))
     }
-    g.handlers = { ...battleShooter('rival'), onText: shootOn(g, [[/Took you long enough/, 'rival_ambush'], [/You won\. Fair and square/, 'rival_after']]) }
+    g.handlers = { ...battleShooter('rival'), onText: shootOn(g, [[/Took you long enough/, 'rival_ambush'], [/Stand still/, 'rival_heal'], [/You won\. Fair and square/, 'rival_after']]) }
     await g.walkTo({ x: 21, y: 33 }, { run: true })
     s = await g.snap()
     g.rivalFirst = { beaten: !!s.flags.rival_beaten, map: s.info.map }

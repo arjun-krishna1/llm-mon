@@ -10,7 +10,7 @@ runs twice. Order below = story order.
 | `visited_2f` | `home.enter_2f` (the `onEnter` hook of `home_2f`) | You went up to your room (optional exploration; nothing gates on it). |
 | `found_box_patch` | `home.boxes_2f` | Found the Patch in the moving box in your room (one-time reward for exploring). |
 | `read_notebook` | `home.notebook` | You opened the controls notebook (only changes its first line). |
-| `mom_lab_call` | `home.mom_lab_call`: the phone rings on your first steps after the arrival (triggers round the exit mat and below the stairs in `home_1f`, `ifFlag: arrived`), or talking to Mom | Mom told you the professor's lab called. |
+| `mom_lab_call` | `home.mom_lab_call`: the phone rings as you head into the house after the arrival (trigger band on row 4 of `home_1f`, `ifFlag: arrived`), or talking to Mom | Mom told you the professor's lab called. |
 | `met_aide` | `lab.aide` | The aide explained the professor went up Route 101. |
 | `has_satchel` | `lab.aide` (cleared after the rescue) | You are carrying the professor's satchel (changes his rescue line). |
 | `starter` | `route.rescue` | Species id of the starter you chose (`claude_fable` / `gpt_5_5` / `glm`). Set before the battle so the choice is never offered twice. |
@@ -24,9 +24,9 @@ runs twice. Order below = story order.
 | `saw_end_sign` | `soma.end_sign` | Read the end-of-slice sign (for playtests). |
 | `heard_road_closed` | `soma.guard`, `soma.end_sign` | Enables the end-card trigger on the avenue just south of the closed road (row 12). |
 | `saw_end_card` | `soma.end` | The end card has rolled (offered a save first). Never repeats. |
-| `met_rival` | `rival.intro` (trigger outside your front door once `mom_lab_call` is set) | Dana introduced herself and ran off to the lab. |
+| `met_rival` | `rival.intro` (trigger outside your front door once `arrived` is set) | Dana introduced herself and ran off to the lab. |
 | `rival_starter` | `rivalInLab()` (end of the PromptDex scene, or talking to the professor) | Species id Dana took: the one that beats yours (myth > logic > tool > myth). |
-| `rival_lost_once` | `rival.ambush` | You lost to Dana at least once (white-out; she waits for a rematch with a different line). |
+| `rival_lost_once` | `rival.ambush` | You lost to Dana at least once (white-out). Rematches use `rival_dana_<starter>_rematch` (her starter one level lower) and a different opening line. Dana heals your team before every fight. |
 | `rival_beaten` | `rival.ambush` | Beat Dana at the north end of Route 101 (trigger row 36). She then stands at the SoMa fountain (spawned by the overworld `onEnter` hook `overworld.enter`). |
 | `met_rosa`, `dana_line` | neighbour mom / fountain Dana | Intro done / line rotation. |
 | `mom_line`, `aide_line` | Mom / aide | Counters that rotate their idle lines. |

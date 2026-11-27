@@ -418,8 +418,9 @@ export class DexDetailScreen extends Screen<string> {
     g.clear()
     if (this.ids.length < 2) return
     const bob = Math.floor(this.frame / 16) % 2
-    triangle(g, 9 - bob, 58, 'left')
-    triangle(g, 105 + bob, 58, 'right')
+    // paging stops at the first / last entry; arrows only where there is somewhere to go
+    if (this.index > 0) triangle(g, 9 - bob, 58, 'left')
+    if (this.index < this.ids.length - 1) triangle(g, 105 + bob, 58, 'right')
   }
 
   tick(): void {
@@ -440,8 +441,11 @@ export class DexDetailScreen extends Screen<string> {
     if (controls.repeat('right') || controls.repeat('down')) d = 1
     else if (controls.repeat('left') || controls.repeat('up')) d = -1
     if (!d) return
-    this.index = (this.index + d + this.ids.length) % this.ids.length
+    const next = this.index + d
+    if (next < 0 || next >= this.ids.length) return
+    this.index = next
     audio.sfx('select')
     this.build()
+    this.drawArrows()
   }
 }

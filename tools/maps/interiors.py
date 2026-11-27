@@ -112,9 +112,9 @@ def home_1f():
     m.warp(11, 1, 'home_2f', 'stairs', facing='down', sfx='stairs')
     m.spawn('stairs', 10, 2, facing='down')
     m.npc('mom', 4, 5, 'mom', script='home.mom', facing='left')
-    # the phone rings on your first steps after the arrival: heading for the stairs
-    # (every route to them passes 9..10,3) or back out of the door (cells round the mat)
-    for (x, y, w, h) in ((9, 3, 2, 1), (6, 6, 2, 2), (5, 6, 1, 1), (5, 8, 1, 1), (7, 8, 1, 1)):
+    # the phone rings as you head into the house after the arrival: every way north crosses row 4
+    # (row 4: high enough on screen that the dialog box + name plate never cover the player)
+    for (x, y, w, h) in ((1, 4, 1, 1), (4, 4, 7, 1), (11, 4, 1, 1)):
         m.trigger(x, y, w, h, 'home.mom_lab_call', ifFlag='arrived', unlessFlag='mom_lab_call')
     signs(m, [(7, 2), (8, 2)], 'home.tv')
     signs(m, [(8, 3)], 'home.console')
