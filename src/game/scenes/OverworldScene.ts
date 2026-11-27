@@ -303,7 +303,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
 
   // ================================================================ main loop
 
-  update(_time: number, delta: number): void {
+  update(): void {
     if (!this.ready || !this.map) return
     controls.each(() => {
       this.edgeA = controls.justPressed('A')
@@ -317,7 +317,6 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       state.y = this.player.ty
       state.facing = this.player.facing
     }
-    if (!this.transitioning) state.playTimeMs += delta
   }
 
   /** Locked: scripts, warps, menus, dialog. */
@@ -472,9 +471,10 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
   /** Procedural door-open overlay on a door tile: a dark opening that grows downward (k: 0 closed → 1 open). */
   private drawDoor(g: Phaser.GameObjects.Graphics, x: number, y: number, k: number): void {
     g.clear()
-    // door art usually rises a few px into the tile above; open from the top down like a roller door
-    const top = y * TILE - 3
-    const h = Math.round(16 * k)
+    // Stamp doors are ~10px wide and rise ~10px into the tile above the door tile (house/mart/
+    // lab art); open from the top down like a roller door. Stays open until the fade (QA P2).
+    const top = y * TILE - 10
+    const h = Math.round(23 * k)
     if (h <= 0) return
     g.fillStyle(0x28222e, 0.94)
     g.fillRect(x * TILE + 3, top, 10, h)
@@ -527,8 +527,9 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
 
   private rustle(x: number, y: number): void {
     audio.sfx('grass')
+    // under every character (the feet overlay covers the walker); never over a torso
     const img = this.add.image(x * TILE, y * TILE, 'fx/grass_rustle', 0).setOrigin(0, 0)
-      .setDepth(DEPTH.charBase + y * TILE + TILE + 1)
+      .setDepth(DEPTH.shadow + 1)
     this.fxs.push({ img, t: 0, frames: 4, rate: 4 })
   }
 
@@ -1062,6 +1063,9 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       })
       if (this.scene.isActive('Battle') || this.scene.isPaused('Battle')) this.scene.stop('Battle')
       this.scene.resume()
+      // resume() is queued while the scene manager is mid-step (onDone fires from Battle's update):
+      // wait until we are really running again before scripts continue (QA P1, ?fast=1 rescue).
+      for (let i = 0; i < 60 && !this.sys.isActive(); i++) await new Promise<void>((r) => this.ui.time.delayedCall(0, r))
       this.stepsSinceBattle = 0
       controls.consumeAll()
       if (result.outcome === 'win' && req.kind === 'trainer' && req.trainer) state.setFlag(`trainer_${req.trainer.id}_defeated`)

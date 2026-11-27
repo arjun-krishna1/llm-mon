@@ -113,8 +113,20 @@ export class BattleScene extends Phaser.Scene {
   update(): void {
     controls.each(() => {
       this.stack.update()
+      // Battle chatter types 1.5x faster than field dialogue (an extra typewriter tick every other frame).
+      this.tickN++
+      if (this.tickN % 2 === 0 && (this.box as unknown as { phase: string }).phase === 'typing') this.box.tick()
       this.stage.tick()
     })
+  }
+
+  private tickN = 0
+
+  /** "What will X do?" appears at once (it is a prompt, not news). */
+  private async prompt(text: string): Promise<void> {
+    const p = this.box.say(text, { keepOpen: true, silent: true })
+    ;(this.box as unknown as { revealAll(): void }).revealAll()
+    await p
   }
 
   private installDebug(): void {
@@ -165,7 +177,7 @@ export class BattleScene extends Phaser.Scene {
     const v = this.battle.getView()
     await this.flushText()
     this.updateLowHp()
-    await this.box.say(`What will\n${v.player.name} do?`, { keepOpen: true, silent: true })
+    await this.prompt(`What will\n${v.player.name} do?`)
     this.stage.setBob(true)
     for (;;) {
       this.phase = 'command'
@@ -183,7 +195,7 @@ export class BattleScene extends Phaser.Scene {
       if (c === 1) {
         const r = await this.bagFlow()
         if (r) return r
-        await this.box.say(`What will\n${v.player.name} do?`, { keepOpen: true, silent: true })
+        await this.prompt(`What will\n${v.player.name} do?`)
         continue
       }
       if (c === 2) {

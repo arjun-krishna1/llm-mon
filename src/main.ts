@@ -6,6 +6,7 @@ import { controls } from './game/controls'
 import { audio } from './game/audio'
 import { params } from './game/params'
 import { seedRng } from './game/rng'
+import { state } from './game/state'
 import { BootScene } from './game/scenes/BootScene'
 import { TitleScene } from './game/scenes/TitleScene'
 import { IntroScene } from './game/scenes/IntroScene'
@@ -53,7 +54,11 @@ const game = new Phaser.Game({
   scene: [BootScene, TitleScene, IntroScene, OverworldScene, UIScene, BattleScene, StarterSelectScene],
 })
 
-game.events.on(Phaser.Core.Events.PRE_STEP, (_time: number, delta: number) => controls.step(delta))
+game.events.on(Phaser.Core.Events.PRE_STEP, (_time: number, delta: number) => {
+  controls.step(delta)
+  // Play time = wall clock in any scene once a game is running (not on the title / boot screens).
+  if (!game.scene.isActive('Title') && !game.scene.isActive('Boot')) state.playTimeMs += Math.min(delta, 250)
+})
 
 window.addEventListener('resize', () => {
   fitParent()

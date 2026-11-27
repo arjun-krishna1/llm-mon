@@ -5,6 +5,9 @@ import Phaser from 'phaser'
 import { DEPTH, DIR_ROW, DIR_VEC, LEDGE_FRAMES, LEDGE_HEIGHT, TILE, type Dir } from '../config'
 import { ensureTexture } from '../assets'
 
+/** Pixels of the sprite (from its bottom) that tall grass may cover. */
+const FEET_PX = 6
+
 export type Movement = 'static' | 'look' | 'wander'
 
 export interface ActorOptions {
@@ -259,14 +262,30 @@ export class Actor {
     this.shadow.setPosition(x, y - 3)
     this.shadow.setVisible(!this.hidden && (this.lift > 0 || this.shadowAlways))
     this.sprite.setVisible(!this.hidden)
-    // tall grass overlays (not while airborne)
+    // Tall-grass overlay: only over the feet/shins (bottom FEET_PX of the sprite), on the
+    // tile(s) the feet are actually in, never higher (QA P1).
     const [gd, gs] = this.grass
     const depth = this.sprite.depth + 0.25
-    const dGrass = !this.hidden && this.lift === 0 && this.onGrass(this.tx, this.ty)
-    gd.setVisible(dGrass).setPosition(this.tx * TILE, this.ty * TILE).setDepth(depth)
-    const leaving = this.moving && (this.fromX !== this.tx || this.fromY !== this.ty) && this.moved < TILE / 2
-    const sGrass = !this.hidden && this.lift === 0 && leaving && this.onGrass(this.fromX, this.fromY)
-    gs.setVisible(sGrass).setPosition(this.fromX * TILE, this.fromY * TILE).setDepth(depth)
+    const air = this.hidden || this.lift > 0
+    const feetBottom = this.py + TILE // sprite bottom (px)
+    const cropTop = (tileY: number) => Math.max(0, feetBottom - FEET_PX - tileY * TILE)
+    const show = (img: Phaser.GameObjects.Image, x: number, y: number, on: boolean) => {
+      img.setVisible(on)
+      if (!on) return
+      const top = cropTop(y)
+      img.setPosition(x * TILE, y * TILE).setDepth(depth).setCrop(0, top, TILE, Math.max(0, TILE - top))
+    }
+    const vertical = this.fromX === this.tx
+    if (!this.moving || vertical) {
+      // feet tile: the tile containing the sprite's bottom row
+      const fy = Math.floor((this.py + TILE - 1) / TILE)
+      show(gd, this.tx, fy, !air && this.onGrass(this.tx, fy))
+      gs.setVisible(false)
+    } else {
+      // sideways: the feet straddle both tiles of the same row
+      show(gd, this.tx, this.ty, !air && this.onGrass(this.tx, this.ty))
+      show(gs, this.fromX, this.fromY, !air && this.onGrass(this.fromX, this.fromY))
+    }
   }
 
   /** Show a ground shadow even when not hopping (default off: sprites have baked feet). */

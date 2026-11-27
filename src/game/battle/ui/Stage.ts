@@ -254,8 +254,8 @@ export class Stage {
     const ov = this.scene.add.image(m.x, m.y, m.texture.key).setOrigin(0.5, 1).setDepth(m.depth + 1).setTintFill(0xffffff).setScale(0.15)
     await tween(this.scene, [m, ov], TIMING.popMs, { scale: 1, ease: 'Back.Out' })
     m.setScale(1)
-    await tween(this.scene, ov, 200, { alpha: 0 })
-    ov.destroy()
+    void tween(this.scene, ov, 200, { alpha: 0 }).then(() => ov.destroy())
+    await wait(this.scene, 60)
     if (side === 'player') this.playerResting = true
   }
 

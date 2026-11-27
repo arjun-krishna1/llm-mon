@@ -17,7 +17,8 @@ runs twice. Order below = story order.
 | `got_dex` | `labDex()` (end of the rescue, or talking to the professor) | Received the PromptDex + 5 Prompt Orbs. Enables Mom's Fast Tokens scene; hides the mover. |
 | `has_run` | Mom (`hayes.mom_fast_tokens` trigger outside the lab, or talking to her at home) | Fast Tokens received. Engine flag: hold B to run outdoors. |
 | `trainer_route_101_a_defeated`, `trainer_route_101_b_defeated` | engine (`startBattle` on a trainer win) | Trainer beaten; sight disabled, post-battle lines from `src/game/data/trainers.ts`. |
-| `item_route_prompt_orb`, `item_route_hidden_patch`, `item_route_patch` | engine (item pickup) | Ground items on Route 101 (the patch at 21,49 is hidden). |
+| `item_route_prompt_orb`, `item_route_hidden_patch`, `item_route_patch`, `item_route_debugger` | engine (item pickup) | Ground items on Route 101 (the patch at 21,49 is hidden; the Debugger at 29,79 sits behind tall grass in the rescue pocket). |
+| `route_hiker_heal` | `route.hiker` | The hiker on the east path has used his one-time "clear your cache" heal. |
 | `healed_at_center` | `center.nurse` | First Model Center heal (one-time explanation of the heal point). The nurse also calls `setHealPoint('center', 'counter')`. |
 | `saw_end_sign` | `soma.end_sign` | Read the end-of-slice sign (for playtests). |
 | `met_dana` | `neighbor.dana` | Dana introduced herself. |
