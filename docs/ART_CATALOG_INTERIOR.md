@@ -61,7 +61,8 @@ row H-1    rim_bl  rim_b … rim_door_gap … rim_b    rim_br    ← front rim; 
   its bottom row on floor row 2 (desk_pc, tv, bookshelf, fridge, kitchen
   pieces, lab_console, lab_shelf, terminal, heal_machine, mart_shelf).
 - `wall_face` — decoration on the two wall-face rows (rows 0–1), `detail`
-  layer over the wall tiles: window(+_teal/_violet/_blue/_green), whiteboard,
+  layer over the wall tiles: wall_emblem_center / wall_emblem_mart (2×1, row 0),
+  window(+_teal/_violet/_blue/_green), whiteboard,
   poster (1×2), clock (1×1, row 0), door_inner (1×2). stairs_up also uses rows
   0–1 but on the **ground** layer, replacing the wall tiles there.
 - `floor` — anywhere on the floor.
@@ -104,6 +105,11 @@ row H-1    rim_bl  rim_b … rim_door_gap … rim_b    rim_br    ← front rim; 
 | mart_shelf | 2×2 | BB / BB | wall shelf of goods |
 | mart_shelf_free | 2×2 | OO / BB | aisle shelf, top in over |
 | crate_apples, boxes | 1×1 | B | shop props |
+| bed_wide, bed_wide_pink, bed_wide_green | 2×2 | BB / BB | full-size bed (blue = player, pink = neighbour); prefer over `bed` |
+| sofa | 2×1 | BB | green two-seat sofa facing down |
+| wall_emblem_center | 2×1 | bb | wall row 0: teal plate with the chip/plus emblem (matches the exterior sign) |
+| wall_emblem_mart | 2×1 | bb | wall row 0: violet plate with the gold coin "T" |
+| pc_storage | 1×2 | B / B | storage PC (`wall`): terminal art with a 2-frame pulsing screen |
 
 ## Counters (autotiles `counter_heal`, `counter_shop`)
 
@@ -122,5 +128,12 @@ counter base at row 4 (tops on row 3).
 
 ## Animated tiles
 
-lab_rack (LEDs), lab_console (screen), heal_machine (core pulse) use the
+lab_rack (LEDs), lab_console (screen), heal_machine (core pulse), pc_storage
+(screen) use the
 standard Tiled `animation` arrays in `interior.tsj`.
+
+## Id stability
+
+Tile ids are append-only: new art is added after the last row, so existing
+ids and catalog names never move (round 3 added bed_wide*, sofa, the wall
+emblems and pc_storage from row 20 on).

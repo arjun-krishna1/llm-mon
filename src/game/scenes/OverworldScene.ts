@@ -145,6 +145,11 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.map?.destroy()
       this.map = undefined
+      this.ready = false
+      // a script may still be awaiting when the scene stops (e.g. s.endCard()); leave nothing to touch
+      this.npcs.clear()
+      this.props.clear()
+      this.items = []
     })
     void this.boot()
   }

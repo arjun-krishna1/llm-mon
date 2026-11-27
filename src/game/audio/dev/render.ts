@@ -1,6 +1,7 @@
 // Offline rendering + signal checks used by the automated audio verification
 // (dev/harness.html driven by Playwright) and by the audition page.
 
+import { cryRecipe, playCry, type CryOptions } from '../cries.ts'
 import { SFX } from '../sfx.ts'
 import { compileSong, songLengths, SongPlayer } from '../song.ts'
 import { SONGS } from '../tracks/index.ts'
@@ -36,6 +37,16 @@ export async function renderSfx(id: string, sampleRate = SR): Promise<AudioBuffe
     for (let i = 0; i < 4; i++) def.play!(ctx, ctx.destination, 0.01 + i * def.loopPeriod, i)
   } else def.play!(ctx, ctx.destination, 0.01, 0)
   return ctx.startRendering()
+}
+
+export async function renderCry(id: string, opts: CryOptions = {}, sampleRate = SR): Promise<AudioBuffer> {
+  const ctx = new OfflineAudioContext(2, Math.ceil(1.5 * sampleRate), sampleRate)
+  playCry(ctx, ctx.destination, 0.01, cryRecipe(id), opts)
+  return ctx.startRendering()
+}
+
+export async function cryReport(id: string, opts: CryOptions = {}) {
+  return { id, faint: !!opts.faint, ...stats(await renderCry(id, opts)) }
 }
 
 export interface SignalStats {

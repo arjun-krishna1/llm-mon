@@ -918,6 +918,125 @@
     ]
    },
    "note": "Wall decoration over both wall-face rows."
+  },
+  "bed_wide": {
+   "w": 2,
+   "h": 2,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      320,
+      321
+     ],
+     [
+      322,
+      323
+     ]
+    ]
+   },
+   "note": "2x2 bed, blue quilt; headboard against the back wall."
+  },
+  "bed_wide_pink": {
+   "w": 2,
+   "h": 2,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      324,
+      325
+     ],
+     [
+      326,
+      327
+     ]
+    ]
+   },
+   "note": "2x2 bed, pink quilt (neighbour)."
+  },
+  "bed_wide_green": {
+   "w": 2,
+   "h": 2,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      328,
+      329
+     ],
+     [
+      330,
+      331
+     ]
+    ]
+   },
+   "note": "2x2 bed, green quilt."
+  },
+  "sofa": {
+   "w": 2,
+   "h": 1,
+   "place": "floor",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      332,
+      333
+     ]
+    ]
+   },
+   "note": "Two-seat sofa facing down."
+  },
+  "wall_emblem_center": {
+   "w": 2,
+   "h": 1,
+   "place": "wall_face",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      334,
+      335
+     ]
+    ]
+   },
+   "note": "Teal chip/plus plate (matches the exterior sign); wall row 0."
+  },
+  "wall_emblem_mart": {
+   "w": 2,
+   "h": 1,
+   "place": "wall_face",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      336,
+      337
+     ]
+    ]
+   },
+   "note": "Violet plate with the gold coin \"T\"; wall row 0."
+  },
+  "pc_storage": {
+   "w": 1,
+   "h": 2,
+   "place": "wall",
+   "base_layer": "detail",
+   "layers": {
+    "base": [
+     [
+      338
+     ],
+     [
+      263
+     ]
+    ]
+   },
+   "note": "Storage PC: the terminal with a pulsing screen (2 frames)."
   }
  },
  "autotiles": {

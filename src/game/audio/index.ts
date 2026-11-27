@@ -3,6 +3,7 @@
 // with intro/loop sections, cross-fades, and jingles that pause/resume the music.
 // Safe no-op when WebAudio is unavailable (SSR, tests).
 
+import { cryRecipe, CRIES, playCry, type CryOptions } from './cries.ts'
 import { SFX } from './sfx.ts'
 import { compileSong, SongPlayer, type CompiledSong } from './song.ts'
 import { SONGS } from './tracks/index.ts'
@@ -32,6 +33,15 @@ export interface AudioApi {
   sfxDurationMs(id: string): number
   /** Master volume 0..1. */
   setMasterVolume(v: number): void
+  /**
+   * Creature cry. Hand-tuned for the slice roster; any other id gets a deterministic
+   * hash-derived cry. `pitch` multiplies frequency; `faint` plays it lower and falling.
+   */
+  cry(speciesId: string, opts?: CryOptions): void
+  /** Length of a cry in ms. */
+  cryDurationMs(speciesId: string, opts?: CryOptions): number
+  /** Species ids that have hand-tuned cries. */
+  readonly cryIds: readonly string[]
   readonly musicIds: readonly string[]
   readonly sfxIds: readonly string[]
 }
@@ -60,6 +70,7 @@ interface Loop {
 class AudioManager implements AudioApi {
   readonly musicIds = Object.keys(SONGS)
   readonly sfxIds = Object.keys(SFX)
+  readonly cryIds = Object.keys(CRIES)
   private ctx: AudioContext | null = null
   private master: GainNode | null = null
   private musicBus: GainNode | null = null
@@ -245,6 +256,26 @@ class AudioManager implements AudioApi {
       return
     }
     def.play?.(ctx, this.sfxBus!, t, 0)
+  }
+
+  cry(speciesId: string, opts: CryOptions = {}): void {
+    const ctx = this.ensure()
+    if (!ctx || !this.isUnlocked() || typeof speciesId !== 'string') return
+    const key = `cry:${speciesId}`
+    const now = ctx.currentTime
+    if (now - (this.lastSfx.get(key) ?? -1) < 0.06) return
+    this.lastSfx.set(key, now)
+    try {
+      playCry(ctx, this.sfxBus!, now + 0.005, cryRecipe(speciesId), opts)
+    } catch (e) {
+      console.warn('[audio] cry failed', speciesId, e)
+    }
+  }
+
+  cryDurationMs(speciesId: string, opts: CryOptions = {}): number {
+    const r = cryRecipe(String(speciesId))
+    const stretch = opts.faint ? 1.45 : 1
+    return Math.round(Math.max(...r.parts.map((p) => p.at + p.dur)) * stretch * 1000)
   }
 
   sfxLoop(id: string): void {

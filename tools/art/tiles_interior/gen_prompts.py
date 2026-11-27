@@ -44,6 +44,8 @@ PROMPTS = {
     'int_mart_shelf': "A shop display shelf unit against a wall, " + V + " Overall proportions exactly 1:1 square (2x2 tiles): honey wood frame with violet trim, three shelves stocked with neat rows of colourful goods: bottles, small boxes, jars and cans.",
     'int_mart_shelf_free': "A freestanding double-sided shop gondola shelf in an aisle, " + V + " Overall proportions exactly 1:1 square (2x2 tiles): low white metal shelf unit with violet end trim, two tiers of neatly stocked colourful packaged goods, boxes and bottles; the top tier visible from above.",
     'int_props_shop': SHEET + "a small violet cash register with a paper receipt; a wooden crate full of red apples; a small white round display pedestal with a teal ring for a laboratory; a brown leather satchel bag; a stack of three cardboard boxes; a small wall poster showing a cute original round creature on a starry night sky.",
+    'int_bed_wide': "A wide single bed for a child's bedroom, " + V + " Overall proportions exactly 1:1 square (2x2 tiles): a honey-wood headboard at the top, a big white pillow, a blue quilt with a simple white diamond pattern and a white sheet folded over its top edge, the quilt draping over both sides, a low wooden footboard at the bottom.",
+    'int_sofa': "A cosy two-seat living-room sofa seen from the front, " + V + " Overall proportions exactly 2 wide by 1 tall (2x1 tiles): soft olive-green fabric, a rounded backrest at the top, two seat cushions, chunky rounded armrests on both sides, short wooden feet, one small cream throw pillow.",
 }
 
 

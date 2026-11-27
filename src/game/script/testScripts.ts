@@ -75,3 +75,8 @@ registerScript('test.truck', async (s) => {
 registerScript('test.satchel', async (s) => {
   await s.say('A satchel prop. It’s solid, so you can’t walk over it.')
 })
+
+registerScript('test.endcard', async (s) => {
+  await s.say('Roll the credits!')
+  await s.endCard()
+})

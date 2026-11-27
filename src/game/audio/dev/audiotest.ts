@@ -5,6 +5,7 @@
 import { audio } from '../index.ts'
 import { SONGS } from '../tracks/index.ts'
 import { SFX } from '../sfx.ts'
+import { CRIES } from '../cries.ts'
 import { compileSong, songLengths } from '../song.ts'
 
 export function mountAudioTest(root: HTMLElement = document.body): void {
@@ -71,6 +72,15 @@ export function mountAudioTest(root: HTMLElement = document.body): void {
         audio.sfx(id)
       }),
     )
+  }
+  const cryGrid = h2('Creature cries (shift-click = faint)')
+  for (const id of [...Object.keys(CRIES), 'some_unknown_mon', 'another_model']) {
+    const b = button(id, () => {})
+    b.onclick = (e) => {
+      audio.unlock()
+      audio.cry(id, { faint: e.shiftKey })
+    }
+    cryGrid.appendChild(b)
   }
   const loopGrid = h2('Looping sfx')
   for (const id of ['exp', 'low_hp']) {

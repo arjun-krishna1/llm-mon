@@ -14,6 +14,7 @@ import { OverworldScene } from './game/scenes/OverworldScene'
 import { UIScene } from './game/scenes/UIScene'
 import { BattleScene } from './game/scenes/BattleScene'
 import { StarterSelectScene } from './game/scenes/StarterSelectScene'
+import { EndCardScene } from './game/scenes/EndCardScene'
 import { installDebug } from './game/debug'
 import { TouchControls, touchWanted } from './game/touch'
 import { loadOptions } from './game/options'
@@ -90,7 +91,7 @@ const game = new Phaser.Game({
   fps: { target: 60 },
   input: { keyboard: false, mouse: false, touch: false, gamepad: false },
   render: { antialiasGL: false, pixelArt: true },
-  scene: [BootScene, TitleScene, IntroScene, OverworldScene, UIScene, BattleScene, StarterSelectScene],
+  scene: [BootScene, TitleScene, IntroScene, OverworldScene, UIScene, BattleScene, StarterSelectScene, EndCardScene],
 })
 
 game.events.on(Phaser.Core.Events.PRE_STEP, (_time: number, delta: number) => {

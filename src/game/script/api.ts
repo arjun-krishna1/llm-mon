@@ -354,6 +354,20 @@ export class ScriptApi {
     return this.ui.shop(itemIds, greeting)
   }
 
+  /**
+   * Fade to the end card (credits, play time, caught count), then return to the title
+   * screen. The save is not touched (save first if you want the end state kept). The
+   * overworld is shut down; the promise resolves once the title is back.
+   */
+  async endCard(): Promise<void> {
+    await this.ui.fade(1, 700)
+    const sm = this.game.scene
+    await new Promise<void>((res) => {
+      for (const k of ['Battle', 'StarterSelect', 'Overworld']) if (sm.isActive(k) || sm.isPaused(k)) sm.stop(k)
+      sm.start('EndCard', { onDone: res })
+    })
+  }
+
   /** Run another registered script inline (same self/ctx). */
   async run(id: string): Promise<void> {
     const fn = getScript(id)

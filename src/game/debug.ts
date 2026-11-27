@@ -6,6 +6,7 @@ import { getUI } from './scenes/UIScene'
 import type { OverworldScene } from './scenes/OverworldScene'
 import type { BattleRequest, BattleResult } from './types'
 import { createMon } from './adapters/monInfo'
+import { runScript } from './script'
 
 export function installDebug(game: Phaser.Game): void {
   const ow = () => game.scene.getScene('Overworld') as OverworldScene
@@ -55,6 +56,10 @@ export function installDebug(game: Phaser.Game): void {
     },
     heal() {
       state.healParty()
+    },
+    /** Run a registered script (from the overworld when active). */
+    runScript(id: string) {
+      return runScript(game, id)
     },
   }
   ;(window as unknown as { __llmmon: typeof api }).__llmmon = api

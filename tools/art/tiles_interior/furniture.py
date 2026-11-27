@@ -438,3 +438,93 @@ def build_furniture(sh):
         top.paste(reg, 0, 0)
         sh.tile('counter_shop_m_top_register', top)
         sh.autotiles['counter_shop']['m_top_register'] = sh.names['counter_shop_m_top_register']
+    build_round3(sh, st, g)
+
+
+# ------------------------------------------------------------ round 3 (appended;
+# everything above keeps its tile ids)
+
+def _recolour_hue(c, test, ramp):
+    """Recolour pixels passing `test` onto `ramp`, by luminance rank."""
+    cols = sorted({p for p in c.im.getdata() if p[3] == 255 and test(p)},
+                  key=gensrc.lum)
+    if not cols:
+        return c
+    out = c.copy()
+    n = len(ramp)
+    m = {col: ramp[min(n - 1, i * n // len(cols))] for i, col in enumerate(cols)}
+    out.recolor(0, 0, out.w, out.h, m)
+    return out
+
+
+def emblem(kind):
+    """2x1 wall plate for the upper wall row: chip/plus (center) or coin T (mart)."""
+    c = Cv(32, 16)
+    ramp = TE if kind == 'center' else VI
+    c.rect(2, 2, 28, 12, ramp[1])
+    c.frame(2, 2, 28, 12, O, round_=True)
+    c.hl(3, 28, 3, ramp[3])
+    c.vl(3, 3, 11, ramp[2])
+    c.hl(3, 28, 12, ramp[0])
+    c.vl(28, 4, 12, ramp[0])
+    c.hl(3, 29, 14, SH)
+    # little bolts
+    for x in (5, 26):
+        c.px(x, 8, WH[3])
+    if kind == 'center':
+        # chip: square with pins and a plus
+        c.rect(12, 4, 8, 8, WH[2])
+        c.frame(12, 4, 8, 8, O)
+        for i in (14, 17):
+            c.px(i, 3, WH[3]); c.px(i, 12, WH[3])
+            c.px(11, i - 9, WH[3]); c.px(20, i - 9, WH[3])
+        c.hl(14, 17, 7, TE[1]); c.hl(14, 17, 8, TE[1])
+        c.vl(15, 5, 10, TE[1]); c.vl(16, 5, 10, TE[1])
+        c.px(13, 5, WH[3])
+    else:
+        Y = P.CLOTH_YELLOW
+        rows = ['...ooooo...',
+                '..oYYYYYo..',
+                '.oYyyyyyyo.',
+                'oYyTTTTTydo',
+                'oYyyyTyyydo',
+                'oYyyyTyyydo',
+                'oyyyyTyyydo',
+                'oyyyyTyyddo',
+                '.oyyyyyddo.',
+                '..odddddo..',
+                '...ooooo...']
+        c.blit(10, 2, rows, {'o': O, 'Y': Y[2], 'y': Y[1], 'T': W[0], 'd': Y[0]})
+    return c
+
+
+def build_round3(sh, st, g):
+    sh.new_row()
+    bw = g('int_bed_wide', 2, 2, w=30)
+    st('bed_wide', bw, ['BB', 'BB'], place='floor',
+       note='2x2 bed, blue quilt; headboard against the back wall.')
+    if bw is not None:
+        blue = lambda p: p[2] > p[0] + 40 and p[2] > p[1] + 10
+        st('bed_wide_pink', _recolour_hue(bw, blue, [P.CLOTH_PINK[0], P.CLOTH_PINK[1], P.CLOTH_PINK[1], P.CLOTH_PINK[2]]), ['BB', 'BB'],
+           place='floor', note='2x2 bed, pink quilt (neighbour).')
+        st('bed_wide_green', _recolour_hue(bw, blue, [P.CLOTH_GREEN[0], P.CLOTH_GREEN[1], P.CLOTH_GREEN[1], P.CLOTH_GREEN[2]]), ['BB', 'BB'],
+           place='floor', note='2x2 bed, green quilt.')
+    sofa = g('int_sofa', 2, 1, w=31, h=15)
+    if sofa is not None:
+        olive = lambda p: p[1] > p[2] + 40 and abs(p[0] - p[1]) < 60 and p[0] < 235
+        sofa = _recolour_hue(sofa, olive, [P.CLOTH_GREEN[0], P.CLOTH_GREEN[1],
+                                           P.CLOTH_GREEN[1], P.CLOTH_GREEN[2]])
+    st('sofa', sofa, ['BB'], place='floor',
+       note='Two-seat sofa facing down.')
+    st('wall_emblem_center', emblem('center'), ['bb'], place='wall_face',
+       note='Teal chip/plus plate (matches the exterior sign); wall row 0.')
+    st('wall_emblem_mart', emblem('mart'), ['bb'], place='wall_face',
+       note='Violet plate with the gold coin "T"; wall row 0.')
+    if have('int_terminal'):
+        pc = gen('int_terminal', 1, 2, w=14)
+        st('pc_storage', pc, ['B', 'B'], place=WALL_PLACE, ms=[650, 450],
+           frames=[glow(pc, [TE, P.GLASS, P.WATER, P.SKY], box=(0, 0, 16, 18))],
+           note='Storage PC: the terminal with a pulsing screen (2 frames).')
+
+
+WALL_PLACE = 'wall'

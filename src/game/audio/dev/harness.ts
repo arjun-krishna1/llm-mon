@@ -1,13 +1,16 @@
 // Exposes offline render/analysis helpers on window for automated checks.
 import { SFX } from '../sfx.ts'
 import { SONGS } from '../tracks/index.ts'
-import { analyzeSong, noteDump, renderSfx, renderSong, sfxReport, songReport } from './render.ts'
+import { CRIES } from '../cries.ts'
+import { analyzeSong, cryReport, noteDump, renderSfx, renderSong, sfxReport, songReport } from './render.ts'
 
 ;(window as unknown as { __audioTest: unknown }).__audioTest = {
   songs: Object.keys(SONGS),
   sfx: Object.keys(SFX),
   songReport,
   sfxReport,
+  cryReport,
+  cries: Object.keys(CRIES),
   analyzeSong: (id: string) => analyzeSong(SONGS[id]),
   noteDump: (id: string) => noteDump(SONGS[id]),
   /** Render to 16-bit mono PCM, base64 (for offline inspection). */

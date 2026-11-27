@@ -254,6 +254,63 @@ export const SFX: Record<string, SfxDef> = {
       return tone(c, d, { wave: 'pulse25s', from: hz('C6'), arp, arpStep: 0.04, t: t + 0.02, dur: 0.52, gain: 0.05, hold: 0.36, pan: 0.2 }, tr)
     },
   },
+  buy: {
+    play: (c, d, t, _i, tr) => {
+      noise(c, d, { type: 'short', rate: 5, t, dur: 0.025, gain: 0.07, hp: 3000 }, tr)
+      tone(c, d, { wave: 'pulse12', from: hz('A6'), t, dur: 0.05, gain: 0.1, a: 0.001 }, tr)
+      tone(c, d, { wave: 'bell', from: hz('D7'), t: t + 0.05, dur: 0.32, gain: 0.14 }, tr)
+      return tone(c, d, { wave: 'pulse25s', from: hz('D6'), t: t + 0.05, dur: 0.22, gain: 0.07, hold: 0.05 }, tr)
+    },
+  },
+  phone: {
+    play: (c, d, t, _i, tr) => {
+      let end = t
+      for (const o of [0, 0.55]) {
+        tone(c, d, { wave: 'pulse25', from: hz('E6'), arp: [0, -4], arpStep: 1 / 36, t: t + o, dur: 0.42, gain: 0.1, a: 0.005, hold: 0.33, pan: -0.15 }, tr)
+        end = tone(c, d, { wave: 'pulse12', from: hz('E5'), arp: [0, -4], arpStep: 1 / 36, t: t + o, dur: 0.42, gain: 0.05, a: 0.005, hold: 0.33, pan: 0.15 }, tr)
+      }
+      return end
+    },
+  },
+  truck: {
+    play: (c, d, t, _i, tr) => {
+      // idle rumble, then the engine revs up and drives off
+      tone(c, d, { wave: 'pulse50s', from: 55, t, dur: 0.75, gain: 0.12, a: 0.08, hold: 0.45, vib: [45, 11] }, tr)
+      tone(c, d, { wave: 'tri', from: 41, t, dur: 0.75, gain: 0.18, a: 0.08, hold: 0.45, vib: [35, 7] }, tr)
+      noise(c, d, { type: 'long', rate: 0.12, t, dur: 1.25, gain: 0.08, lp: 500, a: 0.1, hold: 0.7 }, tr)
+      tone(c, d, { wave: 'pulse50s', from: 55, to: 150, slide: 0.6, t: t + 0.6, dur: 0.65, gain: 0.11, a: 0.08, hold: 0.25, vib: [45, 14] }, tr)
+      return tone(c, d, { wave: 'tri', from: 41, to: 110, slide: 0.6, t: t + 0.6, dur: 0.65, gain: 0.16, a: 0.08, hold: 0.25 }, tr)
+    },
+  },
+  pc_on: {
+    play: (c, d, t, _i, tr) => {
+      let end = t
+      ;['C6', 'G6', 'C7'].forEach((p, k) => {
+        end = tone(c, d, { wave: 'pulse12', from: hz(p), t: t + k * 0.06, dur: k === 2 ? 0.16 : 0.05, gain: 0.11, a: 0.001, hold: 0.02 }, tr)
+      })
+      tone(c, d, { wave: 'tri', from: 110, to: 220, t, dur: 0.18, gain: 0.12 }, tr)
+      return end
+    },
+  },
+  pc_off: {
+    play: (c, d, t, _i, tr) => {
+      let end = t
+      ;['C7', 'G6', 'C6'].forEach((p, k) => {
+        end = tone(c, d, { wave: 'pulse12', from: hz(p), t: t + k * 0.06, dur: 0.05, gain: 0.1, a: 0.001, hold: 0.02 }, tr)
+      })
+      return Math.max(end, tone(c, d, { wave: 'pulse25s', from: 880, to: 110, slide: 0.18, t: t + 0.17, dur: 0.2, gain: 0.07 }, tr))
+    },
+  },
+  dex_register: {
+    play: (c, d, t, _i, tr) => {
+      let end = t
+      ;['E6', 'G6', 'C7'].forEach((p, k) => {
+        tone(c, d, { wave: 'pulse25', from: hz(p), t: t + k * 0.085, dur: k === 2 ? 0.42 : 0.08, gain: 0.11, a: 0.002, hold: k === 2 ? 0.12 : 0.03, vib: k === 2 ? [15, 6] : undefined }, tr)
+        end = tone(c, d, { wave: 'bell', from: hz(p) / 2, t: t + k * 0.085, dur: k === 2 ? 0.45 : 0.15, gain: 0.08 }, tr)
+      })
+      return end
+    },
+  },
   exclaim: {
     play: (c, d, t, _i, tr) => {
       tone(c, d, { wave: 'pulse25', from: hz('B5'), t, dur: 0.05, gain: 0.14, a: 0.001 }, tr)

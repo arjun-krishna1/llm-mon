@@ -45,4 +45,6 @@ export interface ContentConfig {
   startMoney?: number
   /** Script id run right after a white-out respawn (player faces up, screen faded in). Default: a built-in line. */
   whiteOutScript?: string
+  /** End card shown by `s.endCard()`. Credit lines in ALL CAPS render as headings; '' = blank line. */
+  endCard?: { title?: string; subtitle?: string; continued?: string; credits?: string[] }
 }
