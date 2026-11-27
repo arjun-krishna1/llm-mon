@@ -43,8 +43,8 @@ const TRAINER_LIST: TrainerDef[] = [
     overworldSprite: 'trainer_m',
     // Gemma 4 (Anthropic beats Google), Mistral Medium (OpenAI beats Mistral; Mistral beats Zhipu)
     party: [
-      { speciesId: 'gemma_4', level: 3 },
-      { speciesId: 'mistral_medium', level: 4 },
+      { speciesId: 'gemma_4', level: 4 },
+      { speciesId: 'mistral_medium', level: 3 },
     ],
     preBattle: ['Hey! You look like a seed-stage trainer.', 'Let me demo my LLMMON. No slides, just vibes!'],
     loseText: 'My demo crashed on stage...',
@@ -60,7 +60,7 @@ const TRAINER_LIST: TrainerDef[] = [
     // Mistral Medium (OpenAI beats Mistral; Mistral beats Zhipu), GPT-5.4 mini (Zhipu beats OpenAI; OpenAI beats Anthropic)
     party: [
       { speciesId: 'mistral_medium', level: 3 },
-      { speciesId: 'gpt_5_4_mini', level: 4 },
+      { speciesId: 'gpt_5_4_mini', level: 3 },
     ],
     preBattle: ['Stop right there! I need one more data point.', 'Your score goes on my leaderboard!'],
     loseText: 'Okay, that result is NOT going in the paper.',

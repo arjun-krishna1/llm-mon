@@ -4,8 +4,9 @@ import type { BattleRequest, MonInstance } from '../../../types.ts'
 import { Battle } from '../battle.ts'
 import type { BattleEvent, BattleInput } from '../events.ts'
 import { randInt, type Rng } from '../rng.ts'
+import { effectiveness } from '../../../data/typechart.ts'
 
-export type Policy = 'random' | 'attack'
+export type Policy = 'random' | 'attack' | 'sensible'
 
 export interface SimResult {
   battle: Battle
@@ -29,6 +30,20 @@ export function chooseInput(battle: Battle, rng: Rng, policy: Policy): BattleInp
   const moves = view.player.moves
   const usable = moves.map((m, i) => ({ m, i })).filter(({ m }) => m.pp > 0)
   if (usable.length === 0) return { type: 'fight', moveIndex: 0 }
+  if (policy === 'sensible') {
+    // Highest power x STAB x type multiplier: what a player who reads the chart does.
+    let best = usable[0]
+    let bestScore = -1
+    for (const u of usable) {
+      const stab = view.player.types.includes(u.m.type) ? 1.5 : 1
+      const sc = u.m.power > 0 ? u.m.power * stab * effectiveness(u.m.type, view.enemy.types) : 1
+      if (sc > bestScore) {
+        bestScore = sc
+        best = u
+      }
+    }
+    return { type: 'fight', moveIndex: best.i }
+  }
   if (policy === 'attack') {
     const dmg = usable.filter(({ m }) => m.power > 0)
     const pool = dmg.length ? dmg : usable

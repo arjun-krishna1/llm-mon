@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 import { ENCOUNTER_TABLES, STARTER_IDS, getSpecies, typeMultiplier } from '../../../data/index.ts'
 import { createMon } from '../mon.ts'
-import { tutorialBattleRequest, wildBattleRequest } from '../requests.ts'
+import { trainerBattleRequest, tutorialBattleRequest, wildBattleRequest } from '../requests.ts'
 import { createRng } from '../rng.ts'
 import { simulate, type Policy } from './sim.ts'
 
@@ -71,5 +71,21 @@ describe('balance', () => {
 
   it('even button-mashing wins against common Lv2-3 wilds', () => {
     for (const r of rows.filter((r) => r.policy === 'random' && !r.foe.startsWith('gemini') && !r.foe.endsWith('L4'))) expect(r.winRate, `${r.starter} vs ${r.foe}`).toBeGreaterThanOrEqual(90)
+  })
+
+  it('route trainers: Lv7 starter reading the chart wins 90%+, Lv6 75%+', () => {
+    const report: string[] = []
+    for (const starter of STARTER_IDS)
+      for (const lv of [6, 7])
+        for (const t of ['route_101_a', 'route_101_b']) {
+          let wins = 0
+          for (let i = 0; i < N; i++) {
+            const rng = createRng(i * 31 + lv)
+            if (simulate(trainerBattleRequest(t, rng), [createMon(starter, lv, rng)], rng, 'sensible').outcome === 'win') wins++
+          }
+          report.push(`${starter} L${lv} vs ${t}: ${Math.round((100 * wins) / N)}%`)
+          expect(wins / N, `${starter} L${lv} vs ${t}`).toBeGreaterThanOrEqual(lv === 7 ? 0.9 : 0.75)
+        }
+    console.log(report.join('\n'))
   })
 })

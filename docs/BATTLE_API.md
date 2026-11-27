@@ -356,8 +356,8 @@ at Lv4, so the chart matters on the route: Claude Fable beats Gemma/Gemini, GLM
 beats GPT-5.4 mini, GPT 5.5 beats Mistral; GPT-5.4 mini threatens Claude Fable and
 Mistral threatens GLM.
 Trainers (each shows every starter a super-effective interaction):
-`route_101_a` Young Founder Calvin (Gemma 4 Lv3, Mistral Medium Lv4, 96 tokens),
-`route_101_b` Benchmarker Tiana (Mistral Medium Lv3, GPT-5.4 mini Lv4, 120 tokens).
+`route_101_a` Young Founder Calvin (Gemma 4 Lv4, Mistral Medium Lv3, 96 tokens),
+`route_101_b` Benchmarker Tiana (Mistral Medium Lv3, GPT-5.4 mini Lv3, 120 tokens).
 Rival Dana (`rival_dana_<her starter>`): her counter-starter Lv5 (rematch Lv4) at
 full PP + a Lv4 catch your starter beats.
 
