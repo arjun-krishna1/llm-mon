@@ -20,6 +20,8 @@ import { BagScreen, type BagOptions } from '../ui/screens/BagScreen'
 import { PlayerCard } from '../ui/screens/PlayerCard'
 import { SummaryScreen } from '../ui/screens/SummaryScreen'
 import { NameEntryScreen, type NameEntryOptions } from '../ui/screens/NameEntryScreen'
+import { OptionsScreen } from '../ui/screens/OptionsScreen'
+import { visibleStartMenuEntries } from '../ui/startMenu'
 
 export class UIScene extends Phaser.Scene {
   stack = new WidgetStack()
@@ -147,10 +149,9 @@ export class UIScene extends Phaser.Scene {
     audio.sfx('menu_open')
     try {
       for (;;) {
-        const opts: Array<{ label: string; id: string }> = []
-        if (state.party.length) opts.push({ label: 'LLMMON', id: 'party' })
-        opts.push({ label: 'BAG', id: 'bag' }, { label: state.playerName.toUpperCase(), id: 'card' },
-          { label: 'SAVE', id: 'save' }, { label: 'EXIT', id: 'exit' })
+        // entries come from src/game/ui/startMenu.ts (extension point)
+        const entries = visibleStartMenuEntries()
+        const opts = entries.map((e) => ({ label: e.label(), id: e.id }))
         const m = new ListMenu(this, this.stack, opts, {
           x: W - 2, y: 2, anchor: 'tr', minW: 72, initial: Math.min(this.startCursor, opts.length - 1),
           cancelIndex: opts.length - 1, persist: true, startCancels: true,
@@ -158,21 +159,21 @@ export class UIScene extends Phaser.Scene {
         const i = await m.result()
         // remember where the cursor was (B/START close keeps it; it never jumps to EXIT)
         this.startCursor = Math.max(0, m.selected)
-        const id = opts[i]?.id ?? 'exit'
-        if (id === 'exit') {
+        const e = entries[i]
+        if (!e || e.id === 'exit') {
           m.destroy()
           return
         }
-        if (id === 'save') {
+        if (e.action) {
           m.destroy()
-          await this.saveFlow()
+          await e.action(this)
           return
         }
-        await this.fade(1, 120)
-        m.destroy()
-        if (id === 'party') await this.withFade(new PartyScreen(this, this.stack, { mode: 'view' }).run())
-        else if (id === 'bag') await this.withFade(new BagScreen(this, this.stack, { mode: 'view' }).run())
-        else if (id === 'card') await this.withFade(new PlayerCard(this, this.stack).run())
+        if (e.screen) {
+          await this.fade(1, 120)
+          m.destroy()
+          await this.withFade(e.screen(this))
+        } else m.destroy()
       }
     } finally {
       this.menuOpen = false
@@ -195,6 +196,16 @@ export class UIScene extends Phaser.Scene {
   openBag(o: BagOptions = { mode: 'view' }): Promise<string | null> {
     return new BagScreen(this, this.stack, o).run()
   }
+  /** Options screen with fades (title menu / scripts). */
+  async openOptions(): Promise<void> {
+    await this.fade(1, 120)
+    const p = new OptionsScreen(this, this.stack).run()
+    await this.fade(0, 120)
+    await p
+    await this.fade(1, 120)
+    await this.fade(0, 120)
+  }
+
   openSummary(index: number): Promise<number> {
     return new SummaryScreen(this, this.stack, index).run()
   }

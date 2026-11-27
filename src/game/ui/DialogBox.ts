@@ -2,7 +2,8 @@
 // Text: `\n` forces a line break, `\f` starts a new page, `{player}` is substituted.
 
 import Phaser from 'phaser'
-import { FONT, TEXT_FAST_CHARS_PER_FRAME, TEXT_FRAMES_PER_CHAR, W } from '../config'
+import { FONT, TEXT_FAST_CHARS_PER_FRAME, W } from '../config'
+import { textFramesPerChar } from '../options'
 import { controls } from '../controls'
 import { audio } from '../audio'
 import { params } from '../params'
@@ -255,7 +256,7 @@ export class DialogBox implements Widget {
     if (fast) n = TEXT_FAST_CHARS_PER_FRAME
     else {
       this.acc++
-      n = this.acc >= TEXT_FRAMES_PER_CHAR ? 1 : 0
+      n = this.acc >= textFramesPerChar() ? 1 : 0
       if (n) this.acc = 0
     }
     while (n-- > 0 && this.phase === 'typing') {

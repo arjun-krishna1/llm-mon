@@ -16,6 +16,7 @@ import { BattleScene } from './game/scenes/BattleScene'
 import { StarterSelectScene } from './game/scenes/StarterSelectScene'
 import { installDebug } from './game/debug'
 import { TouchControls, touchWanted } from './game/touch'
+import { loadOptions } from './game/options'
 
 if (params.seed !== null && Number.isFinite(params.seed)) seedRng(params.seed)
 
@@ -72,6 +73,7 @@ function fitParent(): void {
 }
 fitParent()
 
+loadOptions()
 controls.attach()
 controls.onAnyKey(() => audio.unlock())
 
