@@ -229,17 +229,21 @@ module.exports = async function world(ctx) {
     await g.talkTo('rt_tiana')
     await g.readAt(23, 38)
     await g.shot('route_north_sign', 'Route 101 north sign')
-    // rival Dana ambushes you at the north end of the route (trigger row 36). Harness: top up
-    // HP first (a player would visit the hiker / Mom); the run checks the fight, not attrition.
-    await g.page.evaluate(() => window.__llmmon.heal())
+    // rival Dana ambushes you at the north end of the route (trigger row 36). Round 3 QA: NO heal crutch —
+    // the party arrives exactly as the route left it (a real player may or may not have gone back to heal).
+    {
+      const pre = await g.snap()
+      g.rivalPre = { party: pre.party, bag: pre.bag }
+      console.log('   before rival: party', JSON.stringify(pre.party), 'bag', JSON.stringify(pre.bag))
+    }
     g.handlers = { ...battleShooter('rival'), onText: shootOn(g, [[/Took you long enough/, 'rival_ambush'], [/You won\. Fair and square/, 'rival_after']]) }
     await g.walkTo({ x: 21, y: 33 }, { run: true })
     s = await g.snap()
+    g.rivalFirst = { beaten: !!s.flags.rival_beaten, map: s.info.map }
     if (!s.flags.rival_beaten) {
-      // lost (white-out): patch up and try once more from the route's north end
-      console.log('   rival battle lost; rematch')
-      await g.page.evaluate(() => { window.__llmmon.heal(); return window.__llmmon.warp('overworld', 21, 38) })
-      await sleep(2500)
+      // lost (white-out): walk back from the respawn point like a player would, and try again
+      g.note('P1', `rival battle LOST on first attempt with the natural party (${JSON.stringify(g.rivalPre.party)})`)
+      if (s.info.map !== 'overworld') await g.takeWarp('overworld')
       await g.walkTo({ x: 21, y: 33 }, { run: true })
       s = await g.snap()
     }
