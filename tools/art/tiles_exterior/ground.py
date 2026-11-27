@@ -273,13 +273,13 @@ def _pave_texture(x, y, var=0):
     sx = (x + (4 if row else 0)) % 8
     sy = y % 8
     slab = (((x + (4 if row else 0)) % 16) // 8, row)
-    tone = ST[2] if slab == (1, 0) or slab == (0, 1) and False else ST[3]
+    tone = ST[2] if slab == (1, 0) else ST[3]
     if sy == 7 or sx == 7:
         return ST[1] if (x + y) % 3 == 0 else ST[2]   # joint
     if sy == 0 or sx == 0:
         return ST[4] if tone == ST[3] else ST[3]       # sunlit slab lip
     if tone == ST[2]:
-        return ST[2] if (x * 3 + y) % 7 else ST[3]
+        return ST[2]
     if var == 1 and (x, y) in {(10, 3), (11, 4), (11, 5), (12, 5), (3, 11), (4, 12)}:
         return ST[2]                    # hairline cracks
     if (x * 5 + y * 3) % 29 == 0:

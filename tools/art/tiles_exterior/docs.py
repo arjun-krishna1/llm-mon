@@ -15,7 +15,7 @@ def write(path, sh):
     w('')
     w('- `public/assets/game/tilesets/exterior.png` - 16x16 tiles, 16 columns, no margin/spacing.')
     w('- `public/assets/game/tilesets/exterior.tsj` - Tiled tileset: per-tile properties '
-      '(`solid`, `grass`, `ledge`, `water`, `door`) and `animation` arrays (water 4x280 ms, flowers 2x600 ms, tall grass 2x650 ms, fountain 3x220 ms, signal-tower beacon 700/500 ms).')
+      '(`solid`, `grass`, `ledge`, `water`, `door`) and `animation` arrays (kiosk screen 2x600 ms, water 4x280 ms, flowers 2x600 ms, tall grass 2x650 ms, fountain 3x220 ms, signal-tower beacon 700/500 ms).')
     w('- `public/assets/game/tilesets/exterior.catalog.json` - the names below -> tile ids (0-based, '
       'i.e. Tiled gid minus firstgid). `-1` = leave the cell empty.')
     w('- Previews: `tools/art/tiles_exterior/preview/` (`tileset_4x.png`, `scene_3x.png`, '
@@ -68,6 +68,9 @@ def write(path, sh):
         'reeds': 'cattail reeds, transparent overlay, solid: detail layer on a water edge cell or the grass beside a pond',
         'planter': 'stone flower box, solid, detail layer',
         'crate': 'wooden crate, solid, detail layer',
+        'plaza_inlay': 'decorative paving medallion (ground layer, walkable) - use inside pavement',
+        'crosswalk': 'striped paving (ground layer, walkable); tile it in a 2+ wide band across a paved street',
+        'bollard': 'short metal post, solid, detail layer (line plaza edges)',
     }
     for n, i in sh.tiles.items():
         w('| `%s` | %d | %s |' % (n, i, notes.get(n, '')))
@@ -91,6 +94,13 @@ def write(path, sh):
         'shed': 'small tool shed',
         'tree_b': 'conifer variant of `tree` (same 2x3 layout). Standalone only: not part of the forest autotile',
         'fountain': 'plaza fountain, animated water (3 frames). Spout row is `over` (walk behind), lower 2 rows solid',
+        'house_green': 'third house colourway (green roof) of the player-house design',
+        'apartment': 'three-storey city block, flat roof with AC unit + antenna; double glass door (both door tiles)',
+        'cafe': 'cafe with green awning, big front window, hanging cup sign',
+        'kiosk': 'info/API terminal, screen glows (2 frames). Top row `over`, bottom solid',
+        'streetlight_modern': 'modern street light. Head `over`, post solid',
+        'bike_rack': 'bike rack with a bicycle, solid',
+        'billboard': 'billboard with a creature poster. Board row `over`, posts row solid',
         'signal_tower': 'relay mast landmark with a blinking beacon (2 frames). Top row `over`, rest solid',
     }
     for n, st in sh.stamps.items():
@@ -137,6 +147,12 @@ def write(path, sh):
       'layouts. Whenever the blob key is `11111111`, pick one by a position hash so big ponds do not '
       'tile visibly. Dress ponds with `lilypad` (detail layer over water) and `reeds` (solid).')
     w('')
+    w('`pavement` (city paving, light stone slabs with a kerb against grass) has the same 13 pieces + '
+      '`blob`, plus `c_variants` = [plain, cracked, manhole, drain]. Use plain for most centre cells, '
+      'the cracked one occasionally (position hash), and place manhole/drain by hand. Combine with '
+      '`plaza_inlay`, `crosswalk`, `bollard`, `kiosk`, `billboard`, `streetlight_modern`, `bike_rack` '
+      'and the `hedge` autotile for city blocks. There are no road/car tiles by design.')
+    w('')
     w('Path, sand and water each have their own grass margin, so they do not butt against each other; '
       'separate two materials by at least one grass cell (a pond inside a beach is not supported).')
     w('')
@@ -158,9 +174,10 @@ def write(path, sh):
     w('')
     w('See `Map.forest` in `preview.py`. Single trees in the open use the `tree` stamp instead.')
     w('')
-    w('### fence_wood, fence_white')
+    w('### fence_wood, fence_white, hedge')
     w('')
-    w('Paint fence cells (detail layer, all solid). `byConnection[conn]` where `conn` lists the '
+    w('Paint fence/hedge cells (detail layer, all solid; `hedge` is a clipped box hedge for neat '
+      'city borders and uses the same keys). `byConnection[conn]` where `conn` lists the '
       'neighbouring fence cells in the order `n e s w` (e.g. `"ew"` horizontal run, `"ns"` vertical, '
       '`"es"` top-left corner, `""` lone post). Friendly aliases: `h`, `v`, `end_w`, `end_e`, `end_n`, '
       '`end_s`, `corner_nw`, `corner_ne`, `corner_sw`, `corner_se`, `t_n`, `t_s`, `t_e`, `t_w`, `cross`, `post`.')
@@ -172,6 +189,11 @@ def write(path, sh):
       'plateau: left side `ledge_w_end_n` then `ledge_w` x N, bottom-left `ledge_corner_sw`, bottom '
       '`ledge_s` x N, bottom-right `ledge_corner_se`, right side `ledge_e` x N topped by `ledge_e_end_n`. '
       'Ledges are ground tiles (grass baked in); the plateau top and the lower ground are ordinary grass.')
+    w('')
+    w('## Tile id stability')
+    w('')
+    w('New art is only ever appended after the last existing row (see the "Round 3" block at the end '
+      'of `build()`), so existing tile ids never move. Keep it that way: add new sections at the end.')
     w('')
     w('## Known limits')
     w('')
