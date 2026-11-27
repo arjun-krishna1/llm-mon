@@ -53,7 +53,7 @@ def('egg.queue2', (s) => rotate(s, 'q2', [
 ]))
 
 def('egg.not_hacker_house', (s) => rotate(s, 'hh', [
-  ['A sign on the bike rack:\n“THIS IS NOT A HACKER HOUSE.\fPLEASE STOP KNOCKING.”', 'Six bikes. One sleeping bag. A whiteboard visible through the window.'],
+  ['A sign on the bike rack:\n“NOT A HACKER HOUSE. STOP KNOCKING.”', 'Six bikes. One sleeping bag. A whiteboard visible through the window.'],
   ['A smaller sign below:\n“Demo day is Sunday. Sleep is Monday.”'],
 ]))
 
@@ -123,7 +123,7 @@ def('egg.busker', async (s) => {
 })
 
 def('egg.caltrain', (s) => rotate(s, 'ct', [
-  ['CALTRAIN → 4th & King, a short walk south.', 'Next train: delayed.\nNext next train: also delayed.'],
+  ['CALTRAIN: 4th & King, a short walk south.', 'Next train: delayed.\nNext next train: also delayed.'],
   ['Someone has written on the timetable:\n“bring a book. bring two books.”'],
 ]))
 
@@ -133,7 +133,7 @@ def('egg.parking', (s) => say(s,
 
 // ============================================================================ interiors
 def('egg.tokens_monthly', (s) => rotate(s, 'tm', [
-  ['A copy of Tokens Monthly on the bench:', '“10 PROMPTS THAT WILL CHANGE YOUR LIFE (NUMBER 7 IS JUST ‘PLEASE’)”'],
+  ['A copy of Tokens Monthly on the bench:', '“10 PROMPTS THAT WILL CHANGE YOUR LIFE (NUMBER 7 IS JUST PLEASE)”'],
   ['This month’s cover: “IS YOUR CONTEXT WINDOW HALF FULL OR HALF EMPTY?”'],
 ]))
 
@@ -142,3 +142,44 @@ export async function eggLine(s: S, key: string, pages: string[][], stick = fals
   await rotate(s, key, pages, stick)
 }
 
+
+// ============================================================================ cameos
+// Friendly, persona-level cameos of public figures (STORY_BIBLE \u00a73 lab heads).
+// Warm, harmless traits only; each gives one small gift.
+async function gift(s: S, flag: string, itemId: string, count = 1): Promise<boolean> {
+  if (s.flag(flag)) return false
+  s.setFlag(flag)
+  await s.giveItem(itemId, count)
+  return true
+}
+
+def('egg.dario', async (s) => {
+  const D = 'Dario Amodei'
+  if (!s.flag('cameo_dario')) {
+    await line(s, D, 'Oh, hello! Sorry, I\u2019m finishing an essay.', 'It\u2019s about fifteen thousand words. This is the short version.')
+    await line(s, D, 'Here, take this. Careful work goes better with good tools.')
+    await gift(s, 'cameo_dario', 'debugger')
+    return
+  }
+  await line(s, D, 'Chapter nine. The footnotes have footnotes now.\fThat\u2019s how you know it\u2019s going well.')
+})
+
+def('egg.sam', async (s) => {
+  const A = 'Sam Altman'
+  if (!s.flag('cameo_sam')) {
+    await line(s, A, 'hey. typing in all lowercase. it\u2019s faster.', 'tip: the token mart has prompt orbs.\fgrab a few before you head north.')
+    s.setFlag('cameo_sam')
+    return
+  }
+  await line(s, A, 'big week. every week is a big week.')
+})
+
+def('egg.jensen', async (s) => {
+  const J = 'Jensen Huang'
+  if (!s.flag('cameo_jensen')) {
+    await line(s, J, 'The Token Mart! Great store. The more you buy, the more you save!', 'Here, the first one\u2019s on me.')
+    await gift(s, 'cameo_jensen', 'prompt_orb')
+    return
+  }
+  await line(s, J, 'Like the jacket? Same one every day.', 'Saves my decisions for the important things. Like what to buy next.')
+})

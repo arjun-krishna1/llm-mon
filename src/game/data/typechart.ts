@@ -1,54 +1,114 @@
-// LLMMON type system. 8 types, lowercase single-word ids (these are also the
-// art chip ids: public/assets/game/ui/type_<id>.png).
+// LLMMON types are the labs that make the models, plus `classic` (basic moves and
+// historic/component creatures: Perceptron, SGD...) and `glitch` (HalluciHound,
+// Team Overfit). Ids are lowercase single words and double as the art chip ids
+// (public/assets/game/ui/type_<id>.png).
 //
-// Starter triangle: myth > logic > tool > myth
-//   (a good story beats a proof; reasoning outsmarts a tool loop; grounding with
-//    tools debunks a myth)
+// The lab chart is a perfectly even web: every lab beats exactly two labs and is
+// beaten by exactly two. The only rule to learn: if A beats B, A's moves are super
+// effective on B and B's moves are not very effective on A. Nothing else.
+//
+// Starter triangle: anthropic > zhipu > openai > anthropic
+//   (Claude Fable > GLM > GPT 5.5 > Claude Fable)
+//
+// Adding a lab later (meta, xai, alibaba, microsoft...) without rebalancing: pick two
+// arrows A > B and C > D from LAB_BEATS (four different labs, none of them already
+// related to the newcomer) and replace them with A > X > B and C > X > D. X then
+// beats two and loses to two, and every existing lab keeps its own two-and-two.
 
-export const TYPE_IDS = ['neutral', 'myth', 'logic', 'tool', 'speed', 'open', 'vision', 'glitch'] as const
+export const LAB_TYPE_IDS = ['anthropic', 'openai', 'google', 'zhipu', 'deepseek', 'mistral', 'moonshot', 'cohere'] as const
+export const TYPE_IDS = [...LAB_TYPE_IDS, 'classic', 'glitch'] as const
+export type LabTypeId = (typeof LAB_TYPE_IDS)[number]
 export type TypeId = (typeof TYPE_IDS)[number]
 
 export interface TypeInfo {
   id: TypeId
+  /** Proper display name ("OpenAI"). */
   name: string
-  /** 3-letter abbreviation for tight HUDs. */
+  /** 3-letter code for small pills ("OAI"). */
   short: string
-  /** Suggested chip colour (hex) for the art/UI agents. Final colours come from tools/art/palette.py. */
+  /** Chip colour (hex), mirrors the palette ramp used by tools/art/sprites/ui.py. */
   color: string
   blurb: string
 }
 
 export const TYPES: Record<TypeId, TypeInfo> = {
-  neutral: { id: 'neutral', name: 'Neutral', short: 'NEU', color: '#a8a29a', blurb: 'Plain completions. No strengths, no weaknesses, mostly.' },
-  myth: { id: 'myth', name: 'Myth', short: 'MYT', color: '#e08a3c', blurb: 'Stories, character and persuasion.' },
-  logic: { id: 'logic', name: 'Logic', short: 'LOG', color: '#3fae8a', blurb: 'Proofs, graphs and careful reasoning.' },
-  tool: { id: 'tool', name: 'Tool', short: 'TOL', color: '#3a8fd8', blurb: 'Function calls, search and getting things done.' },
-  speed: { id: 'speed', name: 'Speed', short: 'SPD', color: '#f2c94c', blurb: 'Low latency, small footprints, quick answers.' },
-  open: { id: 'open', name: 'Open', short: 'OPN', color: '#7bbf4a', blurb: 'Open weights: sturdy, forkable, community-patched.' },
-  vision: { id: 'vision', name: 'Vision', short: 'VIS', color: '#b86fd6', blurb: 'Multimodal eyes that see the ground truth.' },
+  anthropic: { id: 'anthropic', name: 'Anthropic', short: 'ANT', color: '#e08a3c', blurb: 'Claude models: careful, thoughtful, very good at long answers.' },
+  openai: { id: 'openai', name: 'OpenAI', short: 'OAI', color: '#3fae8a', blurb: 'GPT models: all-rounders that reach for the right tool.' },
+  google: { id: 'google', name: 'Google', short: 'GGL', color: '#3a8fd8', blurb: 'Gemini and Gemma: huge context and sharp multimodal eyes.' },
+  zhipu: { id: 'zhipu', name: 'Zhipu', short: 'ZHP', color: '#b86fd6', blurb: 'GLM models: graph-minded reasoners with open weights.' },
+  deepseek: { id: 'deepseek', name: 'DeepSeek', short: 'DSK', color: '#5a6fd0', blurb: 'DeepSeek models: deep thinkers, cheap to run, sturdy.' },
+  mistral: { id: 'mistral', name: 'Mistral', short: 'MST', color: '#f2c94c', blurb: 'Mistral models: quick and breezy, straight from Paris.' },
+  moonshot: { id: 'moonshot', name: 'Moonshot', short: 'MSH', color: '#7bbf4a', blurb: 'Kimi models: long-horizon agents aiming high.' },
+  cohere: { id: 'cohere', name: 'Cohere', short: 'COH', color: '#d0607a', blurb: 'Command models: tidy retrieval for busy offices.' },
+  classic: { id: 'classic', name: 'Classic', short: 'CLS', color: '#a8a29a', blurb: 'Basic moves and the old building blocks of the field.' },
   glitch: { id: 'glitch', name: 'Glitch', short: 'GLT', color: '#d6456a', blurb: 'Hallucinations, corrupted caches and broken prompts.' },
 }
 
-/** Only non-1 entries are listed. CHART[attacker][defender] = multiplier. */
-const CHART: Record<TypeId, Partial<Record<TypeId, number>>> = {
-  neutral: {},
-  myth: { logic: 2, open: 2, tool: 0.5, myth: 0.5 },
-  logic: { tool: 2, glitch: 2, myth: 0.5, logic: 0.5 },
-  tool: { myth: 2, speed: 2, logic: 0.5, open: 0.5 },
-  speed: { vision: 2, glitch: 2, open: 0.5, speed: 0.5 },
-  open: { tool: 2, speed: 2, vision: 0.5 },
-  vision: { myth: 2, glitch: 2, speed: 0.5 },
-  glitch: { logic: 2, vision: 2, neutral: 2, open: 0.5, glitch: 0.5 },
+export interface Matchup {
+  attacker: LabTypeId
+  defender: LabTypeId
+  /** One tongue-in-cheek in-world reason (Notebook / PromptDex). */
+  reason: string
 }
+
+/** The 16 arrows of the lab web. Each lab appears exactly twice as attacker and twice as defender. */
+export const LAB_BEATS: Matchup[] = [
+  { attacker: 'anthropic', defender: 'zhipu', reason: 'A good story beats a proof: GLM gets lost in the plot.' },
+  { attacker: 'anthropic', defender: 'google', reason: 'Claude asks Gemini for a source, and Gemini stops to search.' },
+  { attacker: 'openai', defender: 'anthropic', reason: "GPT fact-checks Claude's fable with a tool call mid-story." },
+  { attacker: 'openai', defender: 'mistral', reason: 'Function calls cut straight through the wind.' },
+  { attacker: 'google', defender: 'deepseek', reason: 'Search goes so deep it finds the bottom of any sea.' },
+  { attacker: 'google', defender: 'moonshot', reason: 'A big telescope spots every moonshot before launch.' },
+  { attacker: 'zhipu', defender: 'openai', reason: 'GLM maps the call graph before GPT finishes calling.' },
+  { attacker: 'zhipu', defender: 'moonshot', reason: "GLM graphs the moon's orbit and waits where Kimi lands." },
+  { attacker: 'deepseek', defender: 'openai', reason: 'It thinks out loud for so long GPT runs out of effort.' },
+  { attacker: 'deepseek', defender: 'cohere', reason: 'A deep dive surfaces the answer before the rerank.' },
+  { attacker: 'mistral', defender: 'zhipu', reason: 'A cool mistral breeze scatters the carefully drawn graph.' },
+  { attacker: 'mistral', defender: 'deepseek', reason: 'Wind from Paris whips the deep water into waves.' },
+  { attacker: 'moonshot', defender: 'anthropic', reason: 'Claude stops mid-sentence to admire the moon.' },
+  { attacker: 'moonshot', defender: 'cohere', reason: 'Kimi reads every document before Command can sort them.' },
+  { attacker: 'cohere', defender: 'mistral', reason: 'Clear commands: even the wind follows instructions.' },
+  { attacker: 'cohere', defender: 'google', reason: "Rerank shuffles Google's results and it gets flustered." },
+]
+
+/** Every lab can fact-check a hallucination; glitch corrupts the plain classics. */
+export const GLITCH_REASONS = {
+  weakTo: 'Any real lab can fact-check a hallucination.',
+  strongVs: 'Classic creatures have no guardrails against nonsense.',
+}
+
+function buildChart(): Record<TypeId, Partial<Record<TypeId, number>>> {
+  const chart = Object.fromEntries(TYPE_IDS.map((t) => [t, {}])) as Record<TypeId, Partial<Record<TypeId, number>>>
+  for (const { attacker, defender } of LAB_BEATS) {
+    chart[attacker][defender] = 2
+    chart[defender][attacker] = 0.5
+  }
+  for (const lab of LAB_TYPE_IDS) chart[lab].glitch = 2
+  chart.glitch.classic = 2
+  chart.glitch.glitch = 0.5
+  return chart
+}
+
+/** Only non-1 entries. CHART[attacker][defender] = multiplier. */
+const CHART = buildChart()
 
 /** Multiplier of one attacking type against one defending type. */
 export function typeMultiplier(attack: TypeId, defend: TypeId): number {
-  return CHART[attack][defend] ?? 1
+  return CHART[attack]?.[defend] ?? 1
 }
 
-/** Combined multiplier against a (possibly dual-typed) defender: 0.25, 0.5, 1, 2 or 4. */
+/** Combined multiplier against the defender's types (species are single-typed today). */
 export function effectiveness(attack: TypeId, defenderTypes: readonly TypeId[]): number {
   return defenderTypes.reduce((m, t) => m * typeMultiplier(attack, t), 1)
+}
+
+/** The in-world reason for an attacker/defender pair, either direction, or null. */
+export function matchupReason(attack: TypeId, defend: TypeId): string | null {
+  const m = LAB_BEATS.find((x) => (x.attacker === attack && x.defender === defend) || (x.attacker === defend && x.defender === attack))
+  if (m) return m.reason
+  if (defend === 'glitch' && attack !== 'classic' && attack !== 'glitch') return GLITCH_REASONS.weakTo
+  if (attack === 'glitch' && defend === 'classic') return GLITCH_REASONS.strongVs
+  return null
 }
 
 /** UI text for a multiplier, or null when nothing should be said. */

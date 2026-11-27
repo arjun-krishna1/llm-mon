@@ -40,3 +40,14 @@ jump to the route with a starter: `setFlag('arrived'); setFlag('visited_2f');
 setFlag('mom_lab_call'); setFlag('starter','glm'); giveMon('glm',5);
 setFlag('rescue_done'); setFlag('got_dex'); setFlag('has_run');
 warp('overworld','route_mouth')`.
+
+## Easter eggs (`eggs.ts`)
+
+| flag | meaning |
+| --- | --- |
+| `egg_<key>` (cv, q1, q2, hh, pp, rb, sc, vc2, bk, ct, tm, elder, angler, picnic, apt, cafe, kiosk, sbb, selder, fridge, kitchen, lshelf, wb, mshelf, mcust) | Counters for eggs whose text changes on repeat reads. |
+| `bb_pourover` | The Blue Bottle cart barista's one-time free pour-over (heals your team). |
+| `egg_vc_done` | You answered the fleece-vest VC's term-sheet question. |
+| `egg_pigeon` | You've heard the founder's pigeon pitch once. |
+| `egg_tensor` | Toggles the Hayes Valley woman between her usual line and her dog Tensor. |
+| `cameo_dario`, `cameo_sam`, `cameo_jensen` | Met the SoMa Node cameo (Dario gives a Debugger, Jensen a Prompt Orb, Sam a tip). |

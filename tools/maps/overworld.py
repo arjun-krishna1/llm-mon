@@ -310,3 +310,7 @@ def eggs(m):
     m.npc('egg_busker', 23, 21, 'boy', script='egg.busker', facing='down', movement='look')
     post(28, 31, 'egg.caltrain')
     post(8, 18, 'egg.parking')
+    # friendly cameos (STORY_BIBLE lab heads), generic sprites
+    m.npc('cameo_dario', 20, 17, 'man', script='egg.dario', facing='down')
+    m.npc('cameo_sam', 28, 19, 'techie', script='egg.sam', facing='left', movement='wander', radius=2)
+    m.npc('cameo_jensen', 32, 27, 'man', script='egg.jensen', facing='left')

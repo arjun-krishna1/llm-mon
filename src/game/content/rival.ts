@@ -5,6 +5,8 @@
 
 import type Phaser from 'phaser'
 import { F, def, line, starterName, walkTo, type S } from './util'
+import { TRAINERS } from '../data/trainers'
+import { moveInfo } from '../adapters/monInfo'
 
 const DANA = 'Dana'
 export const RIVAL_FLAGS = {
@@ -14,7 +16,7 @@ export const RIVAL_FLAGS = {
   beaten: 'rival_beaten',
 } as const
 
-/** myth > logic > tool > myth: the starter that beats yours. */
+/** The starter that beats yours (see the type chart in src/game/data). */
 const COUNTER: Record<string, string> = { claude_fable: 'gpt_5_5', gpt_5_5: 'glm', glm: 'claude_fable' }
 
 /** Load Dana's sheets if the engine manifest doesn't preload them yet. */
@@ -106,7 +108,9 @@ def('rival.ambush', async (s) => {
   await s.move('dana', Array(Math.max(0, p.y - 32)).fill('down') as Array<'down'>, { speed: 'run' })
   s.face('player', 'up')
   await s.emote('dana', 'exclaim')
-  const typeMove = ({ gpt_5_5: 'Tool Tap', glm: 'Logic Spark', claude_fable: 'Tiny Myth' } as Record<string, string>)[hers]
+  // her one-PP signature move, read from the trainer data so renames carry over
+  const ace = TRAINERS[`rival_dana_${hers}`]?.party.find((p) => p.pp)
+  const typeMove = ace?.pp ? moveInfo(Object.keys(ace.pp)[0]).name : 'a new move'
   if (s.flag(RIVAL_FLAGS.lostOnce)) {
     await line(s, DANA, 'Back for a rematch? Good.\fI was getting bored winning against the tall grass.')
   } else {

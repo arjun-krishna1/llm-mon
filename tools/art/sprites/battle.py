@@ -325,11 +325,43 @@ def rival_front():
     return fit_sprite(p, 64, 64, colors=16, pal=PAL_RIVAL) if p else new(64, 64)
 
 
+def face_fix(spr, top_frac=0.19):
+    """Clean the small face of a tall portrait: reddish fringe specks in the
+    head area -> skin shade; paint 1x2 eyes at the face's eye line."""
+    a = np.array(spr).astype(int)
+    Hh = a.shape[0]
+    lim = int(Hh * top_frac)
+    r, g, b, al = a[..., 0], a[..., 1], a[..., 2], a[..., 3]
+    red = (al > 0) & (r > 140) & (g < 115) & (r - g > 80)
+    red[lim:, :] = False
+    skin = (al > 0) & (r > 200) & (g > 150) & (b > 110) & (r > b + 40)
+    skin[lim:, :] = False
+    if skin.any():
+        sc = a[skin][:, :3].mean(0)
+        shade = np.clip(sc * 0.78, 0, 255)
+        a[red, :3] = shade
+        ys, xs = np.nonzero(skin)
+        # face block = largest horizontal span of skin rows below the hair
+        y0, y1 = ys.min(), ys.max()
+        cx = int(np.median(xs))
+        ey = y0 + max(1, (y1 - y0) // 3)
+        row = np.nonzero(skin[ey])[0]
+        if len(row) >= 5:
+            lx, rx = row.min() + 1, row.max() - 1
+        else:
+            lx, rx = cx - 2, cx + 2
+        for ex in (lx, rx):
+            for yy in (ey, ey + 1):
+                if 0 <= ex < a.shape[1] and a[yy, ex, 3]:
+                    a[yy, ex, :3] = P.HAIR_DARK[0][:3]
+    return Image.fromarray(a.astype(np.uint8))
+
+
 def player_front():
     """Intro-stage portrait of the player, same scale/density as prof_front."""
     p = raw('spr_player_front')
     pal = PAL_PLAYER + [P.WHITE[1], P.WHITE[2]]
-    return fit_sprite(p, 64, 96, colors=16, pal=pal) if p else new(64, 96)
+    return face_fix(fit_sprite(p, 64, 96, colors=16, pal=pal)) if p else new(64, 96)
 
 
 def prof_front():

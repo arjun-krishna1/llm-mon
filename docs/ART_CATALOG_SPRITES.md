@@ -43,9 +43,34 @@ without extension (matches `src/game/assets.ts`).
   glasses, dark hoodie), `nurse` (Model Center: teal uniform, white cap, bun),
   `clerk` (Token Mart: violet apron, ponytail), `trainer_m` (spiky blond, red
   tee, shorts), `trainer_f` (brown bob, red beret, blue top, white skirt).
-- Faces (down view): 2×2 eyes with a white glint (top-left) over an iris
-  shade, pink cheeks, a 2px mouth; side view: 2px eye + glint, mouth, cheek.
-  Hair is auto-shaded in 3 tones (light rim top-left, shadow right/bottom).
+- **Construction (since the "more human" redo; built by
+  `tools/art/sprites/people.py`):** each figure is about one tile wide, the
+  size of an 8–9px head on an 11–12px body, seen from a 3/4 top-down angle.
+  The top of the head is a large shaded hair mass. The face is only the lower
+  3–4px strip, with two 1×2 dark eyes set wide and low: no highlights, blush
+  or mouth. Shoulders, separate 1px arms with hands, a torso with clothing
+  detail, two legs with a gap, and shoes in their own colour are all drawn.
+  There is a 1px dark outline and 3-tone shading lit from the top-left.
+  Side views are profiles: one eye, a nose pixel, the near arm over the
+  torso, and scissoring legs. Walk frames move the legs and swing the arms.
+- **Heights:** kids span y≈2…21 (tufts and hats reach y=1), adults y≈1…21 (y=0 with tufts). The
+  elder stands 1px lower, with his head pushed forward in profile. Feet outline
+  is on y=21. The figure's opaque width is ≈12px (x 2–13).
+- **Skin tones vary across the cast** (four ramps from `SKIN`/`SKIN_DEEP`).
+  Identity cues are kept: player (dark tousled hair, orange hoodie with
+  drawstrings, teal headphones round the neck, jeans, red sneakers), mom
+  (shoulder-length brown hair, green top, white apron, yellow skirt), prof
+  (swept brown hair, glasses, lab coat over green), aide (blond, lab coat),
+  nurse (bun + white cap, teal dress), clerk (ponytail, violet apron),
+  rival Dana (auburn, white visor with teal brim, teal zip jacket), and so on.
+- **Engine notes:**
+  - Heads are smaller now. Put the emote bubble with its bottom ≈1px above
+    the head top: frame y −15 for kids, −16 for adults (it was −16 for the
+    old chibi).
+  - `fx/shadow.png` (16×8) still fits, but its ellipse is wider than the
+    12px figure, so a 12–14px shadow would be tighter.
+  - `fx/grass_overlay` (rows 9–15 of the tile) now covers shoes and shins,
+    which is the intended look.
 - `hallucihound` — same 48×96 layout, a quadruped for the Route 101 rescue
   cutscene. Reads as a near-black glitch hound: dark slate fur
   (`#20222e`/`#363a4c`), magenta glitch streaks (`#e06c98`/`#a83c6c`),
@@ -59,8 +84,8 @@ without extension (matches `src/game/assets.ts`).
   sports visor with a teal brim, teal zip-up jacket with a white zipper,
   dark leggings, white sneakers.
 - `player_run` (key `chars/player_run`, 48×96, same layout/rows/cols as
-  `player`): running variant — upper body leans 1px forward on side views,
-  wider stride (feet up to ±5px), feet lifted higher on front/back views,
+  `player`): running variant — head and shoulders lean 1px forward on side
+  views, stride 1.5× the walk, feet lifted 2px on front/back views,
   arms pumping. Col 0 = passing pose, cols 1/2 = full strides; cycle
   0→1→0→2 at the run speed. Same baked 1px bob on cols 1/2.
 
@@ -118,14 +143,18 @@ steel equator ring with a teal prompt-gem. Original — not a red/white ball.
 | `platform_player.png` | 128×32 | grass pad |
 | `trainer_back.png` | 256×64 | 4 frames 64×64: 0 idle, 1 wind-up (orb in hand), 2 release, 3 follow-through. Matches the overworld player: dark navy hair, orange hoodie, teal headphones round the neck |
 | `prof_front.png` | 64×96 | intro portrait, full body, bottom-anchored |
+| `player_front.png` | 64×96 | **new**: intro-stage portrait of the player (same person as `trainer_back` and `chars/player`), facing the viewer and waving; same scale as `prof_front` |
 | `trainer_m_front.png`, `trainer_f_front.png` | 64×64 | opponent trainer fronts, full body |
 | `rival_front.png` | 64×64 | rival Dana, arms crossed, smirk; same visor/jacket as `chars/rival` |
 
-`prof_front`, `trainer_m_front`, `trainer_f_front` and `rival_front` are reduced with the
-same pipeline as the creature sprites, so they share their pixel density:
-sub-pixel linework softened before a box downscale, ≤16 colours, specks
-removed, a solid 1px `#28222e` outline, skin forced onto the SKIN ramp, then
-snapped to the master palette.
+`player_front`, `prof_front`, `trainer_m_front`, `trainer_f_front`,
+`rival_front` and `trainer_back` are naturalistic people: normal teen/adult
+proportions, small eyes, real hands and clothing folds. They were generated from the earlier
+designs as references and reduced like the creature sprites: box
+downscale, ≤16 colours, magenta fringe removed, and a solid 1px `#28222e`
+outline. They keep their own reduced colours, as the creatures do: snapping
+them to the tile palette turned olive and grey cloth brown. `player_front`
+also gets a small face clean-up (eyes and fringe).
 
 ## UI — `ui/`
 

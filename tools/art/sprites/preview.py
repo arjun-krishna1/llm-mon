@@ -319,6 +319,37 @@ def interior_check():
     return scale(sheet, 3)
 
 
+def intro_screen():
+    """Professor intro mock: black stage, spotlights, prof + player portraits."""
+    scr = new(240, 160, (12, 12, 18, 255))
+    px = scr.load()
+    for cx in (84, 156):
+        for y in range(60, 112):
+            for x in range(cx - 40, cx + 41):
+                dx, dy = (x - cx) / 36, (y - 100) / 9
+                if dx * dx + dy * dy <= 1 and 0 <= x < 240:
+                    px[x, y] = (52, 50, 64, 255) if dx * dx + dy * dy > 0.55 else (78, 76, 92, 255)
+    pf = L(SPRITES, 'battle', 'prof_front.png')
+    pl = L(SPRITES, 'battle', 'player_front.png')
+    if pf:
+        scr.alpha_composite(pf, (52, 8))
+    if pl:
+        scr.alpha_composite(pl, (124, 8))
+    fd = L(UI, 'frame_dialog.png')
+    box = nine(fd, 240, 48)
+    text5(box, 12, 12, "And you are... Arjun! Your very", P.UI_TEXT, P.UI_TEXT_SHADOW)
+    text5(box, 12, 28, 'own LLMMON adventure awaits!', P.UI_TEXT, P.UI_TEXT_SHADOW)
+    scr.alpha_composite(box, (0, 112))
+    return scale(scr, 4)
+
+
+def battle_intro():
+    """Trainer battle intro: player back (frame 0) vs rival front + creatures."""
+    scr = battle_screen('glm', 'claude_fable', 'GLM', 'FABLE', text=('Rival Dana', 'wants to battle!'))
+    small = scr.resize((240, 160), Image.NEAREST)
+    return small
+
+
 # Orb centres on starter_select_bg (also documented in the catalog).
 STARTER_ORBS = [(72, 84), (120, 84), (168, 84)]
 
@@ -330,6 +361,19 @@ def build(char_ids, mon_ids):
     out['ui'] = save(ui_sheet(), PREVIEW, 'ui_4x.png')
     out['title'] = save(title_screen(), PREVIEW, 'title_4x.png')
     out['starter'] = save(starter_screen(), PREVIEW, 'starter_select_4x.png')
+    out['intro'] = save(intro_screen(), PREVIEW, 'intro_4x.png')
+    bi = new(240, 160, (0, 0, 0, 255))
+    bg = L(SPRITES, 'battle', 'bg_grass.png')
+    bi.alpha_composite(bg)
+    bi.alpha_composite(L(SPRITES, 'battle', 'platform_enemy.png'), (112, 50))
+    bi.alpha_composite(L(SPRITES, 'battle', 'platform_player.png'), (-8, 96))
+    bi.alpha_composite(L(SPRITES, 'battle', 'rival_front.png'), (148, 4))
+    bi.alpha_composite(L(SPRITES, 'battle', 'trainer_back.png').crop((0, 0, 64, 64)), (24, 48))
+    fb = nine(L(UI, 'frame_battle.png'), 240, 48)
+    text5(fb, 12, 12, 'Rival Dana', P.UI_TEXT, P.UI_TEXT_SHADOW)
+    text5(fb, 12, 28, 'would like to battle!', P.UI_TEXT, P.UI_TEXT_SHADOW)
+    bi.alpha_composite(fb, (0, 112))
+    out['battle_intro'] = save(scale(bi, 4), PREVIEW, 'battle_intro_rival_4x.png')
     out['dex'] = save(dex_screen(), PREVIEW, 'dex_4x.png')
     out['storage'] = save(storage_screen(), PREVIEW, 'storage_4x.png')
     ic = interior_check()

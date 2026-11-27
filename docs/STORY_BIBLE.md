@@ -69,6 +69,9 @@ well-known public figures of the AI world appear as cameos. Ground rules:
   no real person or company is cast as an antagonist.
 - The credits carry a line that the game is an affectionate parody and
   tribute, and is not endorsed by anyone named.
+- The owner has approved using real public executives and researchers as
+  characters, including as the rival. A rival competes with the player and
+  loses battles; that is as adversarial as any real person's role gets.
 - Some namesakes are no longer living (Shannon, Rumelhart, Turing). They are
   presented as tributes; the Notebook page says so.
 
@@ -319,9 +322,27 @@ order, each carrying that gym's mechanic in miniature: micrograd, makemore,
 char-rnn, minGPT, nanoGPT, nanochat. He concedes with the game's thesis:
 "You didn't memorise it. You built it."
 
-**Rival — Dana** (fictional). She reaches the Summit first, loses to the
-Champion, and is the last fight on Victory Road. Earlier battles: Route 101
-(built), Palo Alto library, Toronto, Seattle ferry.
+**Rival — a real person from the lab that counters your starter.** The rival
+is a fellow newcomer the professor is also mentoring, friendly and
+competitive, never mean. Who it is depends on the starter you pick, so the
+rival always carries the type that beats yours:
+
+| You pick | Rival | Rival's starter |
+| --- | --- | --- |
+| Claude Fable (Anthropic) | Greg Brockman, of OpenAI | GPT 5.5 |
+| GPT 5.5 (OpenAI) | Zhang Peng, of Zhipu | GLM |
+| GLM (Zhipu) | Boris Cherny, of Anthropic | Claude Fable |
+
+Each has a light running trait drawn from their public persona (Boris does
+everything from a terminal; Greg has been "shipping all night"). The rival
+reaches the Summit first, loses to the Champion, and is the last fight on
+Victory Road. Earlier battles: Route 101 (built, currently the fictional
+Dana), Palo Alto library, Toronto, Seattle ferry. The two rivals you did not
+get appear as friendly trainers in their labs' home cities.
+
+**Fictional by design:** Mom, townsfolk, route trainers, Team Overfit and
+Director Norm. Roles and affiliations of everyone named must be re-checked
+before release, since people change jobs.
 
 **Secret post-game boss — Turing.** In a quiet room behind the League. He
 asks one question before the fight: "Are you sure you're the human here?"

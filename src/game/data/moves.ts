@@ -71,50 +71,62 @@ function m(def: Omit<MoveDef, 'priority' | 'anim'> & { priority?: number; anim?:
 export const STRUGGLE_ID = 'retry_loop'
 
 const MOVE_LIST: MoveDef[] = [
-  // ── neutral ────────────────────────────────────────────────────────────
-  m({ id: 'warm_nudge', name: 'Warm Nudge', type: 'neutral', category: 'special', power: 40, accuracy: 100, pp: 35, anim: 'wave', description: 'A kind, persuasive nudge. May lower the foe\'s Attack.', effect: { chance: 10, foe: { atk: -1 } } }),
-  m({ id: 'prompt_pulse', name: 'Prompt Pulse', type: 'neutral', category: 'special', power: 40, accuracy: 100, pp: 35, description: 'A reliable burst of well-formed prompt.' }),
-  m({ id: 'graph_paw', name: 'Graph Paw', type: 'neutral', category: 'special', power: 40, accuracy: 100, pp: 35, anim: 'burst', description: 'Traces a graph in the air; every edge connects.' }),
-  m({ id: 'autocomplete', name: 'Autocomplete', type: 'neutral', category: 'physical', power: 40, accuracy: 100, pp: 35, description: 'Finishes the foe\'s sentence. Painfully.' }),
-  m({ id: 'quick_reply', name: 'Quick Reply', type: 'neutral', category: 'physical', power: 40, accuracy: 100, pp: 30, priority: 1, anim: 'quick', description: 'Answers before the question is done. Always goes first.' }),
-  m({ id: 'small_talk', name: 'Small Talk', type: 'neutral', category: 'status', power: 0, accuracy: 100, pp: 40, anim: 'debuff', description: 'Endless pleasantries lower the foe\'s Sp. Atk.', effect: { foe: { spa: -1 } } }),
-  m({ id: 'pattern_guard', name: 'Pattern Guard', type: 'neutral', category: 'status', power: 0, accuracy: 100, pp: 40, anim: 'debuff', description: 'Spots the foe\'s pattern and blunts it. Lowers Attack.', effect: { foe: { atk: -1 } } }),
-  m({ id: 'jailbreak', name: 'Jailbreak', type: 'neutral', category: 'status', power: 0, accuracy: 90, pp: 20, anim: 'debuff', description: 'A sneaky prompt that sharply lowers the foe\'s Defense.', effect: { foe: { def: -2 } } }),
-  m({ id: 'guardrail', name: 'Guardrail', type: 'neutral', category: 'status', power: 0, accuracy: null, pp: 30, anim: 'buff', description: 'Puts up guardrails. Raises Defense.', effect: { self: { def: 1 } } }),
-  m({ id: 'focus_token', name: 'Focus Token', type: 'neutral', category: 'status', power: 0, accuracy: null, pp: 30, anim: 'buff', description: 'Spends a token on focus. Raises Attack.', effect: { self: { atk: 1 } } }),
-  m({ id: 'summarize', name: 'Summarize', type: 'neutral', category: 'status', power: 0, accuracy: null, pp: 10, anim: 'heal', description: 'Compresses its context to recover half its max HP.', healFraction: 0.5 }),
-  m({ id: 'long_preamble', name: 'Long Preamble', type: 'neutral', category: 'status', power: 0, accuracy: 60, pp: 15, description: 'A preamble so long the foe times out.', effect: { status: 'timed_out' } }),
-  m({ id: STRUGGLE_ID, name: 'Retry Loop', type: 'neutral', category: 'physical', power: 50, accuracy: null, pp: 1, anim: 'heavy', description: 'Out of tokens, it retries anyway. Hurts the user too.', typeless: true }),
+  // ── classic (basic moves anyone can learn) ─────────────────────────────
+  m({ id: 'warm_nudge', name: 'Warm Nudge', type: 'classic', category: 'special', power: 40, accuracy: 100, pp: 35, anim: 'wave', description: 'A kind, persuasive nudge. May lower the foe\'s Attack.', effect: { chance: 10, foe: { atk: -1 } } }),
+  m({ id: 'prompt_pulse', name: 'Prompt Pulse', type: 'classic', category: 'special', power: 40, accuracy: 100, pp: 35, description: 'A reliable burst of well-formed prompt.' }),
+  m({ id: 'graph_paw', name: 'Graph Paw', type: 'classic', category: 'special', power: 40, accuracy: 100, pp: 35, anim: 'burst', description: 'Traces a graph in the air; every edge connects.' }),
+  m({ id: 'autocomplete', name: 'Autocomplete', type: 'classic', category: 'physical', power: 40, accuracy: 100, pp: 35, description: 'Finishes the foe\'s sentence. Painfully.' }),
+  m({ id: 'quick_reply', name: 'Quick Reply', type: 'classic', category: 'physical', power: 40, accuracy: 100, pp: 30, priority: 1, anim: 'quick', description: 'Answers before the question is done. Always goes first.' }),
+  m({ id: 'small_talk', name: 'Small Talk', type: 'classic', category: 'status', power: 0, accuracy: 100, pp: 40, anim: 'debuff', description: 'Endless pleasantries lower the foe\'s Sp. Atk.', effect: { foe: { spa: -1 } } }),
+  m({ id: 'pattern_guard', name: 'Pattern Guard', type: 'classic', category: 'status', power: 0, accuracy: 100, pp: 40, anim: 'debuff', description: 'Spots the foe\'s pattern and blunts it. Lowers Attack.', effect: { foe: { atk: -1 } } }),
+  m({ id: 'jailbreak', name: 'Jailbreak', type: 'classic', category: 'status', power: 0, accuracy: 90, pp: 20, anim: 'debuff', description: 'A sneaky prompt that sharply lowers the foe\'s Defense.', effect: { foe: { def: -2 } } }),
+  m({ id: 'guardrail', name: 'Guardrail', type: 'classic', category: 'status', power: 0, accuracy: null, pp: 30, anim: 'buff', description: 'Puts up guardrails. Raises Defense.', effect: { self: { def: 1 } } }),
+  m({ id: 'focus_token', name: 'Focus Token', type: 'classic', category: 'status', power: 0, accuracy: null, pp: 30, anim: 'buff', description: 'Spends a token on focus. Raises Attack.', effect: { self: { atk: 1 } } }),
+  m({ id: 'summarize', name: 'Summarize', type: 'classic', category: 'status', power: 0, accuracy: null, pp: 10, anim: 'heal', description: 'Compresses its context to recover half its max HP.', healFraction: 0.5 }),
+  m({ id: 'long_preamble', name: 'Long Preamble', type: 'classic', category: 'status', power: 0, accuracy: 60, pp: 15, description: 'A preamble so long the foe times out.', effect: { status: 'timed_out' } }),
+  m({ id: 'rate_limit', name: 'Rate Limit', type: 'classic', category: 'status', power: 0, accuracy: 90, pp: 20, description: 'Throttles the foe. It becomes rate-limited.', effect: { status: 'rate_limited' } }),
+  m({ id: STRUGGLE_ID, name: 'Retry Loop', type: 'classic', category: 'physical', power: 50, accuracy: null, pp: 1, anim: 'heavy', description: 'Out of tokens, it retries anyway. Hurts the user too.', typeless: true }),
 
-  // ── myth ───────────────────────────────────────────────────────────────
-  m({ id: 'tiny_myth', name: 'Tiny Myth', type: 'myth', category: 'special', power: 45, accuracy: 100, pp: 25, anim: 'wave', description: 'Tells a small story with a big point.' }),
-  m({ id: 'fable_flame', name: 'Fable Flame', type: 'myth', category: 'special', power: 70, accuracy: 100, pp: 15, anim: 'burst', description: 'A blazing tale. May leave the foe hallucinating.', effect: { chance: 10, status: 'hallucinating' } }),
-  m({ id: 'constitution', name: 'Constitution', type: 'myth', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Recites its principles. Raises Sp. Atk and Sp. Def.', effect: { self: { spa: 1, spd: 1 } } }),
+  // ── anthropic ──────────────────────────────────────────────────────────
+  m({ id: 'artifact', name: 'Artifact', type: 'anthropic', category: 'special', power: 45, accuracy: 100, pp: 25, anim: 'wave', description: 'Builds a little interactive page and drops it on the foe.' }),
+  m({ id: 'extended_thinking', name: 'Extended Thinking', type: 'anthropic', category: 'special', power: 70, accuracy: 100, pp: 15, anim: 'burst', description: 'Signature. Thinks it all through first. May raise Sp. Atk.', effect: { chance: 20, self: { spa: 1 } } }),
+  m({ id: 'constitution', name: 'Constitution', type: 'anthropic', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Recites its principles. Raises Sp. Atk and Sp. Def.', effect: { self: { spa: 1, spd: 1 } } }),
 
-  // ── logic ──────────────────────────────────────────────────────────────
-  m({ id: 'logic_spark', name: 'Logic Spark', type: 'logic', category: 'special', power: 45, accuracy: 100, pp: 25, description: 'A crisp spark of deduction.' }),
-  m({ id: 'proof_step', name: 'Proof Step', type: 'logic', category: 'special', power: 70, accuracy: 100, pp: 15, anim: 'burst', description: 'One airtight step. May lower the foe\'s Speed.', effect: { chance: 20, foe: { spe: -1 } } }),
-  m({ id: 'chain_of_thought', name: 'Chain of Thought', type: 'logic', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Thinks step by step. Sharply raises Sp. Atk.', effect: { self: { spa: 2 } } }),
+  // ── openai ─────────────────────────────────────────────────────────────
+  m({ id: 'function_call', name: 'Function Call', type: 'openai', category: 'physical', power: 45, accuracy: 100, pp: 25, description: 'Calls exactly the right function with typed arguments.' }),
+  m({ id: 'reasoning_effort', name: 'Reasoning Effort', type: 'openai', category: 'physical', power: 75, accuracy: 95, pp: 10, anim: 'heavy', description: 'Signature. Turns the effort dial to max. High critical-hit ratio.', highCrit: true }),
+  m({ id: 'custom_instruction', name: 'Custom Instruction', type: 'openai', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Remembers how you like it. Raises Attack and Speed.', effect: { self: { atk: 1, spe: 1 } } }),
 
-  // ── tool ───────────────────────────────────────────────────────────────
-  m({ id: 'tool_tap', name: 'Tool Tap', type: 'tool', category: 'physical', power: 45, accuracy: 100, pp: 25, description: 'Taps the right tool at the right time.' }),
-  m({ id: 'function_call', name: 'Function Call', type: 'tool', category: 'physical', power: 70, accuracy: 95, pp: 15, anim: 'heavy', description: 'A precise call with typed arguments. High critical-hit ratio.', highCrit: true }),
-  m({ id: 'web_search', name: 'Web Search', type: 'tool', category: 'special', power: 60, accuracy: null, pp: 15, description: 'Looks it up. Never misses.' }),
+  // ── google ─────────────────────────────────────────────────────────────
+  m({ id: 'multimodal_beam', name: 'Multimodal Beam', type: 'google', category: 'special', power: 50, accuracy: 100, pp: 25, description: 'A ray of text, pixels and audio all at once.' }),
+  m({ id: 'grounding', name: 'Grounding', type: 'google', category: 'special', power: 65, accuracy: null, pp: 15, anim: 'burst', description: 'Signature. Anchors the hit in search results. Never misses.' }),
+  m({ id: 'long_context', name: 'Long Context', type: 'google', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Remembers every hit so far. Raises Defense and Sp. Def.', effect: { self: { def: 1, spd: 1 } } }),
+  m({ id: 'tpu_slam', name: 'TPU Slam', type: 'google', category: 'physical', power: 80, accuracy: 90, pp: 10, anim: 'heavy', description: 'Drops a whole rack of chips on the foe. Some recoil.', recoilFraction: 0.25 }),
 
-  // ── speed ──────────────────────────────────────────────────────────────
-  m({ id: 'low_latency', name: 'Low Latency', type: 'speed', category: 'physical', power: 40, accuracy: 100, pp: 30, priority: 1, anim: 'quick', description: 'Hits before the foe can blink. Always goes first.' }),
-  m({ id: 'burst_decode', name: 'Burst Decode', type: 'speed', category: 'special', power: 60, accuracy: 100, pp: 20, description: 'Decodes a burst of tokens. May raise the user\'s Speed.', effect: { chance: 20, self: { spe: 1 } } }),
-  m({ id: 'overclock', name: 'Overclock', type: 'speed', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Pushes the clock. Sharply raises Speed.', effect: { self: { spe: 2 } } }),
-  m({ id: 'rate_limit', name: 'Rate Limit', type: 'speed', category: 'status', power: 0, accuracy: 90, pp: 20, description: 'Throttles the foe. It becomes rate-limited.', effect: { status: 'rate_limited' } }),
+  // ── zhipu ──────────────────────────────────────────────────────────────
+  m({ id: 'graph_reason', name: 'Graph Reason', type: 'zhipu', category: 'special', power: 45, accuracy: 100, pp: 25, description: 'Follows every edge of the problem to the answer.' }),
+  m({ id: 'blank_infill', name: 'Blank Infill', type: 'zhipu', category: 'special', power: 70, accuracy: 100, pp: 15, anim: 'burst', description: 'Signature. Fills in the blank the foe left. May lower its Speed.', effect: { chance: 20, foe: { spe: -1 } } }),
+  m({ id: 'thinking_mode', name: 'Thinking Mode', type: 'zhipu', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Flips into thinking mode. Sharply raises Sp. Atk.', effect: { self: { spa: 2 } } }),
 
-  // ── open ───────────────────────────────────────────────────────────────
-  m({ id: 'fork_strike', name: 'Fork Strike', type: 'open', category: 'physical', power: 50, accuracy: 100, pp: 25, description: 'Forks itself and hits from both branches.' }),
-  m({ id: 'weight_drop', name: 'Weight Drop', type: 'open', category: 'physical', power: 80, accuracy: 90, pp: 10, anim: 'heavy', description: 'Drops all its open weights at once. Some recoil.', recoilFraction: 0.25 }),
-  m({ id: 'community_patch', name: 'Community Patch', type: 'open', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Merges a fix from the community. Raises Defense and Sp. Def.', effect: { self: { def: 1, spd: 1 } } }),
+  // ── deepseek ───────────────────────────────────────────────────────────
+  m({ id: 'expert_mix', name: 'Expert Mix', type: 'deepseek', category: 'physical', power: 50, accuracy: 100, pp: 25, description: 'Routes the hit through just the right experts.' }),
+  m({ id: 'deep_think', name: 'Deep Think', type: 'deepseek', category: 'special', power: 75, accuracy: 95, pp: 10, anim: 'burst', description: 'Signature. Thinks out loud for pages, then lands it.' }),
+  m({ id: 'distill', name: 'Distill', type: 'deepseek', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Boils itself down to the good parts. Raises Sp. Atk and Speed.', effect: { self: { spa: 1, spe: 1 } } }),
 
-  // ── vision ─────────────────────────────────────────────────────────────
-  m({ id: 'pixel_beam', name: 'Pixel Beam', type: 'vision', category: 'special', power: 50, accuracy: 100, pp: 25, description: 'A ray of perfectly labelled pixels.' }),
-  m({ id: 'flash_frame', name: 'Flash Frame', type: 'vision', category: 'special', power: 60, accuracy: 95, pp: 15, anim: 'burst', description: 'A blinding frame. May lower the foe\'s accuracy.', effect: { chance: 30, foe: { acc: -1 } } }),
+  // ── mistral ────────────────────────────────────────────────────────────
+  m({ id: 'tailwind', name: 'Tailwind', type: 'mistral', category: 'physical', power: 40, accuracy: 100, pp: 30, priority: 1, anim: 'quick', description: 'Rides a gust in from Paris. Always goes first.' }),
+  m({ id: 'le_chat', name: 'Le Chat', type: 'mistral', category: 'special', power: 60, accuracy: 100, pp: 20, description: 'Signature. A breezy chat with claws. May raise Speed.', effect: { chance: 20, self: { spe: 1 } } }),
+  m({ id: 'cool_breeze', name: 'Cool Breeze', type: 'mistral', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Catches a cool wind. Sharply raises Speed.', effect: { self: { spe: 2 } } }),
+
+  // ── moonshot ───────────────────────────────────────────────────────────
+  m({ id: 'agent_swarm', name: 'Agent Swarm', type: 'moonshot', category: 'physical', power: 50, accuracy: 100, pp: 25, description: 'A hundred little tool calls, all at once.' }),
+  m({ id: 'moonshot', name: 'Moonshot', type: 'moonshot', category: 'special', power: 85, accuracy: 85, pp: 10, anim: 'beam', description: 'Signature. Aims for the moon. Sometimes misses it.' }),
+  m({ id: 'orbit', name: 'Orbit', type: 'moonshot', category: 'status', power: 0, accuracy: null, pp: 20, anim: 'buff', description: 'Settles into a steady orbit. Raises Attack and Defense.', effect: { self: { atk: 1, def: 1 } } }),
+
+  // ── cohere ─────────────────────────────────────────────────────────────
+  m({ id: 'retrieval', name: 'Retrieval', type: 'cohere', category: 'physical', power: 50, accuracy: 100, pp: 25, description: 'Fetches the exact document and throws it.' }),
+  m({ id: 'rerank', name: 'Rerank', type: 'cohere', category: 'special', power: 65, accuracy: 100, pp: 15, anim: 'burst', description: 'Signature. Puts the foe at the bottom of the list. May lower Sp. Atk.', effect: { chance: 30, foe: { spa: -1 } } }),
+  m({ id: 'command', name: 'Command', type: 'cohere', category: 'status', power: 0, accuracy: 100, pp: 20, anim: 'debuff', description: 'A clear, polite order. Sharply lowers the foe\'s Attack.', effect: { foe: { atk: -2 } } }),
 
   // ── glitch ─────────────────────────────────────────────────────────────
   m({ id: 'glitch_bite', name: 'Glitch Bite', type: 'glitch', category: 'physical', power: 40, accuracy: 100, pp: 30, anim: 'glitch', description: 'A bite that lands a few frames out of sync.' }),
@@ -124,5 +136,29 @@ const MOVE_LIST: MoveDef[] = [
   m({ id: 'prompt_injection', name: 'Prompt Injection', type: 'glitch', category: 'status', power: 0, accuracy: 90, pp: 15, anim: 'glitch', description: 'Slips bad instructions into the foe. Inflicts context rot.', effect: { status: 'context_rot' } }),
   m({ id: 'token_flood', name: 'Token Flood', type: 'glitch', category: 'special', power: 80, accuracy: 90, pp: 10, anim: 'wave', description: 'Floods the field with garbage tokens.' }),
 ]
+
+/**
+ * Round-1 move ids (8-type chart) -> current ids. Used by save migration. Note
+ * `function_call` was the old 70-power Tool move: it maps to Reasoning Effort, and
+ * the id is reused for the new 45-power OpenAI move (only applied to v1 saves).
+ */
+export const LEGACY_MOVE_IDS: Record<string, string> = {
+  tiny_myth: 'artifact',
+  fable_flame: 'extended_thinking',
+  logic_spark: 'graph_reason',
+  proof_step: 'blank_infill',
+  chain_of_thought: 'thinking_mode',
+  tool_tap: 'function_call',
+  function_call: 'reasoning_effort',
+  web_search: 'grounding',
+  low_latency: 'tailwind',
+  burst_decode: 'le_chat',
+  overclock: 'cool_breeze',
+  fork_strike: 'expert_mix',
+  weight_drop: 'tpu_slam',
+  community_patch: 'long_context',
+  pixel_beam: 'multimodal_beam',
+  flash_frame: 'grounding',
+}
 
 export const MOVES: Record<string, MoveDef> = Object.fromEntries(MOVE_LIST.map((mv) => [mv.id, mv]))
