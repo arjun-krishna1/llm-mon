@@ -5,8 +5,9 @@ import type { SongDef } from '../song.ts'
 // borrowed Eb, Db, Bbm), 156 bpm. 2-bar sting, then A (8) B (8) C (8) A' (8).
 
 const I = 'F5 | Db Eb'
-const A = 'F5 | F5 | Eb | Bb | F5 | F5 | Db | C'
-const B = 'Dm | Bb | Gm | C | Dm | Bb | Db Eb | C7'
+const MEL_I = 'F5:8 -:16 F5:16 Ab5:8 A5:8 C6:4 -:4 | Db6:8 Ab5:8 F5:8 Ab5:8 Eb6:8 Bb5:8 G5:8 Bb5:8'
+const A = 'F5 | F7 | Eb | Bb | F5 | F7 | Db | C'
+const B = 'Dm | Bb | Gm | C | Dm | Bb | Db Eb | C'
 const C = 'Bb | Bbm | F | F7 | Bb | Bbm | Db | C'
 
 const melA = `F5:8 -:16 F5:16 Ab5:16 A5:16 -:8 C6:8 A5:8 F5:8 C5:8 | Eb6:8 C6:8 A5:8 C6:8 Eb6:8 F6:8 Eb6:8 C6:8 |
@@ -34,14 +35,14 @@ export const battle_rival: SongDef = {
   channels: { p1: { inst: 'lead12' }, p2: { inst: 'arpfast' }, w: { inst: 'bass' } },
   chords: { intro: I, loop: `${A} | ${B} | ${C} | ${A}` },
   intro: {
-    p1: 'F5:8 -:16 F5:16 Ab5:8 A5:8 C6:4 -:4 | Db6:8 C6:8 Ab5:8 F5:8 Eb6:8 Db6:8 Bb5:8 G5:8',
-    p2: comp(I, 'pulse8', { center: 'F4', v: 10 }),
+    p1: MEL_I,
+    p2: comp(I, 'pulse8', { center: 'F4', v: 10, mel: MEL_I }),
     w: 'F2:8 F2:8 -:8 F2:8 F3:4 -:4 | Db3:8 Db3:8 Db3:8 Db3:8 Eb3:8 Eb3:8 Eb3:8 Eb3:8',
     n: 'c:8 -:8 s:8 -:8 k:4 -:4 | k:8 k:8 s:8 k:8 s:16 s:16 s:16 s:16 t:16 t:16 tl:16 tl:16',
   },
   loop: {
     p1: `${melA} | ${melB} | ${melC} | @lead ${melA}`,
-    p2: `${comp(A, 'pulse8', { center: 'F4', v: 10 })} | ${comp(B, 'up16', { center: 'F4', v: 10, inst: 'broken' })} | ${comp(C, 'stab', { center: 'F4', v: 11 })} | ${comp(A, 'up16', { center: 'F4', v: 10, inst: 'broken' })}`,
+    p2: `${comp(A, 'pulse8', { center: 'F4', v: 10, mel: melA })} | ${comp(B, 'up16', { center: 'F4', v: 10, inst: 'broken', mel: melB })} | ${comp(C, 'stab', { center: 'F4', v: 11, mel: melC })} | ${comp(A, 'up16', { center: 'F4', v: 10, inst: 'broken', mel: melA })}`,
     w: `${riff(A, 'R:8 R:8 O:8 R:8 F:8 R:8 O:8 F:8', { center: 'F2' })} | ${bassLine(B, 'oct8', { center: 'F2' })} | ${bassLine(C, 'drive16', { center: 'F2' })} | ${riff(A, 'R:8 R:8 O:8 R:8 F:8 R:8 O:8 F:8', { center: 'F2' })}`,
     n: `${dr8} | ${dr8} | ${drC} | ${dr8}`,
   },

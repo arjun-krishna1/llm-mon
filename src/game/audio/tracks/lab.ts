@@ -4,8 +4,8 @@ import type { SongDef } from '../song.ts'
 // Professor's lab: inquisitive and bouncy. D Dorian (B natural, with an A7 turnaround), 120 bpm.
 // A (8) B (8) A (8) B' (8).
 
-const A = 'Dm7 | G7 | Dm7 | G7 | Fmaj7 | Em7 | Dm7 Em7 | A7'
-const B = 'C | G/B | Am7 | Dm7 | C | G | Em7 A7 | A7'
+const A = 'Dm7 | G | Dm7 | G | F | Em7 | Dm7 Em7 | A'
+const B = 'C | G/B | Am7 | Dm7 | C | G | Em7 A | A7'
 
 const melA = `D5:8 -:8 F5:8 A5:8 -:8 G5:8 F5:8 E5:8 | D5:8 -:8 B4:8 D5:8 -:8 F5:8 D5:8 B4:8 |
   D5:8 -:8 F5:8 A5:8 -:8 C6:8 B5:8 A5:8 | G5:8 F5:8 D5:8 B4:8 G4:4 -:4 |
@@ -33,8 +33,8 @@ export const lab: SongDef = {
   chords: { loop: `${A} | ${B} | ${A} | ${B}` },
   loop: {
     p1: `${melA} | ${melB} | ${endB1} | @lead12 ${melA} | ${melB} | ${endB2}`,
-    p2: `${comp(A, 'stab', { center: 'A4', v: 10 })} | ${comp(B, 'stab', { center: 'A4', v: 10 })} | ${comp(A, 'guide', { center: 'F4', v: 10, inst: 'harm' })} | ${comp(B, 'stab', { center: 'A4', v: 10, inst: 'arp' })}`,
-    w: bassLine(`${A} | ${B} | ${A} | ${B}`, 'stride8', { center: 'D3' }),
+    p2: `${comp(A, 'stab', { center: 'A4', v: 10, mel: melA })} | ${comp(B, 'stab', { center: 'A4', v: 10, mel: `${melB} | ${endB1}` })} | ${comp(A, 'guide', { center: 'F4', v: 10, inst: 'harm', mel: melA })} | ${comp(B, 'stab', { center: 'A4', v: 10, inst: 'arp', mel: `${melB} | ${endB2}` })}`,
+    w: bassLine(`${A} | ${B} | ${A} | ${B}`, 'stride8', { center: 'A2' }),
     n: `(${dr})x7 ${drFill} (${dr})x7 ${drFill} (${dr})x7 ${drFill} (${dr})x7 ${drFill}`,
   },
 }

@@ -19,9 +19,11 @@ export interface SfxDef {
   minGap?: number
 }
 
-const jingle = (id: string, bpm: number, ch: SongDef['channels'], loop: SongDef['loop']): SongDef => ({
+const jingle = (id: string, bpm: number, ch: SongDef['channels'], loop: SongDef['loop'], chords?: string): SongDef => ({
   id,
   bpm,
+  key: 'C major',
+  chords: chords ? { loop: chords } : undefined,
   once: true,
   channels: ch,
   echo: { beats: 0.5, feedback: 0.2, wet: 0.2 },
@@ -112,6 +114,7 @@ export const SFX: Record<string, SfxDef> = {
         p2: 'v13 E5:2 G5:2 | C5:2 -:2',
         w: 'v10 C3:1 | C3:2 -:2',
       },
+      'C | C',
     ),
   },
   item_get: {
@@ -125,6 +128,7 @@ export const SFX: Record<string, SfxDef> = {
         w: 'C3:4 C3:4 G2:4 G2:4 | C3:2 -:2',
         n: 'k:4 -:4 k:4 s:4 | k:2 -:2',
       },
+      'C:2 G7:4 C:4 | C',
     ),
   },
   key_item_get: {
@@ -138,6 +142,7 @@ export const SFX: Record<string, SfxDef> = {
         w: 'C3:4 E3:4 G3:4 C3:4 | D3:4 F3:4 G2:4 G3:4 | C3:2 -:2',
         n: 'k:8 s:16 s:16 k:8 s:16 s:16 k:4 c:4 | k:4 s:4 k:4 s:8 s:8 | c:2 -:2',
       },
+      'C | Dm:8 C:8 Dm:4 G:2 | C',
     ),
   },
   level_up: {
@@ -151,6 +156,7 @@ export const SFX: Record<string, SfxDef> = {
         w: 'C3:4 D3:4 E3:4 F3:4 | G2:2 C3:4 -:4',
         n: 'k:4 h:4 k:4 h:4 | k:8 s:8 s:8 s:8 c:4 -:4',
       },
+      'C Dm Em F | G7 C',
     ),
   },
   hit: {

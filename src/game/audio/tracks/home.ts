@@ -12,8 +12,8 @@ const melA = `D5:4 C5:4 Bb4:4 | G4:2 Bb4:4 | A4:4 C5:4 F5:4 | D5:2. |
 const melB = `G5:2 F5:4 | F5:4 D5:4 Bb4:4 | Eb5:2 G5:4 | C5:2. |
   Bb4:4 Eb5:4 G5:4 | F5:4 D5:4 A4:4 | G4:4 Bb4:4 A4:4 | Bb4:2. `
 
-// music-box sparkle an octave up on the repeat of B
-const bellB = '@bell v8 -:2. | -:2. | -:2. | -:4 C6:4 F6:4 | -:2. | -:2. | -:2. | -:4 F6:4 D6:4'
+// music-box answers under the held notes on the repeat of B
+const bellB = '@bell v9 -:2. | -:2. | -:2. | -:4 F4:4 A4:4 | -:2. | -:2. | -:2. | -:4 F4:4 D4:4'
 
 export const home: SongDef = {
   id: 'home',
@@ -28,7 +28,7 @@ export const home: SongDef = {
   chords: { loop: `${A} | ${B} | ${A} | ${B}` },
   loop: {
     p1: `${melA} | ${melB} | ${melA} | ${melB}`,
-    p2: `${comp(A, 'waltz', { barTicks: BT, center: 'F4', v: 8, inst: 'harm50' })} | ${comp(B, 'waltz', { barTicks: BT, center: 'F4', v: 8, inst: 'harm50' })} | ${comp(A, 'waltz', { barTicks: BT, center: 'F4', v: 8, inst: 'harm50' })} | ${bellB}`,
+    p2: `${comp(A, 'waltz', { barTicks: BT, center: 'F4', v: 8, inst: 'harm50', mel: melA })} | ${comp(B, 'waltz', { barTicks: BT, center: 'F4', v: 8, inst: 'harm50', mel: melB })} | ${comp(A, 'waltz', { barTicks: BT, center: 'F4', v: 8, inst: 'harm50', mel: melA })} | ${bellB}`,
     w: `${bassLine(`${A} | ${B} | ${A} | ${B}`, 'waltz', { barTicks: BT, center: 'Bb2', v: 11 })}`,
     n: '(hs:4 hs:8 hs:8 hs:4)x31 hs:4 hs:4 sl:8 sl:8',
   },

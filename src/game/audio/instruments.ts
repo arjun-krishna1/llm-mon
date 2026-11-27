@@ -42,12 +42,12 @@ export const INSTRUMENTS: Record<string, Instrument> = {
   lead12: { wave: 'pulse12', gain: 0.15, a: 0.004, d: 0.12, s: 0.62, r: 0.05, vib: [12, 6, 0.18] },
   lead50: { wave: 'pulse50', gain: 0.12, a: 0.006, d: 0.12, s: 0.7, r: 0.06, vib: [12, 5.5, 0.2] },
   flute: { wave: 'pulse50s', gain: 0.17, a: 0.03, d: 0.2, s: 0.78, r: 0.12, vib: [10, 4.8, 0.25] },
-  brass: { wave: 'pulse25', gain: 0.17, a: 0.01, d: 0.18, s: 0.72, r: 0.07, pitchEnv: [-1, 0.04], vib: [16, 5.8, 0.18] },
+  brass: { wave: 'pulse25', gain: 0.17, a: 0.01, d: 0.18, s: 0.72, r: 0.07, pitchEnv: [-0.35, 0.03], vib: [14, 5.8, 0.2] },
   stac: { wave: 'pulse25', gain: 0.15, a: 0.003, d: 0.08, s: 0.3, r: 0.03, gate: 0.6 },
   pluck: { wave: 'pulse25', gain: 0.15, a: 0.002, d: 0.16, s: 0.15, r: 0.05, gate: 0.85 },
   pluck12: { wave: 'pulse12', gain: 0.13, a: 0.002, d: 0.14, s: 0.12, r: 0.04, gate: 0.85 },
   // --- pulse harmony -------------------------------------------------------
-  harm: { wave: 'pulse12', gain: 0.1, a: 0.008, d: 0.16, s: 0.55, r: 0.06, vib: [8, 5.5, 0.3] },
+  harm: { wave: 'pulse12', gain: 0.1, a: 0.008, d: 0.16, s: 0.55, r: 0.06 },
   harm50: { wave: 'pulse50s', gain: 0.1, a: 0.015, d: 0.2, s: 0.6, r: 0.08 },
   arp: { wave: 'pulse12', gain: 0.1, a: 0.003, d: 0.1, s: 0.5, r: 0.04, arpStep: 1 / 30 },
   arpfast: { wave: 'pulse12', gain: 0.09, a: 0.003, d: 0.06, s: 0.6, r: 0.03, arpStep: 1 / 60 },
@@ -60,7 +60,7 @@ export const INSTRUMENTS: Record<string, Instrument> = {
   basslong: { wave: 'wave4', gain: 0.3, a: 0.006, d: 0.1, s: 0.8, r: 0.06, gate: 0.97 },
   bassstac: { wave: 'wave4', gain: 0.32, a: 0.003, d: 0.06, s: 0.5, r: 0.03, gate: 0.6 },
   basssoft: { wave: 'tri', gain: 0.32, a: 0.01, d: 0.12, s: 0.8, r: 0.08, gate: 0.94 },
-  tri: { wave: 'tri', gain: 0.3, a: 0.01, d: 0.1, s: 0.85, r: 0.06, vib: [10, 5, 0.25] },
+  tri: { wave: 'tri', gain: 0.3, a: 0.01, d: 0.1, s: 0.85, r: 0.06 },
   // --- sfx only --------------------------------------------------------------
   blip: { wave: 'pulse25', gain: 0.14, a: 0.002, d: 0.06, s: 0.5, r: 0.03 },
 }

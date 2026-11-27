@@ -24,13 +24,13 @@ export const victory: SongDef = {
   chords: { intro: I, loop: V },
   intro: {
     p1: melI,
-    p2: comp(I, 'pulse8', { center: 'G4', v: 10 }),
+    p2: comp(I, 'pulse8', { center: 'G4', v: 10, mel: melI }),
     w: bassLine(I, 'drive8', { center: 'C3' }),
     n: 'c:8 k:8 s:8 k:8 k:8 s:8 k:4 | k:8 h:8 s:8 h:8 k:8 h:8 s:8 h:8 | c:8 k:8 s:8 k:8 k:8 s:8 k:4 | s:16 s:16 s:16 s:16 t:16 t:16 tl:16 tl:16 c:4 -:4',
   },
   loop: {
     p1: `@lead ${melV}`,
-    p2: comp(V, 'stab', { center: 'G4', v: 10 }),
+    p2: comp(V, 'stab', { center: 'G4', v: 10, mel: melV }),
     w: bassLine(V, 'oct8', { center: 'C3' }),
     n: '(k:8 h:8 s:8 h:8 k:8 h:8 s:8 h:8)x15 k:8 h:8 s:8 h:8 s:16 s:16 t:16 t:16 tl:16 tl:16 s:8',
   },

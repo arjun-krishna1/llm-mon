@@ -30,7 +30,7 @@ export const hayes_valley: SongDef = {
   chords: { loop: `${A1} | ${A2} | ${B}` },
   loop: {
     p1: `${melA1} | ${melA2} | ${melB}`,
-    p2: `${comp(A1, 'roll68', { barTicks: BT, center: 'D4', v: 10 })} | ${comp(A2, 'roll68', { barTicks: BT, center: 'D4', v: 10 })} | ${comp(B, 'roll68', { barTicks: BT, center: 'D4', v: 9 })}`,
+    p2: `${comp(A1, 'roll68', { barTicks: BT, center: 'D4', v: 10, mel: melA1 })} | ${comp(A2, 'roll68', { barTicks: BT, center: 'D4', v: 10, mel: melA2 })} | ${comp(B, 'roll68', { barTicks: BT, center: 'D4', v: 9, mel: melB })}`,
     w: `${bassLine(A1, 'lilt', { barTicks: BT, center: 'C3' })} | ${bassLine(A2, 'lilt', { barTicks: BT, center: 'C3' })} | ${bassLine(B, 'lilt', { barTicks: BT, center: 'C3' })}`,
     n: `(${dr})x7 ${drFill} (${dr})x7 ${drFill} (${dr})x7 ${drFill}`,
   },

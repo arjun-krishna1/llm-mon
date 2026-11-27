@@ -1,10 +1,15 @@
 // Song definitions, compilation and the lookahead-scheduled player.
 
+import { parseChart } from './compose.ts'
 import { INSTRUMENTS } from './instruments.ts'
 import { barTicks, parseChannel, TICKS_PER_WHOLE, type NoteEvent } from './pattern.ts'
 import { playDrum, playNote, type Tracker } from './synth.ts'
 
 export const CHANNELS = ['p1', 'p2', 'w', 'n'] as const
+
+/** Echo limits (docs/AUDIO.md, Harmony rules). */
+export const ECHO_MAX_FEEDBACK = 0.18
+export const ECHO_MAX_WET = 0.2
 export type ChannelId = (typeof CHANNELS)[number]
 
 export interface ChannelSetup {
@@ -55,11 +60,13 @@ export interface CompiledSong {
   loopTicks: number
   intro: ChannelEvent[]
   loop: ChannelEvent[]
+  /** Chord-change ticks per section (from def.chords), used to clear the echo. */
+  changes: { intro: number[]; loop: number[] }
 }
 
 const DEFAULT_SETUP: Record<ChannelId, Required<ChannelSetup>> = {
   p1: { inst: 'lead', pan: -0.18, echo: 0.22, gain: 1 },
-  p2: { inst: 'harm', pan: 0.22, echo: 0.08, gain: 1 },
+  p2: { inst: 'harm', pan: 0.22, echo: 0, gain: 1 },
   w: { inst: 'bass', pan: 0, echo: 0, gain: 1 },
   n: { inst: 'lead', pan: 0.05, echo: 0, gain: 1 },
 }
@@ -108,6 +115,10 @@ export function compileSong(def: SongDef): CompiledSong {
     loopTicks: loop.ticks,
     intro: intro.events,
     loop: loop.events,
+    changes: {
+      intro: def.chords?.intro ? parseChart(def.chords.intro, bt).map((s) => s.tick) : [],
+      loop: def.chords?.loop ? parseChart(def.chords.loop, bt).map((s) => s.tick) : [],
+    },
   }
   cache.set(def, c)
   return c
@@ -128,6 +139,9 @@ export class SongPlayer implements Tracker {
   private readonly ctx: BaseAudioContext
   private readonly buses: Record<ChannelId, GainNode>
   private readonly echoNodes: AudioNode[] = []
+  private echo: { wet: GainNode; fb: GainNode; wetLevel: number; fbLevel: number; delay: number } | null = null
+  private dPass = -1
+  private dIdx = 0
   private t0 = 0
   /** Cursor: -1 = intro, k >= 0 = loop pass k. */
   private pass = -1
@@ -147,16 +161,21 @@ export class SongPlayer implements Tracker {
     const trim = def.gain ?? 1
     let echoIn: AudioNode | undefined
     if (def.echo && def.echo.wet > 0) {
+      // Echo is melody-only, short and low-feedback, and is cleared at every chord change
+      // (see scheduleDucks) so a previous chord never smears over the next one.
+      const wetLevel = Math.min(ECHO_MAX_WET, def.echo.wet)
+      const fbLevel = Math.min(ECHO_MAX_FEEDBACK, def.echo.feedback)
       const send = ctx.createGain()
       const delay = ctx.createDelay(2)
       delay.delayTime.value = Math.min(1.9, def.echo.beats * (60 / def.bpm))
       const fb = ctx.createGain()
-      fb.gain.value = def.echo.feedback
+      fb.gain.value = fbLevel
       const tone = ctx.createBiquadFilter()
       tone.type = 'lowpass'
       tone.frequency.value = 2600
       const wet = ctx.createGain()
-      wet.gain.value = def.echo.wet
+      wet.gain.value = wetLevel
+      this.echo = { wet, fb, wetLevel, fbLevel, delay: delay.delayTime.value }
       send.connect(delay)
       delay.connect(tone)
       tone.connect(fb)
@@ -175,7 +194,7 @@ export class SongPlayer implements Tracker {
       p.pan.value = s.pan
       g.connect(p)
       p.connect(this.out)
-      if (echoIn && s.echo > 0) {
+      if (echoIn && s.echo > 0 && ch === 'p1') {
         const sg = ctx.createGain()
         sg.gain.value = s.echo
         p.connect(sg)
@@ -228,6 +247,46 @@ export class SongPlayer implements Tracker {
       if (this.idx < 0) this.idx = s.loop.length
     }
     this.running = true
+    const ch = s.changes
+    if (from < s.introTicks) {
+      this.dPass = -1
+      this.dIdx = ch.intro.findIndex((x) => x >= from)
+      if (this.dIdx < 0) this.dIdx = ch.intro.length
+    } else {
+      this.dPass = 0
+      this.dIdx = ch.loop.findIndex((x) => x >= from - s.introTicks)
+      if (this.dIdx < 0) this.dIdx = ch.loop.length
+    }
+  }
+
+  /** Mute the echo return + feedback for one delay time at each chord change. */
+  private scheduleDucks(until: number): void {
+    const e = this.echo
+    if (!e) return
+    const s = this.song
+    const spt = s.secPerTick
+    for (let guard = 0; guard < 10000; guard++) {
+      const list = this.dPass < 0 ? s.changes.intro : s.changes.loop
+      if (this.dIdx >= list.length) {
+        if (this.dPass >= 0 && (s.def.once || list.length === 0)) return
+        this.dPass++
+        this.dIdx = 0
+        if (this.dPass > 0 && this.t0 + this.passStart(this.dPass) * spt >= until) return
+        continue
+      }
+      const base = this.dPass < 0 ? 0 : this.passStart(this.dPass)
+      const t = this.t0 + (base + list[this.dIdx]) * spt
+      if (t >= until) return
+      this.dIdx++
+      if (t < this.ctx.currentTime || t === this.t0) continue
+      for (const [g, level] of [
+        [e.wet.gain, e.wetLevel],
+        [e.fb.gain, e.fbLevel],
+      ] as const) {
+        g.setTargetAtTime(0, t - 0.012, 0.004)
+        g.setTargetAtTime(level, t + e.delay - 0.015, 0.006)
+      }
+    }
   }
 
   /** Fade out and stop scheduling. */
@@ -275,6 +334,7 @@ export class SongPlayer implements Tracker {
   /** Schedule every event that starts before `until` (context time). */
   schedule(until: number, track = true): void {
     if (!this.running) return
+    this.scheduleDucks(until)
     const s = this.song
     const spt = s.secPerTick
     for (let guard = 0; guard < 100000; guard++) {

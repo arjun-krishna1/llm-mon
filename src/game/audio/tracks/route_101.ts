@@ -8,10 +8,11 @@ import { TITLE_MOTIF } from './title.ts'
 
 const motif = transpose(TITLE_MOTIF, -7) // G4 D4 G4 A4 B4 ... in G major
 
-const A = 'G | C Em | Am D | G D | G | C Em | Am D7 | G'
+const A = 'G | C Em | Am D | G D | G | C G | Am D7 | G'
 const B = 'C | D | Bm Em | Am D | C | D | B7 Em | Am D'
-const C = 'Em | C | Am | D | Em | C | Am D | D7'
+const C = 'Em G | C | Am | D Am | Em | C | Am D | D7'
 const introChords = 'G | D7'
+const MEL_I = 'D4:8 G4:8 B4:8 D5:8 G5:4 -:4 | F#5:8 E5:8 D5:8 C5:8 A4:4 -:8 D4:8'
 
 const melA1 = `${motif} | C5:8. B4:16 A4:8 E4:8 D5:4 C5:8 B4:8 | B4:4 A4:8 G4:8 A4:2`
 const melA2 = `G4:8. D4:16 G4:8 A4:8 B4:4. A4:8 | G4:8 E4:8 E5:4 D5:8 C5:8 B4:8 C5:8 | A4:8 C5:8 E5:8 C5:8 D5:8 C5:8 B4:8 A4:8 | G4:2. -:8 D4:8`
@@ -22,7 +23,7 @@ const melC = `B4:8. E4:16 B4:8 C5:8 D5:4. C5:8 | C5:8 G4:8 E5:4 D5:8 C5:8 G4:8 C
   G4:4 B4:4 E5:4 G5:4 | G5:4. E5:8 C5:4 E5:4 | A5:4. G5:8 F#5:4 E5:4 | D5:4 C5:4 A4:4 F#4:8 D4:8`
 
 // A': the melody with a sustained counter-line on p2
-const counterA = `@harm50 v10 B3:2 D4:2 | E4:2 G4:2 | E4:2 F#4:2 | G4:2 F#4:2 | B3:2 D4:2 | E4:2 G4:2 | A4:2 F#4:2 | G4:2. -:4`
+const counterA = `@harm50 v10 B3:2 D4:2 | E4:2 B3:2 | E4:2 D4:2 | D4:2 F#4:2 | B3:2 D4:2 | E4:2 G4:2 | A4:2 F#4:2 | G4:2. -:4`
 
 const march = 'k:8 sl:16 sl:16 s:8 h:8 k:8 h:8 s:8 sl:16 sl:16'
 const marchFill = 'k:8 sl:16 sl:16 s:8 h:8 s:16 s:16 t:16 t:16 tl:16 tl:16 s:16 s:16'
@@ -40,14 +41,14 @@ export const route_101: SongDef = {
   channels: { p1: { inst: 'lead' }, p2: { inst: 'arp' } },
   chords: { intro: introChords, loop: `${A} | ${B} | ${A} | ${C}` },
   intro: {
-    p1: 'D4:8 G4:8 B4:8 D5:8 G5:4 -:4 | F#5:8 E5:8 D5:8 C5:8 A4:4 -:8 D4:8',
-    p2: comp(introChords, 'pulse8', { center: 'D4', v: 9 }),
+    p1: MEL_I,
+    p2: comp(introChords, 'pulse8', { center: 'D4', v: 9, mel: MEL_I }),
     w: bassLine(introChords, 'rf', { center: 'G2' }),
     n: 's:16 s:16 s:16 s:16 s:8 s:8 k:4 s:4 | s:16 s:16 s:16 s:16 s:8 s:8 s:16 s:16 t:16 t:16 tl:16 tl:16 s:16 s:16',
   },
   loop: {
     p1: `${melA} | ${melB} | ${melA} | ${melC}`,
-    p2: `${comp(A, 'stab', { center: 'D4', v: 11 })} | ${comp(B, 'alberti8', { center: 'E4', v: 9, inst: 'broken' })} | ${counterA} | ${comp(C, 'up8', { center: 'E4', v: 9, inst: 'broken' })}`,
+    p2: `${comp(A, 'stab', { center: 'D4', v: 11, mel: melA })} | ${comp(B, 'alberti8', { center: 'E4', v: 9, inst: 'broken', mel: melB })} | ${counterA} | ${comp(C, 'up8', { center: 'E4', v: 9, inst: 'broken', mel: melC })}`,
     w: `${bassLine(A, 'rf', { center: 'G2' })} | ${bassLine(B, 'r5', { center: 'G2' })} | ${bassLine(A, 'rf', { center: 'G2' })} | ${bassLine(C, 'oct8', { center: 'G2' })}`,
     n: `${drum8} | ${drum8} | ${drum8} | ${drumC}`,
   },

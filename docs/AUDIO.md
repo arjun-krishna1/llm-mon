@@ -112,7 +112,12 @@ export const my_town: SongDef = {
 }
 ```
 
-Then add it to `tracks/index.ts`. Generators (`compose.ts`): `bassLine` styles
+Then add it to `tracks/index.ts`. **Always pass `mel`** (the melody text of the same bars) to
+`comp()`: every accompaniment note is then checked against the sounding melody. A note that
+would sit above the melody, or form a semitone, tritone or held major 2nd with it, is
+re-voiced (another chord tone, an octave lower, fewer arpeggio tones) or replaced by a rest.
+Accompaniment only ever uses triads, plus the minor 7th of 7th chords (`harmonyIvs`). Then
+run the audit (below) and fix what it reports. Generators (`compose.ts`): `bassLine` styles
 `hold q rf rf2 r5 oct8 drive8 drive16 stride8 walk waltz lilt`; `comp` styles
 `alberti8 up8 up16 chord pulse8 stab guide waltz roll68`; `riff(chart, 'R:8. R:8. O:8 …')`
 with `R F O T S C -` placeholders. They output plain pattern text (print them to hand-edit).
@@ -160,5 +165,68 @@ if (new URLSearchParams(location.search).has('audiotest')) {
   envelope correlation. Drive with Playwright: `window.__audioTest.songReport(id)`,
   `.sfxReport(id)`, `.pcm(kind, id)`.
 
-Intentional colour the analyzer reports: `intro` uses Fmaj7/Bbmaj7 (melodic maj7 against
-the root) and a Lydian G/F chord (B natural over F).
+## Harmony rules
+
+The owner listened and found some supporting voices grinding against the melody. Every
+track now follows these rules, and `auditSong()` (`dev/analyze.ts`) checks them. It runs on
+the fully expanded notes of p1 (melody), p2 (harmony) and w (bass): arpeggios expanded to
+all their tones, notes that sustain across beats, the whole intro and loop, and the loop
+seam. It checks every segment between note, beat and chord boundaries.
+
+1. **No vertical grind between voices.** Semitones, major 7ths and minor 9ths (any octave)
+   are errors. So is a tritone, unless it is the 3rd + 7th of a dominant 7th whose next
+   chord is a 4th up. A major 2nd in the same octave may not be held longer than a 16th.
+   The only exception is a melody passing or neighbour tone: weak position (not on a beat),
+   shorter than an 8th, approached and left by step, and not attacked together with the
+   voice it rubs against.
+2. **Accompaniment and bass play chord tones on every beat.** A non-chord tone of an 8th
+   or longer in the harmony is an error anywhere. The bass plays roots and 5ths on strong
+   beats; approach notes only on the last 8th before a chord change. The melody's
+   strong-beat notes are chord tones, or appoggiaturas/suspensions that resolve by step.
+3. **The chart must match the melody.** If a bar's melody is mostly non-chord tones, fix
+   the chart rather than bending the melody. Borrowed chords (bII, bVI, bVII, modal
+   mixture) are fine only if every voice carries the alteration: no melody A over a chord
+   containing Ab, no blue 3rd against a sounding major 3rd. A dominant 7th must resolve;
+   otherwise write the triad. Phrases should end on a real cadence (V-I or IV-I) or a
+   half cadence on V.
+4. **Low register.** No 3rds or 6ths between two voices below C3. No 2nds or 7ths between
+   the two lowest voices below C4.
+5. **Spacing.** The harmony never goes above the melody while the melody sounds. No sus
+   chord left unresolved. No fixed-interval "melody minus a 3rd" harmony: harmony lines
+   are written or fitted from chord tones.
+6. **Timbre and engine.**
+   - No vibrato on accompaniment instruments (`harm`, `tri`, the bass presets). Pulse
+     detune stays at 5 cents or less, and never on bass.
+   - Echo is fed by the melody only, with feedback ≤ 0.18 and wet ≤ 0.2 (`ECHO_MAX_*`).
+     It is muted for one delay time at every chord change, so the previous chord never
+     rings into the next.
+   - Arpeggio "chords" only contain chord tones.
+   - The brass scoop is ≤ 0.35 semitone.
+
+### Running the audit
+
+```sh
+# symbolic audit of every track and jingle (Node strips the TS types itself)
+node --input-type=module -e "
+import { SONGS } from './src/game/audio/tracks/index.ts'
+import { SFX } from './src/game/audio/sfx.ts'
+import { auditSong } from './src/game/audio/dev/analyze.ts'
+const all = { ...SONGS }
+for (const [id, d] of Object.entries(SFX)) if (d.jingle) all['j_' + id] = d.jingle
+for (const [id, def] of Object.entries(all)) {
+  const r = auditSong(def)
+  console.log(id, r.errors.length, 'errors', r.warnings.length, 'warnings')
+  for (const e of r.errors) console.log('  ', e.at, e.rule, e.msg)
+}"
+```
+
+Every track must report 0 errors. Warnings are reviewed by hand: borrowed chords that all
+voices agree on, phrase-end cadences, and bars where the melody is half passing tones.
+
+Roughness check: render pitched stems with
+`__audioTest.pcm('song', id, 22050, mute)` (mute `['n']` for the mix,
+`['p2','w','n']` for the melody alone, and so on). Then compute inter-voice roughness
+per 100 ms with a Plomp-Levelt/Sethares model on the spectral peaks: R(mix) minus the sum
+of R(each stem). This leaves out each pulse wave's own harmonic roughness and lists the
+roughest moments by bar:beat with the sounding notes. The analysis scripts used for the
+audit live outside the repo; the harness functions above are what they call.

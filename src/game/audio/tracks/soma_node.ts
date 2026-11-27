@@ -4,7 +4,7 @@ import type { SongDef } from '../song.ts'
 // SoMa Node: the bigger town. Upbeat with techy 3-3-2 syncopation. A major, 128 bpm.
 // A (8) B (8) Break (8).
 
-const A = 'A | E/G# | F#m | D E | A | E/G# | F#m | Bm7 E'
+const A = 'A | E/G# | F#m7 | D E | A | E/G# | F#m7 | Bm7 E'
 const B = 'D | C#m | Bm | E | D | C#m F#m | Bm E | A'
 const K = 'F#m | D | E | A | F#m | D | E | E7'
 
@@ -36,7 +36,7 @@ export const soma_node: SongDef = {
   chords: { loop: `${A} | ${B} | ${K}` },
   loop: {
     p1: `${melA} | ${melB} | ${melK}`,
-    p2: `${comp(A, 'stab', { center: 'A4', v: 10 })} | ${comp(B, 'up16', { center: 'A4', v: 9, inst: 'broken' })} | ${comp(K, 'up16', { center: 'E4', v: 10, inst: 'broken' })}`,
+    p2: `${comp(A, 'stab', { center: 'A4', v: 10, mel: melA })} | ${comp(B, 'up16', { center: 'A4', v: 9, inst: 'broken', mel: melB })} | ${comp(K, 'up16', { center: 'E4', v: 10, inst: 'broken', mel: melK })}`,
     w: `${riff(A, bassRiff, { center: 'A2' })} | ${riff(B, bassRiff, { center: 'A2' })} | ${riff(K, 'R:8 O:8 R:8 O:8', { center: 'A2' })}`,
     n: `${drums} | ${drums} | ${drumsK}`,
   },

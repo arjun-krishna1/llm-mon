@@ -7,7 +7,7 @@
 //   'D | G Bm | D/F# | A7'
 // Chord symbols: root + quality (m 7 m7 maj7 6 m6 sus2 sus4 dim aug add9 9) + optional /bass.
 
-import { midiToPitch, parseDuration, pitchToMidi, TICKS_PER_WHOLE } from './pattern.ts'
+import { midiToPitch, parseChannel, parseDuration, pitchToMidi, TICKS_PER_WHOLE, type NoteEvent } from './pattern.ts'
 
 const PC: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
 
@@ -185,9 +185,8 @@ export function bassLine(chart: string, style: BassStyle, opts: { barTicks?: num
         fill(96, (k) => (k % 2 ? fifth : root))
         break
       case 'lilt': {
-        const third = nearest((s.chord.root + s.chord.ivs[1]) % 12, root + 4)
         for (let k = 0; k < Math.floor(s.ticks / 72); k++) {
-          n(k % 2 ? third : root, 48)
+          n(k % 2 ? root + 12 : root, 48)
           n(fifth, 24)
         }
         break
@@ -205,8 +204,9 @@ export function bassLine(chart: string, style: BassStyle, opts: { barTicks?: num
         for (let k = 0; k < beats; k++) {
           let m = up[k % up.length]
           if (k === beats - 1 && beats >= 3) {
-            const d = nextRoot - root
-            m = d === 0 ? fifth : Math.abs(d) <= 2 ? up[1] : nextRoot + (d > 0 ? -1 : 1)
+            // approach the next root from the chord tone (of THIS chord) nearest to it
+            const cand = [root, ...up, root + 12, fifth].filter((x) => x !== nextRoot)
+            m = cand.sort((u, v) => Math.abs(u - nextRoot) - Math.abs(v - nextRoot))[0]
           }
           n(m, q)
         }
@@ -231,7 +231,41 @@ export type CompStyle =
   | 'roll68' // 6/8: root, fifth, tenth eighths per dotted-quarter beat
 
 /** Accompaniment from a chart. `center` is the register (MIDI pitch name). */
-export function comp(chart: string, style: CompStyle, opts: { barTicks?: number; center?: string; v?: number; inst?: string } = {}): string {
+/**
+ * Intervals an accompaniment may use for a chord: the triad (root, 3rd or sus tone, 5th),
+ * plus the minor 7th of dominant/minor-7th chords. Never the maj7, 6th or 9th: those
+ * colour tones grind against the root in a thin chiptune texture.
+ */
+export function harmonyIvs(c: Chord): number[] {
+  const third = c.ivs.find((iv) => iv === 3 || iv === 4 || iv === 2 || iv === 5)
+  const fifth = c.ivs.find((iv) => iv === 7 || iv === 6 || iv === 8)
+  const out = [0]
+  if (third !== undefined) out.push(third)
+  if (fifth !== undefined) out.push(fifth)
+  if (c.ivs.includes(10)) out.push(10)
+  return out
+}
+
+export interface CompOpts {
+  barTicks?: number
+  center?: string
+  v?: number
+  inst?: string
+  /**
+   * The melody pattern for the same bars. When given, every accompaniment note is checked
+   * against the sounding melody and re-voiced (another chord tone, an octave lower, fewer
+   * arpeggio tones) or replaced by a rest if it would sit above the melody or form a
+   * semitone, tritone or held major 2nd with it.
+   */
+  mel?: string
+}
+
+export function comp(chart: string, style: CompStyle, opts: CompOpts = {}): string {
+  const text = compRaw(chart, style, opts)
+  return opts.mel ? fitUnder(text, chart, opts.mel, opts.barTicks ?? 192, opts) : text
+}
+
+function compRaw(chart: string, style: CompStyle, opts: CompOpts): string {
   const bt = opts.barTicks ?? 192
   const center = pitchToMidi(opts.center ?? 'A4')
   const slots = parseChart(chart, bt)
@@ -246,11 +280,12 @@ export function comp(chart: string, style: CompStyle, opts: { barTicks?: number;
       lastBar = s.bar
     }
     const root = nearest(s.chord.root, center - 4)
-    const tones = s.chord.ivs.map((iv) => root + iv)
+    const hivs = harmonyIvs(s.chord)
+    const tones = hivs.map((iv) => root + iv)
     const third = tones[1]
     const fifth = tones[2] ?? tones[1]
     const n = (m: number, t: number, arp?: string) => out.push(`${name(m)}${arp ? '^' + arp : ''}:${durTok(t)}`)
-    const digits = s.chord.ivs.slice(0, 4).map((iv) => iv.toString(16)).join('')
+    const digits = hivs.map((iv) => iv.toString(16)).join('')
     const fill = (step: number, pick: (k: number) => number) => {
       const count = Math.floor(s.ticks / step)
       for (let k = 0; k < count; k++) n(pick(k), step)
@@ -363,6 +398,106 @@ export function riff(chart: string, tmpl: string, opts: { barTicks?: number; cen
     }
   }
   return out.join(' ')
+}
+
+// ---------------------------------------------------------------------------
+// Melody-aware voicing
+// ---------------------------------------------------------------------------
+
+interface MelNote extends NoteEvent {
+  passing: boolean
+}
+
+function melodyNotes(mel: string, bt: number): MelNote[] {
+  const ev = parseChannel(mel, { inst: 'lead', barTicks: bt }).events.filter((e) => e.midi >= 0)
+  return ev.map((e, i) => {
+    const prev = ev[i - 1]
+    const next = ev[i + 1]
+    const passing = e.dur < 24 && e.tick % 48 !== 0 && !!prev && !!next && Math.abs(e.midi - prev.midi) <= 2 && Math.abs(next.midi - e.midi) <= 2
+    return { ...e, passing }
+  })
+}
+
+/** Does pitch p (sounding [t0,t1)) grind against the melody? */
+function grinds(p: number, t0: number, t1: number, mel: MelNote[], dom: Set<number> | null): boolean {
+  for (const m of mel) {
+    if (m.tick >= t1 || m.tick + m.dur <= t0) continue
+    if (m.passing && m.tick !== t0) continue
+    if (p > m.midi) return true
+    const d = Math.abs(p - m.midi)
+    const ic = d % 12
+    if (ic === 1 || ic === 11) return true
+    if (ic === 6 && !(dom && dom.has(((p % 12) + 12) % 12) && dom.has(((m.midi % 12) + 12) % 12))) return true
+    if (d === 2 && Math.min(t1, m.tick + m.dur) - Math.max(t0, m.tick) > 12) return true
+  }
+  return false
+}
+
+function fitUnder(text: string, chart: string, mel: string, bt: number, opts: CompOpts): string {
+  const melN = melodyNotes(mel, bt)
+  const slots = parseChart(chart, bt)
+  const parsed = parseChannel(text, { inst: opts.inst ?? 'harm', barTicks: bt })
+  const out: NoteEvent[] = []
+  for (const e of parsed.events) {
+    const slot = slots.find((s) => s.tick <= e.tick && e.tick < s.tick + s.ticks)
+    if (!slot) continue
+    const ivs = harmonyIvs(slot.chord)
+    // a dominant-7th tritone is only allowed when the chord really resolves (root up a 4th)
+    const next = slots[(slots.indexOf(slot) + 1) % slots.length]
+    const resolves = next.chord.root === (slot.chord.root + 5) % 12
+    const dom = resolves && ivs.includes(10) && ivs.includes(4) ? new Set([(slot.chord.root + 4) % 12, (slot.chord.root + 10) % 12]) : null
+    const t0 = e.tick
+    const t1 = e.tick + e.dur
+    const ok = (p: number) => !grinds(p, t0, t1, melN, dom)
+    const tones = e.arp ? e.arp.map((o) => e.midi + o) : [e.midi]
+    if (tones.every(ok)) {
+      out.push(e)
+      continue
+    }
+    if (e.arp) {
+      const down = tones.map((p) => p - 12)
+      const keep = tones.filter(ok)
+      const pick = down.every(ok) && down[0] >= 48 ? down : keep.length >= 2 ? keep : down.filter(ok).length >= 2 && down[0] >= 48 ? down.filter(ok) : []
+      if (pick.length >= 2) out.push({ ...e, midi: pick[0], arp: pick.map((p) => p - pick[0]) })
+      else if (pick.length === 1 || keep.length === 1) out.push({ ...e, midi: (pick[0] ?? keep[0]), arp: undefined })
+      continue
+    }
+    // single note: nearest other chord tone at or below the original that fits
+    const pcs = ivs.map((iv) => (slot.chord.root + iv) % 12)
+    const cands: number[] = []
+    for (let p = e.midi + 2; p >= Math.max(48, e.midi - 9); p--) if (pcs.includes(((p % 12) + 12) % 12) && p !== e.midi) cands.push(p)
+    cands.sort((a, b) => Math.abs(a - e.midi) - Math.abs(b - e.midi))
+    const alt = cands.find(ok)
+    if (alt !== undefined) out.push({ ...e, midi: alt })
+  }
+  return serialize(out, parsed.ticks, bt, opts)
+}
+
+/** Events -> pattern text with rests and bar lines. */
+export function serialize(events: NoteEvent[], ticks: number, bt: number, opts: { inst?: string; v?: number } = {}): string {
+  const toks: string[] = []
+  if (opts.inst) toks.push(`@${opts.inst}`)
+  if (opts.v !== undefined) toks.push(`v${opts.v}`)
+  let t = 0
+  const rest = (until: number) => {
+    while (t < until) {
+      const barEnd = (Math.floor(t / bt) + 1) * bt
+      const stop = Math.min(until, barEnd)
+      toks.push(`-:${durTok(stop - t)}`)
+      t = stop
+      if (t % bt === 0 && t < ticks) toks.push('|')
+    }
+  }
+  for (const e of [...events].sort((a, b) => a.tick - b.tick)) {
+    if (e.tick < t) continue
+    rest(e.tick)
+    const arp = e.arp && e.arp.length > 1 ? '^' + e.arp.map((o) => o.toString(16)).join('') : ''
+    toks.push(`${name(e.midi)}${arp}:${durTok(e.dur)}`)
+    t = e.tick + e.dur
+    if (t % bt === 0 && t < ticks) toks.push('|')
+  }
+  rest(ticks)
+  return toks.join(' ')
 }
 
 /** Repeat a pattern string n times. */

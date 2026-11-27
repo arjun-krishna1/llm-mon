@@ -5,7 +5,7 @@ import { TITLE_MOTIF } from './title.ts'
 // Ending card: a warm, slower reprise of the title theme. D major, 80 bpm.
 // A (title phrase, 8 bars) + a new closing phrase (8 bars); loops gently.
 
-const A = 'D | G Bm | D | A | D | G Bm | G A | D'
+const A = 'D | G Bm | D | A | D | G Em | D A | D'
 const E = 'G | D/F# | Em | A | G | A | Bm G | A D'
 
 const melA = `${TITLE_MOTIF} | F#5:4. A5:8 A5:8 G5:8 F#5:8 G5:8 | E5:2. -:8 A4:8 |
@@ -25,7 +25,7 @@ export const ending: SongDef = {
   chords: { loop: `${A} | ${E}` },
   loop: {
     p1: `${melA} | ${melE}`,
-    p2: `${comp(A, 'alberti8', { center: 'F#4', v: 9 })} | ${comp(E, 'up8', { center: 'F#4', v: 9 })}`,
+    p2: `${comp(A, 'alberti8', { center: 'F#4', v: 9, mel: melA })} | ${comp(E, 'up8', { center: 'F#4', v: 9, mel: melE })}`,
     w: bassLine(`${A} | ${E}`, 'rf2', { center: 'D3', v: 11 }),
     n: '(-:4 hs:4 -:4 hs:8 hs:8)x16',
   },
