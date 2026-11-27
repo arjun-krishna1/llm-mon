@@ -301,7 +301,10 @@ export async function chooseStarter(s: S): Promise<string> {
   }
 }
 
-const SATCHEL = { x: 23, y: 81 }
+// Staging (camera panned 1 tile up, so the frame's top row is y=76 and the
+// dialogue box + name plate cover rows 4-9): hound on screen row 1 (y=77),
+// professor and player side by side on row 3 (y=79), satchel beside the player.
+const SATCHEL = { x: 23, y: 79 }
 
 def('route.rescue', async (s) => {
   if (s.flag(F.rescueDone)) return
@@ -309,38 +312,38 @@ def('route.rescue', async (s) => {
   if (!p) return
   const carrying = s.flag(F.hasSatchel)
   s.stopMusic(300)
-  // stage: professor backed against the path, the hound prowling in front of him
-  s.spawn({ id: 'prof', sprite: 'prof', x: 21, y: 78, facing: 'up' })
-  s.spawn({ id: 'hound', sprite: 'hallucihound', x: 21, y: 76, facing: 'down' })
+  s.spawn({ id: 'prof', sprite: 'prof', x: 21, y: 79, facing: 'up' })
+  s.spawn({ id: 'hound', sprite: 'hallucihound', x: 21, y: 77, facing: 'down' })
   if (!carrying) s.spawnProp('satchel', 'fx/satchel', SATCHEL.x, SATCHEL.y)
-  await line(s, '???', 'H-help! Somebody, anybody!')
   await s.emote('player', 'exclaim')
   s.playMusic('encounter_trainer')
-  await walkTo(s, 'player', 21, p.y)
-  await s.move('player', Array(Math.max(0, p.y - 81)).fill('up') as Dir[], { speed: 'run' })
-  await s.cameraPan(0, -2, 600)
+  await walkTo(s, 'player', 22, p.y)
+  await Promise.all([
+    s.move('player', Array(Math.max(0, p.y - 79)).fill('up') as Dir[], { speed: 'run' }),
+    s.wait(500).then(() => s.cameraPan(0, -1, 700)),
+  ])
+  s.face('player', 'left')
+  await line(s, PROF, 'H-help! Somebody, anybody!')
   // the hound prowls, then lunges
   await s.move('hound', 'left', { speed: 'slow' })
   await s.move('hound', 'right 2', { speed: 'slow' })
   await s.move('hound', 'left', { speed: 'slow' })
   s.face('hound', 'down')
   await s.emote('hound', 'exclaim')
-  await Promise.all([s.move('hound', 'down', { speed: 'run' }), s.wait(120).then(() => s.move('prof', 'down', { speed: 'run' }))])
-  s.face('prof', 'up')
+  await s.move('hound', 'down', { speed: 'run' })
   await s.shake(300, 3)
+  await s.emote('prof', 'exclaim')
   await line(s, PROF, 'Easy there! Good HalluciHound...\fI am NOT a chew toy, whatever your training data says!')
   await line(s, 'HalluciHound', 'Grrfzzt! I am a golden retriever! I have a PhD! Bzzt!')
   await s.move('hound', 'up', { speed: 'slow' })
   s.face('hound', 'down')
-  s.face('prof', 'down')
-  await s.emote('prof', 'exclaim')
+  s.face('prof', 'right')
   if (carrying) {
-    await line(s, PROF, 'You there! Is that my satchel?! Brilliant!\fQuick, open it and grab a LLMMON!')
+    await line(s, PROF, 'You! Is that my satchel?! Brilliant!\fQuick, open it and grab a LLMMON!')
   } else {
-    await line(s, PROF, 'You there! I dropped my satchel, it\u2019s right next to you!\fQuick, grab a LLMMON out of it!')
+    await line(s, PROF, 'You! My satchel, it\u2019s right there by your feet!\fQuick, grab a LLMMON out of it!')
   }
-  // walk over to the satchel and face it
-  await s.move('player', 'right')
+  s.face('prof', 'up')
   s.face('player', 'right')
   if (carrying) {
     s.spawnProp('satchel', 'fx/satchel', SATCHEL.x, SATCHEL.y)
@@ -360,28 +363,25 @@ def('route.rescue', async (s) => {
   await s.tutorialBattle(2)
   s.setFlag(F.rescueDone)
   s.setFlag(F.hasSatchel, false)
-  // the hound bolts back into the tall grass
+  // the hound slinks off into the tall grass while the professor watches
   s.face('hound', 'up')
   await s.emote('hound', 'dots')
   s.resumeMapMusic()
-  // follow it for a beat while the professor reacts
-  const flee = s.move('hound', 'up 2', { speed: 'slow' })
-  void s.cameraPan(0, -4, 700)
-  await s.wait(250)
-  s.face('prof', 'up')
+  const flee = s.move('hound', 'up', { speed: 'slow' })
+  await s.wait(200)
   await line(s, PROF, 'Phew... Look at it run!')
   await flee
-  await Promise.all([s.move('hound', 'up 4', { speed: 'run' }), s.cameraPan(0, -2, 600)])
+  await s.move('hound', 'up 4', { speed: 'run' })
   s.despawn('hound')
   await s.wait(200)
-  // the professor collects his satchel
-  await s.move('prof', 'down, right 2')
-  s.face('prof', 'down')
+  // hand the satchel back
+  s.face('player', 'right')
   await s.wait(200)
   s.sfx('select')
   s.despawnProp('satchel')
-  s.face('prof', 'left')
-  s.face('player', 'right')
+  s.face('player', 'left')
+  s.face('prof', 'right')
+  await s.say('{player} closed the satchel and handed it back.')
   await line(s, PROF,
     'Thank you! You must be the new kid from the moving truck.',
     '{player}, right? I\u2019m Professor Karpathy!',
