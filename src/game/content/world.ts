@@ -70,7 +70,8 @@ def('route.angler', (s) => eggLine(s, 'angler', [
 def('route.grass_researcher', (s) => byProgress(s,
   ['I’m benchmarking this tall grass.\fSo far it scores 98% on Being Grass. State of the art!'],
   ['Wild LLMMON hide in tall grass. If your team needs a rest, walk around it!',
-    'And if you hop down a ledge, it’s a one-way trip.\fGreat shortcut home, though.']))
+    'And if you hop down a ledge, it’s a one-way trip.\fGreat shortcut home, though.',
+    'Field note: watch the Mistral Mediums in this grass.\fA Mistral breeze scatters GLM\u2019s careful graphs.']))
 
 def('route.picnic_girl', (s) => eggLine(s, 'picnic', [
   ['I saw the whole thing from my picnic blanket!\fThat HalluciHound was SO sure it was a golden retriever.',

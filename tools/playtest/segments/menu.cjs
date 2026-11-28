@@ -69,8 +69,10 @@ async function fullMenu(g, { check, sleep, FAST }) {
     await g.pick(0, 'UI')
     s = await waitTop(g, (t) => t.cls === 'PartyScreen')
     // choose the most damaged mon (unknown max HP from state: pick by lowest hp/level ratio via the screen order)
-    const target = 0
+    // a Patch can't revive: target the first conscious mon (the lead may have fainted in the rival fight)
+    const target = Math.max(0, hpBefore.findIndex((hp) => hp > 0))
     await slow(600)
+    for (let i = 0; i < target; i++) { await g.press('down'); await slow(150) }
     await g.shot('menu_bag_target', 'Use Patch on which LLMMON?')
     await g.press('A')
     s = await waitTop(g, (t) => t.cls === 'Object')

@@ -6,7 +6,7 @@
 import type Phaser from 'phaser'
 import { F, def, line, starterName, walkTo, type S } from './util'
 import { TRAINERS } from '../data/trainers'
-import { moveInfo } from '../adapters/monInfo'
+import { moveInfo, speciesTypes } from '../adapters/monInfo'
 
 const DANA = 'Dana'
 export const RIVAL_FLAGS = {
@@ -109,8 +109,10 @@ def('rival.ambush', async (s) => {
   s.face('player', 'up')
   await s.emote('dana', 'exclaim')
   // her one-PP signature move, read from the trainer data so renames carry over
-  const ace = TRAINERS[`rival_dana_${hers}`]?.party.find((p) => p.pp)
-  const typeMove = ace?.pp ? moveInfo(Object.keys(ace.pp)[0]).name : 'a new move'
+  // her starter's lab move, read from the trainer data so renames carry over
+  const ace = TRAINERS[`rival_dana_${hers}`]?.party.find((p) => p.speciesId === hers)
+  const labMove = (ace?.moves ?? []).find((id) => speciesTypes(hers).includes(moveInfo(id).type))
+  const typeMove = labMove ? moveInfo(labMove).name : 'a brand-new move'
   if (s.flag(RIVAL_FLAGS.lostOnce)) {
     await line(s, DANA, 'Back for a rematch? Good.\fI was getting bored winning against the tall grass.')
   } else {
@@ -118,7 +120,7 @@ def('rival.ambush', async (s) => {
     await line(s, DANA,
       `{player}! Took you long enough.\f${mins} whole minutes since you moved in, and you\u2019re only just here?`,
       `I caught a partner on the route.\fAND ${s.speciesName(hers)} learned ${typeMove} this morning.`,
-      'It can only pull it off once so far. Once is all it needs!')
+      'You know what that means against yours. I checked the chart!')
   }
   // fair fight: she patches your team up first
   await line(s, DANA, 'Hold on. I\u2019m not beating you while you\u2019re rate-limited. Stand still.')

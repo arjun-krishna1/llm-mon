@@ -193,7 +193,8 @@ def('home.notebook', async (s) => {
   } else if (c === 3) {
     await say(s,
       'BATTLES: Wild LLMMON live in tall grass.\fWeaken one, then throw a Prompt Orb to catch it!',
-      'Myth beats Logic, Logic beats Tool, and Tool beats Myth.\fA good story beats a proof!')
+      'A LLMMON\u2019s type is the lab that trained it.\fEach lab beats two others and loses to two.',
+      'Claude Fable beats GLM, GLM beats GPT 5.5,\fand GPT 5.5 beats Claude Fable. Check the PromptDex for the rest!')
   }
   s.setFlag(F.readNotebook)
 })
@@ -220,7 +221,7 @@ def('lab.aide', async (s) => {
   }
   const lines = [
     'The professor talks to LLMMON like colleagues.\fHonestly, they’re better at stand-ups than I am.',
-    'Wild LLMMON on Route 101 are weak to type moves.\fYour starter learns one around level 7!',
+    'Your starter learns its lab\u2019s signature move around level 7.\fThat\u2019s when type matchups really start to matter!',
     'If your LLMMON get hurt, your mom will patch them up.\fOr the Model Center in SoMa Node.',
   ]
   const i = Number(s.getFlag('aide_line') ?? 0)
@@ -275,9 +276,9 @@ def('lab.prof', async (s) => {
 // ============================================================================ rescue
 const STARTERS = ['claude_fable', 'gpt_5_5', 'glm']
 const STARTER_BLURB: Record<string, string> = {
-  claude_fable: 'Claude Fable, the Myth-type storyteller.\fWarm, thoughtful, and very hard to argue with.',
-  gpt_5_5: 'GPT 5.5, the Tool-type all-rounder.\fIf there’s an API for something, it’s already calling it.',
-  glm: 'GLM, the Logic-type thinker.\fIt solves problems by drawing graphs nobody asked for.',
+  claude_fable: 'Claude Fable, Anthropic\u2019s storyteller.\fWarm, thoughtful, and very hard to argue with.',
+  gpt_5_5: 'GPT 5.5, OpenAI\u2019s all-rounder.\fIf there’s an API for something, it’s already calling it.',
+  glm: 'GLM, Zhipu\u2019s thinker.\fIt solves problems by drawing graphs nobody asked for.',
 }
 
 /**
