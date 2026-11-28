@@ -365,6 +365,11 @@ def player_front():
 
 
 def prof_front():
+    # Owner prefers the original professor portrait; it is pinned and must not
+    # be regenerated. Remove the pinned file to go back to the generated one.
+    pinned = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pinned', 'prof_front.png')
+    if os.path.exists(pinned):
+        return Image.open(pinned).convert('RGBA')
     p = raw('spr_prof_front_v2') or raw('spr_prof_front')
     return fit_sprite(p, 64, 96, colors=22, green=P.CLOTH_GREEN, pal=PAL_PROF) if p else new(64, 96)
 
