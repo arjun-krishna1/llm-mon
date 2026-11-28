@@ -488,16 +488,23 @@ def trainer_back():
     return sheet
 
 
+def _pinned(name, make):
+    """Owner-approved portraits live in pinned/ and are never regenerated.
+    Delete the pinned file to fall back to the generated version."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pinned', name)
+    return Image.open(path).convert('RGBA') if os.path.exists(path) else make()
+
+
 def build():
     save(bg_grass(), SPRITES, 'battle', 'bg_grass.png')
     save(platform(kind='enemy'), SPRITES, 'battle', 'platform_enemy.png')
     save(platform(kind='player'), SPRITES, 'battle', 'platform_player.png')
     save(prof_front(), SPRITES, 'battle', 'prof_front.png')
-    save(trainer_front('m'), SPRITES, 'battle', 'trainer_m_front.png')
-    save(trainer_front('f'), SPRITES, 'battle', 'trainer_f_front.png')
-    save(trainer_back(), SPRITES, 'battle', 'trainer_back.png')
-    save(rival_front(), SPRITES, 'battle', 'rival_front.png')
-    save(player_front(), SPRITES, 'battle', 'player_front.png')
+    save(_pinned('trainer_m_front.png', lambda: trainer_front('m')), SPRITES, 'battle', 'trainer_m_front.png')
+    save(_pinned('trainer_f_front.png', lambda: trainer_front('f')), SPRITES, 'battle', 'trainer_f_front.png')
+    save(_pinned('trainer_back.png', trainer_back), SPRITES, 'battle', 'trainer_back.png')
+    save(_pinned('rival_front.png', rival_front), SPRITES, 'battle', 'rival_front.png')
+    save(_pinned('player_front.png', player_front), SPRITES, 'battle', 'player_front.png')
 
 
 if __name__ == '__main__':
