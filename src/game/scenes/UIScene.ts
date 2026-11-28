@@ -77,7 +77,7 @@ export class UIScene extends Phaser.Scene {
     const resume = () => {
       if (!this.paused) return
       this.paused = false
-      this.game.loop.wake()
+      this.game.loop.wake(true)
       this.showPause(false)
       applyOptions()
       controls.releaseAll()

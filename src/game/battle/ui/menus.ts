@@ -5,11 +5,11 @@ import Phaser from 'phaser'
 import { FONT } from '../../config'
 import { controls } from '../../controls'
 import { audio } from '../../audio'
-import { PxText, measure, wrap, type TextColorName } from '../../ui/text'
+import { PxText, fitLabel, measure, wrap, type TextColorName } from '../../ui/text'
 import { Window } from '../../ui/Window'
 import type { Widget, WidgetStack } from '../../ui/WidgetStack'
 import { DEPTH, LAYOUT } from './constants'
-import { fitText } from './util'
+import { clearShoulders, shoulderPressed, type Shoulder } from './shoulder'
 import type { MoveView } from '../core'
 import type { Stats } from '../../types'
 
@@ -32,6 +32,13 @@ export interface GridOptions {
   colors?: (TextColorName | undefined)[]
   /** Max label width per column (long labels are condensed). */
   colW?: [number, number]
+  /** Greyed-out entries (still selectable: the caller refuses them with a message). */
+  disabled?: boolean[]
+  /** Extra buttons while the grid is open: SELECT and the L/R shoulders (battle free actions). */
+  onKey?: (k: 'SELECT' | Shoulder) => void
+  /** Second-colour caption under a label (the Probe's true move names). */
+  captions?: (string | undefined)[]
+  captionColor?: number
 }
 
 /** A 2x2 cursor grid in a window (index: 0 top-left, 1 top-right, 2 bottom-left, 3 bottom-right). */
@@ -52,11 +59,23 @@ export class Grid2x2 implements Widget {
     this.win = new Window(scene, o.x, o.y, o.w, o.h, o.frame ?? 'ui/frame_menu').setDepth(DEPTH.menu)
     o.labels.forEach((l, i) => {
       const t = new PxText(scene, o.x + o.cols[i % 2], o.y + o.rows[Math.floor(i / 2)], l).setDepth(DEPTH.menu + 1)
-      if (o.colW) fitText(scene, t, o.colW[i % 2])
-      const c = o.colors?.[i]
+      if (o.colW) t.setLabel(fitLabel(scene, l, o.colW[i % 2]))
+      const c = o.disabled?.[i] ? 'grey' : o.colors?.[i]
       if (c) t.setColorName(c)
       this.texts.push(t)
+      const cap = o.captions?.[i]
+      if (cap) {
+        const ct = new PxText(scene, o.x + o.cols[i % 2], o.y + o.rows[Math.floor(i / 2)] + 11, cap, { font: FONT.mini, shadow: 'none', color: o.captionColor ?? 0x1c6440 })
+          .setDepth(DEPTH.menu + 1)
+        if (o.colW) {
+          let c2 = cap
+          while (c2.length > 1 && measure(scene, FONT.mini, c2) > o.colW[i % 2]) c2 = c2.slice(0, -1)
+          ct.setText(c2)
+        }
+        this.texts.push(ct)
+      }
     })
+    clearShoulders()
     this.cursor = scene.add.image(0, 0, 'ui/cursor').setOrigin(0, 0).setDepth(DEPTH.menu + 2)
     this.index = Math.max(0, Math.min(o.labels.length - 1, o.initial ?? 0))
     if (!o.labels[this.index]) this.index = 0
@@ -78,7 +97,26 @@ export class Grid2x2 implements Widget {
     this.frame++
   }
 
+  /** Grey out / restore entry `i` while the grid is open. */
+  setDisabled(i: number, on: boolean): void {
+    const t = this.texts.find((x) => x.x === this.o.x + this.o.cols[i % 2] && x.y === this.o.y + this.o.rows[Math.floor(i / 2)])
+    t?.setColorName(on ? 'grey' : this.o.colors?.[i] ?? 'default')
+  }
+
   input(): void {
+    if (this.o.onKey) {
+      if (controls.justPressed('SELECT')) {
+        controls.consume('SELECT')
+        this.o.onKey('SELECT')
+        return
+      }
+      for (const b of ['L', 'R'] as Shoulder[]) {
+        if (shoulderPressed(b)) {
+          this.o.onKey(b)
+          return
+        }
+      }
+    }
     const n = this.o.labels.length
     let ni = this.index
     if (controls.justPressed('left') && this.index % 2 === 1) ni = this.index - 1
@@ -94,7 +132,7 @@ export class Grid2x2 implements Widget {
     }
     if (controls.justPressed('A')) {
       controls.consume('A')
-      audio.sfx('select')
+      audio.sfx(this.o.disabled?.[this.index] ? 'bump' : 'select')
       this.finish(this.index)
     } else if (controls.justPressed('B') && this.o.cancel) {
       controls.consume('B')
@@ -119,26 +157,52 @@ export class Grid2x2 implements Widget {
   }
 }
 
+export interface CommandMenuOptions {
+  /** Greyed-out commands, in grid order FIGHT / BAG / LLMMON / RUN. */
+  disabled?: boolean[]
+  onKey?: GridOptions['onKey']
+  /** Receives the grid once it is built (e.g. to grey an entry while it is open). */
+  onOpen?: (g: Grid2x2) => void
+}
+
+export const COMMAND_LABELS = ['FIGHT', 'BAG', 'LLMMON', 'RUN']
+
 /** FIGHT / BAG / LLMMON / RUN, bottom-right over the message box. */
-export function commandMenu(scene: Phaser.Scene, stack: WidgetStack, initial: number): Promise<number> {
+export function commandMenu(scene: Phaser.Scene, stack: WidgetStack, initial: number, opts: CommandMenuOptions = {}): Promise<number> {
   const c = LAYOUT.command
-  return new Grid2x2(scene, stack, {
-    ...c, frame: 'ui/frame_dialog', labels: ['FIGHT', 'BAG', 'LLMMON', 'RUN'],
-    cols: [18, 72], rows: [8, 24], initial, cancel: false,
-  }).result()
+  const g = new Grid2x2(scene, stack, {
+    ...c, frame: 'ui/frame_dialog', labels: COMMAND_LABELS,
+    cols: [18, 72], rows: [8, 24], initial, cancel: false, disabled: opts.disabled, onKey: opts.onKey,
+  })
+  opts.onOpen?.(g)
+  return g.result()
 }
 
 // ---------------------------------------------------------------- move menu
 
+export interface MoveMenuOptions {
+  /** Labels shown instead of the true names (interface tamper), per slot. */
+  shown?: (string | undefined)[]
+  /** Probe active: tampered slots also show their true name in a second colour. */
+  probe?: boolean
+  /** Token cost per slot (Token Budget arena). */
+  costs?: (number | undefined)[]
+  budget?: { remaining: number; max: number }
+  onHover?: (i: number) => void
+}
+
 /** Move names (2x2) on the left, PP + type chip on the right. Resolves move index or -1. */
-export function moveMenu(scene: Phaser.Scene, stack: WidgetStack, moves: MoveView[], initial: number): Promise<number> {
+export function moveMenu(scene: Phaser.Scene, stack: WidgetStack, moves: MoveView[], initial: number, opts: MoveMenuOptions = {}): Promise<number> {
   const m = LAYOUT.moves
   const info = LAYOUT.moveInfo
   const win = new Window(scene, info.x, info.y, info.w, info.h, 'ui/frame_dialog').setDepth(DEPTH.menu)
+  const hasCost = !!opts.costs
   const ppLabel = new PxText(scene, info.x + 8, info.y + 8, 'PP').setDepth(DEPTH.menu + 1)
   const ppVal = new PxText(scene, info.x + 30, info.y + 8, '').setDepth(DEPTH.menu + 1)
-  const chip = scene.add.image(info.x + info.w / 2, info.y + 31, 'ui/type_classic').setOrigin(0.5, 0.5).setDepth(DEPTH.menu + 1)
-  const labels = [0, 1, 2, 3].map((i) => moves[i]?.name ?? '')
+  const costText = hasCost ? new PxText(scene, info.x + 8, info.y + 21, '', { font: FONT.mini, shadow: 'none' }).setDepth(DEPTH.menu + 1) : null
+  const chip = scene.add.image(info.x + info.w / 2, info.y + (hasCost ? 35 : 31), 'ui/type_classic').setOrigin(0.5, 0.5).setDepth(DEPTH.menu + 1)
+  const labels = [0, 1, 2, 3].map((i) => opts.shown?.[i] ?? moves[i]?.name ?? '')
+  const captions = [0, 1, 2, 3].map((i) => (opts.probe && opts.shown?.[i] && opts.shown[i] !== moves[i]?.name ? moves[i]?.name : undefined))
   const colors = labels.map((_, i) => (moves[i] ? undefined : 'grey') as TextColorName | undefined)
   const onMove = (i: number) => {
     const mv = moves[i]
@@ -148,15 +212,22 @@ export function moveMenu(scene: Phaser.Scene, stack: WidgetStack, moves: MoveVie
     const frac = mv.pp / Math.max(1, mv.maxPp)
     ppVal.setColorName(mv.pp === 0 ? 'red' : frac <= 0.25 ? 'accent' : 'default')
     chip.setTexture(`ui/type_${mv.type}`)
+    if (costText) {
+      const c = opts.costs?.[i] ?? 0
+      const over = !!opts.budget && c > opts.budget.max
+      costText.setText(`COST ${c} TOK`).setColorName(over ? 'red' : 'default')
+    }
+    opts.onHover?.(i)
   }
   const grid = new Grid2x2(scene, stack, {
     ...m, frame: 'ui/frame_dialog', labels: labels.map((l, i) => (moves[i] ? l : '')), colors,
-    cols: [14, 95], rows: [8, 24], colW: [70, 74], initial, cancel: true, onMove,
+    cols: [14, 95], rows: [8, 24], colW: [70, 74], initial, cancel: true, onMove, captions, captionColor: 0x1c6440,
   })
   return grid.result().then((i) => {
     win.destroy()
     ppLabel.destroy()
     ppVal.destroy()
+    costText?.destroy()
     chip.destroy()
     return i
   })

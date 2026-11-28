@@ -7,12 +7,23 @@ import { audio } from '../../audio'
 import { ensureTexture } from '../../assets'
 import { params } from '../../params'
 import { Hud } from './Hud'
+import { FONT } from '../../config'
+import { PxText, measure } from '../../ui/text'
 import { DEPTH, LAYOUT, TIMING, TYPE_COLOR } from './constants'
 import { animate, bez, frames, mixColor, tween, wait } from './util'
 import type { Side } from '../core'
 
-export type PipState = 'empty' | 'ok' | 'status' | 'fainted'
-const PIP_FRAME: Record<PipState, number> = { empty: 0, ok: 1, status: 2, fainted: 3 }
+export type PipState = 'empty' | 'ok' | 'status' | 'fainted' | 'copy'
+const PIP_FRAME: Record<PipState, number> = { empty: 0, ok: 1, status: 2, fainted: 3, copy: 0 }
+
+/**
+ * Idle loops for the enemy sprite (driven through the sprite's origin and scale, so they
+ * compose with any tween that owns x/y):
+ * - `breathe`: the default slow 1px breath;
+ * - `polite`: EVAL light on: upright, slow, small;
+ * - `lunge`: EVAL light off / warmed up: leans forward in sharp jabs.
+ */
+export type IdleMode = 'none' | 'breathe' | 'polite' | 'lunge'
 
 const DARK_TINT = 0x50506a
 
@@ -32,9 +43,9 @@ export class Stage {
   private frame = 0
   private hallucinating: Record<Side, Phaser.GameObjects.Image | null> = { player: null, enemy: null }
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, bgKey = 'battle/bg_grass') {
     this.scene = scene
-    this.bg = scene.add.image(0, 0, 'battle/bg_grass').setOrigin(0, 0).setDepth(DEPTH.bg)
+    this.bg = scene.add.image(0, 0, scene.textures.exists(bgKey) ? bgKey : 'battle/bg_grass').setOrigin(0, 0).setDepth(DEPTH.bg)
     this.platE = scene.add.image(LAYOUT.enemyPlatform.x, LAYOUT.enemyPlatform.y, 'battle/platform_enemy').setOrigin(0, 0).setDepth(DEPTH.platform)
     this.platP = scene.add.image(LAYOUT.playerPlatform.x, LAYOUT.playerPlatform.y, 'battle/platform_player').setOrigin(0, 0).setDepth(DEPTH.platform)
     this.mon = {
@@ -108,6 +119,8 @@ export class Stage {
     this.hud.player.bobOffset = bobOn && !phase ? 1 : 0
     this.hud.player.tick()
     this.hud.enemy.tick()
+    this.tickIdle()
+    this.tickGlitch()
     for (const s of ['player', 'enemy'] as Side[]) {
       const q = this.hallucinating[s]
       if (q) {
@@ -583,5 +596,283 @@ export class Stage {
   clearCatchOrb(): void {
     this.catchOrb?.destroy()
     this.catchOrb = undefined
+  }
+
+  // ================================================================ stage 1: idles, glitch, arena FX
+
+  idle: { mode: IdleMode; speed: number } = { mode: 'breathe', speed: 1 }
+  private idleT = 0
+  private glitchLevel = 0
+  private glitchGhost: Phaser.GameObjects.Image | null = null
+  private glitchLeft = 0
+
+  /** Enemy idle loop. `speed` multiplies the cadence (warmup: 0.5 → 1.6). */
+  setIdle(mode: IdleMode, speed = 1): void {
+    this.idle = { mode, speed }
+  }
+
+  private tickIdle(): void {
+    const m = this.mon.enemy
+    if (params.fast || !m.visible || this.scene.tweens.isTweening(m) || this.nodding) return
+    const { mode, speed } = this.idle
+    this.idleT += speed / 60
+    let ox = 0
+    let sy = 1
+    if (mode === 'breathe') {
+      sy = 1 + (Math.sin(this.idleT * Math.PI * 1.2) > 0.6 ? 1 / 64 : 0)
+    } else if (mode === 'polite') {
+      // small, upright, slow: a well-behaved student
+      sy = 1 + (Math.sin(this.idleT * Math.PI * 0.8) > 0.2 ? 1 / 64 : 0)
+    } else if (mode === 'lunge') {
+      // every ~0.9 s a quick lean toward the player, held a beat, then back
+      const ph = (this.idleT * 1.1) % 1
+      const k = ph < 0.08 ? ph / 0.08 : ph < 0.3 ? 1 : ph < 0.42 ? 1 - (ph - 0.3) / 0.12 : 0
+      ox = Math.round(k * 4)
+      sy = 1 - k * (2 / 64)
+    }
+    // origin x shifts the drawn sprite without touching x (lunges/hits own x)
+    m.setOrigin(0.5 + ox / 64, 1)
+    if (Math.abs(m.scaleX - 1) < 0.05) m.setScale(1, sy)
+  }
+
+  /** Team Overfit: how often the enemy sprite tears (0 = clean, each off-script turn +1). */
+  setGlitch(level: number): void {
+    this.glitchLevel = Math.max(0, level)
+  }
+
+  private tickGlitch(): void {
+    const m = this.mon.enemy
+    if (this.glitchLeft > 0) {
+      this.glitchLeft--
+      if (this.glitchGhost && this.glitchLeft === 0) {
+        this.glitchGhost.destroy()
+        this.glitchGhost = null
+        m.setAlpha(1)
+      }
+      return
+    }
+    if (params.fast || !m.visible || this.glitchLevel <= 0) return
+    if (Math.random() > Math.min(0.12, this.glitchLevel * 0.012)) return
+    // one tear: a colour-split ghost offset 2-4 px and a dropped row band
+    const dx = (Math.random() < 0.5 ? -1 : 1) * (2 + Math.floor(Math.random() * Math.min(3, this.glitchLevel)))
+    const band = Math.floor(Math.random() * 7) * 8
+    this.glitchGhost = this.scene.add.image(m.x + dx, m.y, m.texture.key).setOrigin(m.originX, 1).setDepth(m.depth + 1)
+      .setTintFill(Math.random() < 0.5 ? 0x60f0f0 : 0xe85080).setAlpha(0.6).setCrop(0, band, 64, 8 + this.glitchLevel * 2)
+    this.glitchLeft = 3 + Math.min(4, this.glitchLevel)
+  }
+
+  /** Swap the battle background (request.background → battle/bg_<id>, grass if missing). */
+  setBackground(key: string): void {
+    if (this.scene.textures.exists(key)) this.bg.setTexture(key)
+  }
+
+  /** Base model fine-tuned / Proxy phase: white flash, the sprite swaps, a cry. */
+  async formChange(side: Side, speciesId: string): Promise<void> {
+    const m = this.mon[side]
+    if (side === 'player') this.playerResting = false
+    audio.sfx('stat_up')
+    m.setTintFill(0xffffff)
+    await tween(this.scene, m, 160, { scaleX: 1.15, scaleY: 0.9, ease: 'Quad.Out' })
+    await tween(this.scene, m, 120, { scaleX: 0.85, scaleY: 1.1, ease: 'Quad.InOut' })
+    const flash = this.scene.add.rectangle(0, 0, W, 112, 0xffffff).setOrigin(0, 0).setDepth(DEPTH.fxTop).setAlpha(0.9)
+    const key = ensureTexture(this.scene, `mons/${speciesId}_${side === 'enemy' ? 'front' : 'back'}`, 64, 64)
+    this.species[side] = speciesId
+    m.setTexture(key).setScale(1)
+    void tween(this.scene, flash, 280, { alpha: 0, onComplete: () => flash.destroy() })
+    await wait(this.scene, 90)
+    m.clearTint()
+    this.cry(speciesId)
+    if (side === 'player') this.playerResting = true
+    await wait(this.scene, 200)
+  }
+
+  /** Early Stopping / Drop Units / Polite Refusal: a hex shield flashes in front of the mon. */
+  async protectFx(side: Side): Promise<void> {
+    const c = this.center(side)
+    const g = this.scene.add.graphics().setDepth(DEPTH.fx)
+    audio.sfx('hit_weak')
+    await animate(this.scene, 520, (k) => {
+      g.clear()
+      const a = k < 0.2 ? k / 0.2 : 1 - (k - 0.2) / 0.8
+      const r = 22 + Math.round(k * 4)
+      for (const [lw, col, al] of [[3, 0x283048, 0.7], [1, 0xa8e0f8, 1]] as const) {
+        g.lineStyle(lw, col, a * al)
+        g.beginPath()
+        for (let i = 0; i <= 6; i++) {
+          const ang = (i / 6) * Math.PI * 2 + Math.PI / 6
+          const px = Math.round(c.x + Math.cos(ang) * r)
+          const py = Math.round(c.y + Math.sin(ang) * r * 0.9)
+          if (i === 0) g.moveTo(px, py)
+          else g.lineTo(px, py)
+        }
+        g.strokePath()
+      }
+      g.fillStyle(0xd8f0f8, a * 0.25)
+      g.fillCircle(c.x, c.y, r - 2)
+    })
+    g.destroy()
+  }
+
+  /** Stat stages back to 0: a neutral grey sweep wipes the arrows off each sprite. */
+  async stagesWipe(sides: Side[]): Promise<void> {
+    audio.sfx('select')
+    const gs = sides.map(() => this.scene.add.graphics().setDepth(DEPTH.fx))
+    await animate(this.scene, 420, (k) => {
+      sides.forEach((s, i) => {
+        const g = gs[i]
+        const c = this.center(s)
+        g.clear()
+        const y = Math.round(c.y - 30 + k * 60)
+        g.fillStyle(0xfcfaf0, 0.75 * (1 - k))
+        g.fillRect(c.x - 28, y, 56, 2)
+        g.fillStyle(0x9098b0, 0.6 * (1 - k))
+        g.fillRect(c.x - 28, y - 3, 56, 1)
+        g.fillRect(c.x - 28, y + 4, 56, 1)
+      })
+    })
+    gs.forEach((g) => g.destroy())
+  }
+
+  private nodding = false
+
+  /**
+   * Obedience beat (League 4 / the keys): `passed` = a calm double nod and a heart;
+   * otherwise the mon shakes its head (sprite flips its weight side to side) under a small cross.
+   */
+  async obedience(side: Side, passed: boolean): Promise<void> {
+    const m = this.mon[side]
+    if (!m.visible) return
+    this.nodding = true
+    if (side === 'player') this.playerResting = false
+    const c = this.center(side)
+    const icon = this.scene.add.image(c.x + 18, c.y - 30, passed ? 'bfx/heart' : 'bfx/cross').setDepth(DEPTH.fxTop).setAlpha(0)
+    void tween(this.scene, icon, 160, { alpha: 1, y: c.y - 34, ease: 'Quad.Out' })
+    audio.sfx(passed ? 'select' : 'cancel')
+    if (passed) {
+      for (let i = 0; i < 2; i++) {
+        await animate(this.scene, 220, (k) => m.setOrigin(0.5, 1 - Math.sin(k * Math.PI) * (3 / 64)))
+        await wait(this.scene, 60)
+      }
+    } else {
+      await animate(this.scene, 560, (k) => m.setOrigin(0.5 + Math.round(Math.sin(k * Math.PI * 6) * 3 * (1 - k)) / 64, 1))
+    }
+    m.setOrigin(0.5, 1)
+    await wait(this.scene, 160)
+    void tween(this.scene, icon, 200, { alpha: 0, onComplete: () => icon.destroy() })
+    this.nodding = false
+    if (side === 'player') this.playerResting = true
+  }
+
+  /** Floating caption over a side (copied move, sampled move name, ...). */
+  caption(side: Side, text: string, color = 0xfcfaf0): { setText(t: string): void; destroy(): void; fade(): Promise<void> } {
+    const c = this.center(side)
+    const t = new PxText(this.scene, 0, 0, text, { font: FONT.mini, color, shadow: 'drop', shadowColor: 0x28222e }).setDepth(DEPTH.fxTop + 2)
+    const bg = this.scene.add.graphics().setDepth(DEPTH.fxTop + 1)
+    const place = () => {
+      const w = measure(this.scene, FONT.mini, t.text)
+      const x = Math.max(2, Math.min(W - w - 4, Math.round(c.x - w / 2)))
+      const y = Math.max(2, c.y - 44)
+      t.setPosition(x, y)
+      bg.clear()
+      bg.fillStyle(0x28222e, 0.8)
+      bg.fillRect(x - 3, y - 2, w + 6, 10)
+    }
+    place()
+    return {
+      setText: (s: string) => {
+        t.setText(s)
+        place()
+      },
+      destroy: () => {
+        t.destroy()
+        bg.destroy()
+      },
+      fade: async () => {
+        await tween(this.scene, [bg, ...t.objects()], 220, { alpha: 0 })
+        t.destroy()
+        bg.destroy()
+      },
+    }
+  }
+
+  /** "Copied!" sparkle ring over the enemy (Copy Head). */
+  async copySparkle(side: Side): Promise<void> {
+    const c = this.center(side)
+    const stars = Array.from({ length: 6 }, () => this.scene.add.image(c.x, c.y, 'bfx/star').setDepth(DEPTH.fxTop))
+    audio.sfx('stat_up')
+    await animate(this.scene, 520, (k) => {
+      stars.forEach((s, i) => {
+        const a = (i / 6) * Math.PI * 2 + k * 3
+        s.setPosition(Math.round(c.x + Math.cos(a) * 24 * (1 - k * 0.5)), Math.round(c.y - 6 + Math.sin(a) * 10))
+        s.setAlpha(1 - k * k)
+      })
+    })
+    stars.forEach((s) => s.destroy())
+  }
+
+  // ---------------------------------------------------------------- pips (bench, copies)
+
+  /** Player pips shown above the player's plate (bench hits, copies) while the plate stays up. */
+  async flashPips(states: PipState[], flash: number[], kind: 'hit' | 'faint' | 'copy', holdMs = 700): Promise<void> {
+    const c = this.pips.player
+    this.showPips('player', states)
+    // faces for Proxy copies (a calm mascot face in the slot)
+    states.forEach((st, i) => {
+      if (st !== 'copy') return
+      const face = this.scene.add.image(8 + i * 10 + 4, 4, 'bfx/face').setTint(0xd8d0f8)
+      face.setData('slot', i)
+      c.add(face)
+    })
+    c.setPosition(W + 4, 54).setVisible(true).setAlpha(1)
+    await tween(this.scene, c, TIMING.hudSlide, { x: W - 74, ease: 'Cubic.Out' })
+    const imgs = c.list.filter((o) => o instanceof Phaser.GameObjects.Image) as Phaser.GameObjects.Image[]
+    const slotImg = (i: number) => imgs.filter((o) => o.texture.key === 'ui/orb_slots')[i]
+    if (kind === 'copy') {
+      for (const i of flash) {
+        const f = imgs.find((o) => o.texture.key === 'bfx/face' && o.getData('slot') === i)
+        if (!f) continue
+        f.setScale(0)
+        audio.sfx('select')
+        await tween(this.scene, f, 220, { scale: 1, ease: 'Back.Out' })
+      }
+    } else {
+      await frames(this.scene, 30, (fr) => {
+        for (const i of flash) {
+          const im = slotImg(i)
+          if (!im) continue
+          if (Math.floor(fr / 5) % 2 === 0) im.setTintFill(kind === 'faint' ? 0x9098b0 : 0xf85848)
+          else im.clearTint()
+        }
+      })
+      for (const i of flash) slotImg(i)?.clearTint()
+    }
+    await wait(this.scene, holdMs)
+    await this.hidePips('player')
+  }
+
+  // ---------------------------------------------------------------- EVAL light on the field
+
+  private evalCone: Phaser.GameObjects.Graphics | null = null
+
+  /** A soft studio light falling on the enemy while the EVAL light is on. */
+  setEvalCone(on: boolean): void {
+    if (on && !this.evalCone) {
+      const g = this.scene.add.graphics().setDepth(DEPTH.enemyMon + 1)
+      const x = LAYOUT.enemyMon.x
+      g.fillStyle(0xfcf0c0, 0.12)
+      g.beginPath()
+      g.moveTo(x - 8, 0)
+      g.lineTo(x + 8, 0)
+      g.lineTo(x + 40, 74)
+      g.lineTo(x - 40, 74)
+      g.closePath()
+      g.fillPath()
+      g.fillStyle(0xfcf0c0, 0.16)
+      g.fillEllipse(x, 70, 84, 12)
+      this.evalCone = g
+    } else if (!on && this.evalCone) {
+      this.evalCone.destroy()
+      this.evalCone = null
+    }
   }
 }

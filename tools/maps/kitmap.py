@@ -195,6 +195,8 @@ def build_kit(cat):
     o('teleport', 3, 25, id='tp1', to='tp2')
     o('teleport', 15, 25, id='tp2', to='tp1')
     o('floor', 7, 24, 2, 1, kind='puddle')
+    o('floor', 12, 23, 2, 1, kind='gap', when='!sw_pit')   # conditional floor: the pit closes while the switch is on
+    o('switch', 12, 25, id='sw_pit', mode='toggle')
     k.set('detail', 1, 16, k.et('sign_wood'))
     o('sign', 1, 16, text='FLOORS\\nIce slides, belts carry, spinners turn,\\farrows are one-way, pads teleport.', anySide=True)
     o('zone', 1, 16, 17, 11, name='Floor Lab')
@@ -205,6 +207,8 @@ def build_kit(cat):
     o('letter', 22, 18, 4, 3, id='letters', group='w', text='CATSBOGADCAT', counter='surprise', cost=1, script='kit.letter')
     o('counter', 20, 16, 12, 11, id='surprise', label='SURPRISE', max=12, style='budget')
     o('door', 32, 22, id='gate_l', when='spelled', latch=True)
+    o('block', 24, 24, id='fz_t', kind='c', glyph='T', fuse=True, merge='block')   # letterpress: A fuses pairs
+    o('block', 25, 24, id='fz_o', kind='c', glyph='O', fuse=True, merge='block')
     o('item', 33, 22, itemId='patch', count=1, flag='kit_item_letters')
     k.set('detail', 20, 16, k.et('sign_wood'))
     o('sign', 20, 16, script='kit.letter_sign', anySide=True)

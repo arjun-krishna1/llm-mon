@@ -25,7 +25,9 @@ export interface ImageAsset {
 }
 
 export const CHAR_IDS = ['player', 'mom', 'prof', 'aide', 'boy', 'girl', 'man', 'woman', 'elder', 'techie',
-  'nurse', 'clerk', 'trainer_m', 'trainer_f', 'hallucihound', 'rival']
+  'nurse', 'clerk', 'trainer_m', 'trainer_f', 'hallucihound', 'rival',
+  'yilong', 'proxy', 'leader_rumelhart', 'leader_shannon', 'overfit_m', 'overfit_f', 'overfit_admin', 'norm',
+  'barista', 'vc', 'founder', 'busker', 'commuter', 'guard']
 
 /** Gym badge ids (systems/badges.ts): ui/badge_<id> 16×16, ui/badge_<id>_big 32×32. */
 export const BADGE_IDS = ['gradient', 'likelihood', 'embedding', 'normal', 'chain', 'wave', 'attention', 'merge']
@@ -119,6 +121,25 @@ export function imageManifest(): ImageAsset[] {
     { key: 'battle/trainer_m_front', w: 64, h: 64 },
     { key: 'battle/trainer_f_front', w: 64, h: 64 },
     { key: 'battle/rival_front', w: 64, h: 64 },
+    { key: 'battle/yilong_front', w: 64, h: 64 },
+    { key: 'battle/rumelhart_front', w: 64, h: 64 },
+    { key: 'battle/shannon_front', w: 64, h: 64 },
+    { key: 'battle/overfit_grunt_m_front', w: 64, h: 64 },
+    { key: 'battle/overfit_grunt_f_front', w: 64, h: 64 },
+    { key: 'battle/overfit_admin_front', w: 64, h: 64 },
+    { key: 'battle/director_norm_front', w: 64, h: 64 },
+    { key: 'battle/bg_gym', w: 240, h: 112 },
+    { key: 'battle/bg_station', w: 240, h: 112 },
+    { key: 'battle/bg_campus', w: 240, h: 112 },
+    { key: 'battle/bg_library', w: 240, h: 112 },
+    { key: 'battle/platform_enemy_gym', w: 128, h: 32 },
+    { key: 'battle/platform_player_gym', w: 128, h: 32 },
+    { key: 'battle/platform_enemy_station', w: 128, h: 32 },
+    { key: 'battle/platform_player_station', w: 128, h: 32 },
+    { key: 'battle/platform_enemy_campus', w: 128, h: 32 },
+    { key: 'battle/platform_player_campus', w: 128, h: 32 },
+    { key: 'battle/platform_enemy_library', w: 128, h: 32 },
+    { key: 'battle/platform_player_library', w: 128, h: 32 },
     { key: 'ui/frame_dialog', w: 24, h: 24, fallback: frameFallback(P.paper, P.frame) },
     { key: 'ui/frame_menu', w: 24, h: 24, fallback: frameFallback(P.paper, P.frame) },
     { key: 'ui/frame_battle', w: 24, h: 24, fallback: frameFallback(P.paper, [0x283048, 0x6c54bc, 0x9078dc, 0xbca8f0]) },

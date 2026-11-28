@@ -4,14 +4,16 @@
 import Phaser from 'phaser'
 import { FONT } from '../../config'
 import { audio } from '../../audio'
-import { PxText, measure } from '../../ui/text'
-import { animate, fitText, tween } from './util'
+import { ms } from '../../params'
+import { PxText, fitLabel, measure } from '../../ui/text'
+import { animate, heldItemIcon, tween } from './util'
 import { DEPTH, LAYOUT, STATUS_TAG_COLOR, TIMING } from './constants'
 import type { MonView } from '../core'
 
 const HP = { light: [0x60e070, 0xf8d838, 0xf85848], dark: [0x30a048, 0xc09018, 0xb02830] }
 const EXP_LIGHT = 0x50b0f8
 const EXP_DARK = 0x2868c0
+const PROBE_GREEN = 0x60e070
 const STATUS_TAGS: Record<string, string> = { rate_limited: 'RTL', context_rot: 'ROT', timed_out: 'T/O' }
 
 interface PlateSpec {
@@ -58,6 +60,14 @@ export class Hud {
   shown = false
   bobOffset = 0
   private flashT = 0
+  /** Gym 5 (No Autograd): no HP numbers on the player plate. */
+  hideNumbers = false
+  /** Interface tamper: HP drawn instead of the truth (null = honest). */
+  fakeHp: number | null = null
+  /** Probe active: draw the true HP as a faint ghost under a faked bar. */
+  ghost = false
+  private heldIcon: Phaser.GameObjects.Image
+  private heldItem: string | undefined
 
   constructor(scene: Phaser.Scene, side: 'enemy' | 'player') {
     this.scene = scene
@@ -77,7 +87,30 @@ export class Hud {
     this.root.add(this.statusBg)
     this.statusText = new PxText(scene, 0, 0, '', { font: FONT.mini, color: 0xffffff, shadow: 'none' })
     this.root.add(this.statusText.objects())
+    // Held-item marker: a 7px icon tucked into the plate's lower-left corner (beside the status tag).
+    this.heldIcon = scene.add.image(this.spec.status[0] + 22, this.spec.status[1] - 1, 'bfx/item_chip').setOrigin(0, 0).setVisible(false)
+    this.root.add(this.heldIcon)
     this.root.setVisible(false)
+  }
+
+  /** Show / clear the small held-item marker. */
+  setHeld(itemId: string | undefined): void {
+    this.heldItem = itemId
+    if (!itemId || !this.scene.textures.exists('bfx/item_chip')) {
+      this.heldIcon.setVisible(false)
+      return
+    }
+    const ic = heldItemIcon(itemId)
+    this.heldIcon.setTexture(ic.key).setTint(ic.tint).setVisible(true)
+  }
+
+  get held(): string | undefined {
+    return this.heldItem
+  }
+
+  /** Screen position of the held-item marker (item pop-ups fly from / to it). */
+  heldIconPos(): { x: number; y: number } {
+    return { x: this.root.x + this.heldIcon.x + 4, y: this.root.y + this.heldIcon.y + 4 }
   }
 
   private text(x: number, y: number, s: string, font: typeof FONT.dialog | typeof FONT.mini = FONT.dialog): PxText {
@@ -102,10 +135,9 @@ export class Hud {
   }
 
   private setName(n: string): void {
-    this.name.setText(n)
-    // Long names move left, then condense, rather than overlapping the baked LV label.
-    // Plates fit every roster name at normal spacing; condense only as a last resort.
-    fitText(this.scene, this.name, this.spec.nameMax - this.spec.name[0])
+    // Engine text fit (ui/text fitLabel): dialog font → condensed → mini caps → whole words
+    // dropped, so "GPT 5.5 Thinking" never runs into the baked LV label.
+    this.name.setLabel(fitLabel(this.scene, n, this.spec.nameMax - this.spec.name[0]))
     this.name.setPosition(this.spec.name[0], this.spec.name[1])
   }
 
@@ -131,13 +163,14 @@ export class Hud {
     this.statusText.setPosition(x + 10 - Math.ceil(tw / 2), y + 1)
   }
 
-  private redraw(): void {
+  redraw(): void {
     const g = this.g
     g.clear()
     const { hp } = this.spec
-    const frac = this.hp / this.maxHp
+    const shownHp = this.fakeHp ?? this.hp
+    const frac = shownHp / this.maxHp
     const tier = frac > 0.5 ? 0 : frac > 0.2 ? 1 : 2
-    const fw = this.hp <= 0 ? 0 : Math.max(1, Math.round(hp.w * frac))
+    const fw = shownHp <= 0 ? 0 : Math.max(1, Math.round(hp.w * frac))
     if (this.flashT > 0 && Math.floor(this.flashT / 4) % 2 === 0) {
       // level-up flash: bar well lights up
       g.fillStyle(0xfcfaf0)
@@ -147,6 +180,15 @@ export class Hud {
     g.fillRect(hp.x, hp.y, fw, 2)
     g.fillStyle(HP.dark[tier])
     g.fillRect(hp.x, hp.y + 2, fw, 1)
+    if (this.fakeHp !== null && this.ghost) {
+      // The Probe: the true value as a faint second bar + a bright tick where it really ends.
+      const tf = Math.max(0, this.hp / this.maxHp)
+      const tw = this.hp <= 0 ? 0 : Math.max(1, Math.round(hp.w * tf))
+      g.fillStyle(0x28222e, 0.55)
+      g.fillRect(hp.x + tw, hp.y, Math.max(0, fw - tw), 3)
+      g.fillStyle(PROBE_GREEN, 0.9)
+      g.fillRect(hp.x + Math.max(0, tw - 1), hp.y - 1, 1, 5)
+    }
     if (this.spec.exp) {
       const e = this.spec.exp
       const ew = Math.round(e.w * Math.max(0, Math.min(1, this.exp)))
@@ -156,7 +198,7 @@ export class Hud {
       g.fillRect(e.x, e.y + 1, ew, 1)
     }
     if (this.hpText && this.spec.hpText) {
-      const s = `${Math.max(0, Math.round(this.hp))}/${this.maxHp}`
+      const s = this.hideNumbers ? '' : `${Math.max(0, Math.round(this.fakeHp ?? this.hp))}/${this.maxHp}`
       this.hpText.setText(s)
       this.hpText.setPosition(this.spec.hpText.right - measure(this.scene, FONT.dialog, s), this.spec.hpText.y)
     }
@@ -172,6 +214,46 @@ export class Hud {
       this.redraw()
     })
     this.hp = to
+    this.redraw()
+  }
+
+  /**
+   * Interface tamper: the faked bar "redraws itself" to `shown` — it empties, then
+   * refills left to right in clean 4px steps, like a value being re-rendered.
+   */
+  async redrawFake(shown: number, maxHp = this.maxHp): Promise<void> {
+    this.maxHp = Math.max(1, maxHp)
+    const start = this.fakeHp ?? this.hp
+    await animate(this.scene, 160, (k) => {
+      this.fakeHp = Math.round(start * (1 - k))
+      this.redraw()
+    })
+    const steps = 12
+    for (let i = 1; i <= steps; i++) {
+      this.fakeHp = Math.round((shown * i) / steps)
+      this.redraw()
+      await new Promise<void>((r) => this.scene.time.delayedCall(ms(28), r))
+    }
+    this.fakeHp = shown
+    this.redraw()
+  }
+
+  /** A hit on a faked bar: it dips by the true amount, holds, then quietly redraws to the lie. */
+  async hitFake(amount: number): Promise<void> {
+    const shown = this.fakeHp ?? this.hp
+    const to = Math.max(1, shown - amount)
+    await animate(this.scene, Math.max(TIMING.hpMinMs, (amount / this.maxHp) * this.spec.hp.w * TIMING.hpMsPerPx), (k) => {
+      this.fakeHp = Math.round(shown + (to - shown) * k)
+      this.redraw()
+    })
+    await new Promise<void>((r) => this.scene.time.delayedCall(ms(260), r))
+    await this.redrawFake(shown)
+  }
+
+  /** Drop the lie (Probe / tamper_reveal): snap to the truth. */
+  clearFake(): void {
+    this.fakeHp = null
+    this.ghost = false
     this.redraw()
   }
 

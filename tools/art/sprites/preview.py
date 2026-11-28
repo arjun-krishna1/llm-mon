@@ -50,13 +50,13 @@ def chars_sheet(ids):
 
 
 def battle_screen(enemy, player, enemy_name='Enemy', player_name='Player', lv=(5, 5),
-                  hp=(0.7, 0.35), text=('What will', 'FABLE do?')):
+                  hp=(0.7, 0.35), text=('What will', 'FABLE do?'), bg='bg_grass'):
     scr = new(240, 160, (0, 0, 0, 255))
-    bg = L(SPRITES, 'battle', 'bg_grass.png')
-    if bg:
-        scr.alpha_composite(bg, (0, 0))
-    pe = L(SPRITES, 'battle', 'platform_enemy.png')
-    pp = L(SPRITES, 'battle', 'platform_player.png')
+    bgi = L(SPRITES, 'battle', bg + '.png')
+    if bgi:
+        scr.alpha_composite(bgi, (0, 0))
+    pe = L(SPRITES, 'battle', 'platform_enemy_%s.png' % bg[3:]) or L(SPRITES, 'battle', 'platform_enemy.png')
+    pp = L(SPRITES, 'battle', 'platform_player_%s.png' % bg[3:]) or L(SPRITES, 'battle', 'platform_player.png')
     if pe:
         scr.alpha_composite(pe, (112, 50))
     if pp:

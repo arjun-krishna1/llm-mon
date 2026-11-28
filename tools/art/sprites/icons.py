@@ -26,7 +26,7 @@ from common import SPRITES, save, new  # noqa: E402
 # id -> (x0, y0, x1, y1) window as fractions of the source bbox (overrides the auto crop)
 WINDOW = {
     'sigmoid': (0.0, 0.0, 0.5, 0.7),
-    'relu': (0.45, 0.0, 1.0, 0.7),
+    'relu': (0.0, 0.0, 0.55, 0.8),
     'residual': (0.0, 0.25, 0.5, 1.0),
     'sgd': (0.1, 0.1, 0.9, 1.0),
     'momentum': (0.0, 0.05, 0.9, 1.0),
@@ -77,8 +77,13 @@ def icon_from_source(sid, src):
         crop = src
     else:
         crop = src.crop(head_window(src))
-    arr = M2.reduce_mode(crop, 16, 15, colors=10, thresh=0.42, min_island=3, sat=1.12,
-                         line_w=1.0, contrast=3.0)
+    try:
+        arr = M2.reduce_mode(crop, 16, 15, colors=10, thresh=0.42, min_island=3, sat=1.12,
+                             line_w=1.0, contrast=3.0)
+    except ValueError:   # window landed on a sparse area: fall back to the whole body
+        print('  [icons] %s: head window empty, using the whole body' % sid)
+        arr = M2.reduce_mode(src, 16, 15, colors=10, thresh=0.42, min_island=3, sat=1.12,
+                             line_w=1.0, contrast=3.0)
     spr = Image.fromarray(arr)
     a = new(16, 16)
     a.paste(spr, ((16 - spr.width) // 2, 16 - spr.height), spr)

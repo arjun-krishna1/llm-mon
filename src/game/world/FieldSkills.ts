@@ -247,6 +247,11 @@ export class FieldSkills {
     const p = ow.player
     const f = p.front()
     const blk = pz?.blockAt(f.x, f.y)
+    if (blk?.p.fuse) {
+      // gym letterpress blocks: fusable with A even before the player has MERGE
+      void this.fusePrompt(blk)
+      return true
+    }
     if (blk) {
       const id: SkillId = blk.type === 'boulder' ? 'merge' : 'embed'
       void this.prompt(id, blk.type === 'boulder'
@@ -263,6 +268,23 @@ export class FieldSkills {
       return true
     }
     return false
+  }
+
+  /** `fuse: true` blocks/boulders: "Fuse it with its neighbour?" then the Merge rule, no skill needed. */
+  private async fusePrompt(blk: NonNullable<ReturnType<NonNullable<OverworldScene['puzzle']>['blockAt']>>): Promise<void> {
+    const ow = this.ow
+    let yes = false
+    await ow.runInline(async (s) => {
+      yes = await s.yesNo(`${blk.glyph ? `A block marked “${blk.glyph}”.` : 'A block with a seam down one side.'}\nFuse it with the one beside it?`)
+    })
+    if (!yes || !ow.puzzle) return
+    ow.lock()
+    try {
+      const err = await ow.puzzle.merge(blk, ow.player.facing)
+      if (err) await this.say(err)
+    } finally {
+      ow.unlock()
+    }
   }
 
   /** "Use SKILL?" (or the hint text when the skill is locked / does not apply). */

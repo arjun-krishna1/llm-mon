@@ -382,7 +382,7 @@ export class PuzzleManager {
   private drawFloor(): void {
     const g = this.floorG
     g.clear()
-    for (const f of this.floors) {
+    for (const f of this.activeFloors()) {
       if (f.o.props.draw === false) continue
       for (let y = f.o.ty; y < f.o.ty + f.o.th; y++) {
         for (let x = f.o.tx; x < f.o.tx + f.o.tw; x++) drawFloorCell(g, x, y, f.info)
@@ -528,7 +528,7 @@ export class PuzzleManager {
     const g = this.animG
     g.clear()
     const t = this.frame / 4
-    for (const f of this.floors) {
+    for (const f of this.activeFloors()) {
       if (f.o.props.draw === false) continue
       if (!f.info.conveyor && !f.info.rough_water) continue
       for (let y = f.o.ty; y < f.o.ty + f.o.th; y++) {
@@ -666,6 +666,11 @@ export class PuzzleManager {
 
   // ================================================================ queries for movement
 
+  /** Floor objects whose `when` condition holds (no `when` = always). Later objects win on overlap. */
+  private activeFloors(): Array<{ o: MapObject; info: FloorInfo }> {
+    return this.floors.filter((f) => f.o.props.when === undefined || evalCond(String(f.o.props.when), (n) => this.resolve(n)))
+  }
+
   /** Floor semantics at a cell: tile props merged with floor objects and bridges. */
   floorAt(x: number, y: number): FloorInfo {
     const t = this.ow.map?.tileAt(x, y) ?? {}
@@ -679,7 +684,7 @@ export class PuzzleManager {
     if (isDir(t.conveyor)) out.conveyor = t.conveyor
     if (isDir(t.oneway)) out.oneway = t.oneway
     if (isDir(t.spinner)) out.spinner = t.spinner
-    for (const f of this.floors) {
+    for (const f of this.activeFloors()) {
       if (x >= f.o.tx && x < f.o.tx + f.o.tw && y >= f.o.ty && y < f.o.ty + f.o.th) Object.assign(out, f.info)
     }
     if (this.S.over?.[key(x, y)]) {

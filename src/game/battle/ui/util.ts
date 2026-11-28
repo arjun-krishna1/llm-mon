@@ -149,6 +149,32 @@ export function ensureFxTextures(scene: Phaser.Scene): void {
   makeTex(scene, 'bfx/zz', ['wwww', '..w.', '.w..', 'wwww'], P)
   makeTex(scene, 'bfx/pixel', ['ww', 'ww'], P)
   makeTex(scene, 'bfx/sweat', ['.w.', 'www', 'www', '.w.'], { w: '#80c8f8' })
+  // ---- stage 1 (abilities, held items, arena, finale)
+  // Held items: berry (consumable restorers), chip (passive gear), report (one-shot papers).
+  makeTex(scene, 'bfx/item_berry', ['...g.', '..g..', '.www.', 'wwwlw', 'wwwww', 'lwwwl', '.lll.'], { ...P, g: '#58b257' })
+  makeTex(scene, 'bfx/item_chip', ['.w.w.w.', 'wwwwwww', '.wmmmw.', 'wwmlmww', '.wmmmw.', 'wwwwwww', '.w.w.w.'], P)
+  makeTex(scene, 'bfx/item_doc', ['wwww.', 'wlllw', 'wwwww', 'wlllw', 'wwwww', 'wlllw', 'wwwww'], P)
+  makeTex(scene, 'bfx/item_bag', ['.www.', 'w...w', 'wwwww', 'wwlww', 'wwwww', '.www.'], P)
+  // Finale: the Pause Protocol keyhole + key, and Proxy's mascot face for the copies.
+  makeTex(scene, 'bfx/keyhole', ['.www.', 'wmmmw', 'wmmmw', '.wmw.', '.wmw.', 'wmmmw', 'wwwww'], P)
+  makeTex(scene, 'bfx/key', ['.ww.', 'w..w', 'w..w', '.ww.', '.w..', '.ww.', '.w..', '.ww.'], { w: '#f8d838' })
+  makeTex(scene, 'bfx/face', ['.wwwww.', 'wwwwwww', 'ww.w.ww', 'wwwwwww', 'w.www.w', 'ww...ww', '.wwwww.'], { w: '#fcfaf0' })
+  // Hearts / crosses for obedience beats.
+  makeTex(scene, 'bfx/heart', ['ww.ww', 'wwwww', 'wwwww', '.www.', '..w..'], { w: '#f86890' })
+  makeTex(scene, 'bfx/cross', ['w...w', '.w.w.', '..w..', '.w.w.', 'w...w'], { w: '#9098b0' })
+}
+
+/** Small icon texture for a held item id (generic shapes; see ensureFxTextures). */
+export function heldItemIcon(itemId: string): { key: string; tint: number } {
+  if (itemId.endsWith('_berry')) {
+    const tints: Record<string, number> = {
+      context_berry: 0xf89848, cache_berry: 0x88c8f8, debug_berry: 0x90e070, clarity_berry: 0xd0b0f8, retry_berry: 0xf8d050,
+    }
+    return { key: 'bfx/item_berry', tint: tints[itemId] ?? 0xf8a0a0 }
+  }
+  if (itemId === 'checkpoint' || itemId === 'red_team_report' || itemId === 'eval_report') return { key: 'bfx/item_doc', tint: itemId === 'red_team_report' ? 0xf8a0a0 : 0xfcf6d0 }
+  if (itemId.includes('patch') || itemId === 'debugger') return { key: 'bfx/item_bag', tint: itemId === 'debugger' ? 0x90e070 : 0xf8c8a0 }
+  return { key: 'bfx/item_chip', tint: 0xb0c8e8 }
 }
 
 /**

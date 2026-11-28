@@ -58,6 +58,8 @@ PEOPLE = {
         "POCKET and the other hand giving a casual two-finger wave. Cocky, cheerful, a bit too pleased "
         "with himself.")),
     'rumelhart_front': dict(alias=['leader_rumelhart_front'],
+                            face=dict(skin=(31, 8, 36, 11), skin_from=(33, 11), eyes=(31, 34, 8),
+                                      mouth=[(33, 11), (34, 11)]),
                             refs=['prof_front', 'trainer_m_front', 'trainer_f_front'], p=(
         "Gym Leader of the Gradient Gym, a patient, kind former schoolteacher in his fifties (an "
         "original character, not a likeness of anyone): short tidy grey-brown hair, warm gentle smile, "
@@ -65,6 +67,10 @@ PEOPLE = {
         "small red pin shaped like a downward arrow on the cardigan, his hands dusted white with "
         "chalk, holding a short stick of white chalk up in one hand as if about to explain.")),
     'shannon_front': dict(alias=['leader_shannon_front'],
+                          face=dict(skin=(29, 12, 34, 15), skin_from=(31, 16), eyes=(29, 32, 13),
+                                    mouth=[(30, 15), (31, 15), (32, 15)],
+                                    balls=[(19, 5, (220, 60, 60, 255)), (30, 1, (60, 100, 220, 255)),
+                                           (41, 6, (240, 200, 50, 255))]),
                           refs=['prof_front', 'trainer_m_front', 'trainer_f_front'], p=(
         "Gym Leader of the Likelihood Gym, a playful middle-aged tinkerer (an original character, not "
         "a likeness of anyone): wavy greying hair, cheerful grin, rolled-up white shirt sleeves under a "
@@ -83,13 +89,17 @@ PEOPLE = {
         "stripes down the sleeves and a gold collar, a small gold bar-chart emblem (three rising bars) "
         "on the chest, white track shorts over dark leggings, white-and-gold sneakers, one hand on her "
         "hip, the other holding up a clipboard proudly.")),
-    'overfit_admin_front': dict(refs=['trainer_m_front', 'prof_front', 'rival_front'], p=(
+    'overfit_admin_front': dict(face=dict(skin=(31, 6, 37, 9), skin_from=(33, 10), eyes=(32, 35, 7),
+                                          mouth=[(34, 10), (35, 10), (36, 9)]),
+                                refs=['trainer_m_front', 'prof_front', 'rival_front'], p=(
         "Goodhart, a Team Overfit Admin of Benchmark Corp (an original character): a slick, very "
         "confident man in his thirties, swept-back blond hair, a knowing smile, a long white-and-gold "
         "coat over a black turtleneck, a large gold bar-chart emblem (three rising bars) on the coat, "
         "gold epaulettes, black trousers, polished shoes, holding up a glowing tablet showing a single "
         "rising line chart. Proud and theatrical, not scary.")),
-    'director_norm_front': dict(refs=['prof_front', 'trainer_m_front', 'rival_front'], p=(
+    'director_norm_front': dict(face=dict(skin=(34, 7, 39, 10), skin_from=(36, 10), eyes=(34, 37, 8),
+                                          mouth=[(35, 11), (36, 11), (37, 11)]),
+                                refs=['prof_front', 'trainer_m_front', 'rival_front'], p=(
         "Director Norm, the head of Benchmark Corp (an original character): a charming, sincere "
         "middle-aged executive with neat salt-and-pepper hair, a warm earnest smile, a light blue "
         "dress shirt with the sleeves rolled up, a loose navy tie, a gold company lanyard with an ID "
@@ -133,6 +143,18 @@ def paint_face(im, face):
         px[x, y] = INK
     for x, y, c in face.get('px', []):
         px[x, y] = c
+    for cx, cy, col in face.get('balls', []):      # small juggling balls (islands the reducer drops)
+        hi = tuple(min(255, v + 80) for v in col[:3]) + (255,)
+        lo = tuple(int(v * 0.65) for v in col[:3]) + (255,)
+        ball = ['.oo.', 'oooo', 'oooo', '.oo.']
+        cells = [(x, y) for y in range(4) for x in range(4) if ball[y][x] == 'o']
+        for x, y in cells:
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                X, Y = cx + x + dx, cy + y + dy
+                if 0 <= X < im.width and 0 <= Y < im.height and not px[X, Y][3]:
+                    px[X, Y] = INK
+        for x, y in cells:
+            px[cx + x, cy + y] = hi if (x, y) == (1, 1) else lo if x + y >= 4 else col
     return im
 
 

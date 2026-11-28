@@ -622,9 +622,9 @@ replacing the procedural look).
 | --- | --- | --- |
 | `switch` | `mode`: `momentary` (default: player, NPC or block on it), `toggle` (flips each time it is stepped on), `weight` (blocks only) | signal = pressed |
 | `door` / `gate` | rect; `when` (condition), `latch` (true, or a flag name: stays open once opened), `onOpen` (script) | solid while closed; bars slide down; never closes on the player |
-| `block` | `kind` (a/b/c… or a colour name), `heavy` (needs Embed), `glyph` (letter on top) | pushed by walking into it (one push per ~16 frames); slides on ice; falls into a `gap` and fills it |
+| `block` | `kind` (a/b/c… or a colour name), `heavy` (needs Embed), `glyph` (letter on top), `fuse` + `merge: block` (Gym 8 letterpress: A fuses it with a same-kind neighbour without the skill; glyphs concatenate, "T"+"O" → "TO") | pushed by walking into it (one push per ~16 frames); slides on ice; falls into a `gap` and fills it |
 | `boulder` | `kind` (default `stone`), `heavy` (default true), `merge`, `resultKind`, `bridgeLen` | Embed pushes; Merge fuses |
-| `floor` | rect; `kind`: `ice`, `conveyor` (+`dir`), `oneway` (+`dir`: enter and leave only along it), `spinner` (+`dir`), `gap`, `rough_water`, `snow` (footprints), `puddle` (splash); `draw: false` = logic only (use your own tiles) | the same keys also work as tile properties |
+| `floor` | rect; `kind`: `ice`, `conveyor` (+`dir`), `oneway` (+`dir`: enter and leave only along it), `spinner` (+`dir`), `gap`, `rough_water`, `snow` (footprints), `puddle` (splash); `when` (condition: the floor exists only while it holds, e.g. Gym 2's zero-count pits `when: "!smoothing"`, re-sorted conveyors); `draw: false` = logic only (use your own tiles) | the same keys also work as tile properties |
 | `teleport` | `to` (another object id or `"x,y"`), `when` | step on: flash, move (arriving does not re-teleport) |
 | `counter` | rect = HUD area (1×1 or `area: map` = whole map); `label`, `start`, `max`, `style` (`budget` red over max, `goal` green at max, `plain`), `perStep`, `hud: false` | HUD chip "SURPRISE 3/12" while the player is in its area |
 | `timer` | rect; `label`, `ranks` ("S,A,B" seconds: `"6,10,16"`), `stopWhen` | starts on entering the rect (once), stops when the condition holds: toast "TIME 0:05 RANK S", var `<id>.rank` |

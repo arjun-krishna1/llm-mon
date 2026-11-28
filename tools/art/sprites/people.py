@@ -618,6 +618,244 @@ AAAAAAhhhhhh
 }
 
 
+# ---- ART-C2 additions (stage 2 cast + NPC variety; the audited cast above is unchanged) ----
+HAIR['founder'] = {  # Yilong: dark, messy, swept up to one side
+    'down': _H('''
+|..h.hhh.h...
+|.hhhhhhhhhh.
+|..hhjjhhhhhh
+|..hhhhhhhhh.
+|..hhh.hh.hh.
+|..h......h..
+'''),
+    'up': _H('''
+|..h.hhh.h...
+|.hhhhhhhhhh.
+|..hhjjhhhhhh
+|..hhhhhhhhh.
+|..hhhhhhhhh.
+|..hhhhhhhhh.
+|..hhhhhhhhh.
+|...hh.hhh...
+'''),
+    'left': _H('''
+|....h.hhh.h.
+|...hhhhhhhhh
+|..hhjjhhhhhh
+|.hhhhhhhhhhh
+|..h.hhhhhhhh
+|.......hhhh.
+|........hh..
+'''),
+}
+HAIR['wavy'] = {  # Shannon: voluminous greying waves, puffs at the temples
+    'down': _H('''
+|...h.hh.h...
+|..hhhhhhhhh.
+|.hhhjjhhhhhh
+|.hhhhhhhhhhh
+|.hh.......hh
+|.h........h.
+'''),
+    'up': _H('''
+|...h.hh.h...
+|..hhhhhhhhh.
+|.hhhjjhhhhhh
+|.hhhhhhhhhhh
+|.hhhhhhhhhhh
+|.hhhhhhhhhhh
+|..hhhhhhhhh.
+'''),
+    'left': _H('''
+|....h.hh.h..
+|...hhhhhhhhh
+|..hhjjhhhhhh
+|..hhhhhhhhhh
+|....hhhhhhhh
+|.......hhhhh
+|........hhh.
+'''),
+}
+HAIR['headband'] = {  # Team Overfit agent: short hair, gold sweatband (accessory)
+    'down': _H('''
+|............
+|...hhhhhh...
+|..hhjhhhhh..
+|..aaaaaaaaa.
+|..h.......h.
+'''),
+    'up': _H('''
+|............
+|...hhhhhh...
+|..hhjhhhhh..
+|..aaaaaaaaa.
+|..hhhhhhhhh.
+|..hhhhhhhhh.
+|...hhhhhhh..
+'''),
+    'left': _H('''
+|............
+|...hhhhhhh..
+|..hhjhhhhhh.
+|..aaaaaaaaaa
+|...h...hhhhh
+|........hhh.
+'''),
+}
+
+
+def det_bomber(g, geo, d, f):
+    """Yilong: open dark bomber over a black tee, small white star patch."""
+    if d == 'down':
+        for y in range(geo.t0, geo.t1):
+            setp(g, 7, y, 'X'); setp(g, 8, y, 'X')
+        setp(g, 5, geo.t0 + 2, 'w')
+        hline(g, 5, 10, geo.t1, 'C')               # ribbed waistband
+    elif d == 'up':
+        hline(g, 5, 10, geo.t1, 'C')
+    else:
+        for y in range(geo.t0 + 1, geo.t1):
+            setp(g, 5, y, 'X')
+
+
+def det_cardigan_open(g, geo, d, f):
+    """Rumelhart: open cardigan over a white shirt, small red arrow pin."""
+    if d == 'down':
+        for y in range(geo.t0, geo.t1 + 1):
+            setp(g, 7, y, 'x'); setp(g, 8, y, 'y')
+        setp(g, 9, geo.t0 + 2, 'A')
+        setp(g, 6, geo.t0 + 3, 'C'); setp(g, 6, geo.t0 + 5, 'C')   # buttons
+    elif d == 'left':
+        setp(g, 5, geo.t0 + 1, 'x'); setp(g, 5, geo.t0 + 2, 'x')
+
+
+def det_waistcoat(g, geo, d, f):
+    """Shannon: dark green waistcoat over a white shirt, red bow tie."""
+    if d == 'down':
+        for y in range(geo.t0 + 1, geo.t1 + 1):
+            hline(g, 5, 10, y, 'a')
+            setp(g, 10, y, 'A')
+        setp(g, 7, geo.t0 + 1, 'd'); setp(g, 8, geo.t0 + 1, 'c')
+        setp(g, 7, geo.t0 + 3, 'b'); setp(g, 7, geo.t0 + 5, 'b')    # brass buttons
+        setp(g, 7, geo.t0, 'X'); setp(g, 8, geo.t0, 'X')
+    elif d == 'up':
+        for y in range(geo.t0 + 1, geo.t1 + 1):
+            hline(g, 5, 10, y, 'a')
+    else:
+        for y in range(geo.t0 + 1, geo.t1 + 1):
+            for x in (5, 6, 7, 10):
+                setp(g, x, y, 'a')
+
+
+def det_track(g, geo, d, f):
+    """Team Overfit: white track jacket, gold collar, zip and shoulder stripes,
+    a small gold bar-chart emblem; gold stripe down the outer trouser legs."""
+    if d == 'down':
+        hline(g, 6, 9, geo.t0, 'X')
+        for y in range(geo.t0 + 1, geo.t1):
+            setp(g, 7, y, 'X')
+        setp(g, 4, geo.t0 + 1, 'X'); setp(g, 11, geo.t0 + 1, 'X')
+        setp(g, 9, geo.t0 + 3, 'y'); setp(g, 10, geo.t0 + 2, 'y')    # emblem bars
+        if g[geo.hip + 2][5] == 'p':
+            for y in range(geo.hip + 1, geo.feet - 1):
+                if g[y][5] in 'pP':
+                    setp(g, 5, y, 'X')
+                if g[y][10] in 'pP':
+                    setp(g, 10, y, 'X')
+    elif d == 'up':
+        hline(g, 5, 10, geo.t0, 'X')
+        hline(g, 5, 10, geo.t0 + 2, 'X')
+    else:
+        hline(g, 6, 9, geo.t0, 'X')
+        setp(g, 8, geo.t0 + 1, 'X')
+
+
+def det_shorts(g, geo, d, f):
+    """White track shorts over dark leggings."""
+    rows = (geo.hip, geo.hip + 1)
+    for y in rows:
+        if d in ('down', 'up'):
+            hline(g, 4, 11, y, 'x'); setp(g, 11, y, 'X' if False else 'y')
+        else:
+            hline(g, 5, 10, y, 'x'); setp(g, 10, y, 'y')
+
+
+def det_coat_trim(g, geo, d, f):
+    """Overfit Admin: gold trim and emblem on the long white coat."""
+    if d == 'down':
+        setp(g, 4, geo.t0 + 1, 'X'); setp(g, 11, geo.t0 + 1, 'X')    # epaulettes
+        setp(g, 9, geo.t0 + 3, 'X'); setp(g, 10, geo.t0 + 2, 'X')
+    elif d == 'up':
+        setp(g, 4, geo.t0 + 1, 'X'); setp(g, 11, geo.t0 + 1, 'X')
+
+
+def det_tie_lanyard(g, geo, d, f):
+    """Director Norm: navy tie, gold lanyard with a white ID badge."""
+    if d == 'down':
+        for y in range(geo.t0, geo.t0 + 4):
+            setp(g, 7, y, 'A')
+        setp(g, 8, geo.t0 + 1, 'A'); setp(g, 8, geo.t0 + 2, 'A')
+        setp(g, 6, geo.t0, 'X'); setp(g, 9, geo.t0, 'X')
+        setp(g, 6, geo.t0 + 1, 'X'); setp(g, 6, geo.t0 + 2, 'X')
+        setp(g, 5, geo.t0 + 3, 'w'); setp(g, 6, geo.t0 + 3, 'w'); setp(g, 6, geo.t0 + 4, 'w')
+    elif d == 'up':
+        setp(g, 6, geo.t0, 'X'); setp(g, 9, geo.t0, 'X')
+    else:
+        setp(g, 5, geo.t0, 'A'); setp(g, 5, geo.t0 + 1, 'A'); setp(g, 6, geo.t0, 'X')
+
+
+def det_vest(g, geo, d, f):
+    """VC: quilted fleece vest over a shirt."""
+    if d == 'down':
+        for y in range(geo.t0 + 1, geo.t1 + 1):
+            for x in (4, 5, 6, 9, 10, 11):
+                setp(g, x, y, 'a' if x not in (6, 11) else 'A')
+    elif d == 'up':
+        for y in range(geo.t0 + 1, geo.t1 + 1):
+            hline(g, 4, 11, y, 'a')
+            setp(g, 11, y, 'A')
+    else:
+        for y in range(geo.t0 + 1, geo.t1 + 1):
+            for x in (5, 6, 7, 10):
+                setp(g, x, y, 'a')
+
+
+def det_guitar(g, geo, d, f):
+    """Busker: an acoustic guitar held across the body (body low left, neck up right)."""
+    if d == 'down':
+        y0 = geo.t1 - 1
+        for y in range(y0, geo.hip + 2):          # round body, sticks out past the hip
+            hline(g, 3, 7, y, 'b' if y == y0 else 'a')
+            setp(g, 7, y, 'A')
+        setp(g, 3, y0, '.'); setp(g, 3, geo.hip + 1, '.')
+        setp(g, 5, y0 + 1, 'A')                     # sound hole
+        for k in range(4):                          # neck to the right shoulder
+            setp(g, 8 + k, y0 - 1 - k, 'A')
+        setp(g, 12, y0 - 5, 'A')
+    elif d == 'up':
+        for k in range(6):
+            setp(g, 5 + k, geo.t0 + k, 'A')        # strap
+        hline(g, 9, 11, geo.t1, 'a')                # body peeking out at the hip
+    else:
+        for y in range(geo.t1 - 1, geo.hip + 2):
+            hline(g, 3, 6, y, 'a')
+        setp(g, 4, geo.t1, 'A')
+        for k in range(1, 4):
+            setp(g, 6 + k, geo.t1 - 1 - k, 'A')
+
+
+def det_badge(g, geo, d, f):
+    """Guard: gold badge, dark belt."""
+    if d == 'down':
+        setp(g, 5, geo.t0 + 2, 'X')
+        hline(g, 5, 10, geo.t1, 'A')
+        setp(g, 8, geo.t1, 'X')
+    elif d == 'up':
+        hline(g, 5, 10, geo.t1, 'A')
+    else:
+        hline(g, 6, 9, geo.t1, 'A')
+
+
 # ------------------------------------------------------------------- body --
 def draw_body(g, geo, d, f, outfit, run=False):
     """Torso + arms + legs, procedurally. outfit: dict with keys
@@ -1015,6 +1253,68 @@ def define():
                         skin=SKIN_FAIR, acc=[P.ROOF_TEAL[1], P.WHITE[2], P.WHITE[3]],
                         outfit={'top': 'shirt', 'legs': 'pants'}, details=[det_zip],
                         shoes=[P.WHITE[0], P.WHITE[2]])
+    # ---- ART-C2 additions ----
+    GOLD = [P.CLOTH_YELLOW[0], P.CLOTH_YELLOW[1], P.CLOTH_YELLOW[0]]
+    TRACK = [P.WHITE[0], P.WHITE[2], P.WHITE[3]]
+    C['yilong'] = Person('yilong', 'founder', [(40, 28, 32, 255), (68, 44, 44, 255), (104, 68, 58, 255)],
+                         [P.CLOTH_DARK[1], P.CLOTH_DARK[2], P.ROOF_SLATE[2]], P.ROCK,
+                         skin=SKIN_FAIR, acc2=[P.CLOTH_DARK[0], P.CLOTH_DARK[0]],
+                         outfit={'top': 'shirt', 'legs': 'pants'}, details=[det_bomber],
+                         shoes=[P.WHITE[0], P.WHITE[2]])
+    C['leader_rumelhart'] = Person('leader_rumelhart', 'short', [(104, 92, 88, 255), (146, 132, 122, 255), (192, 182, 170, 255)],
+                                   P.CLOTH_YELLOW, P.TRUNK, skin=SKIN_WARM, adult=True,
+                                   acc=P.CLOTH_RED, acc2=[P.WHITE[3], P.WHITE[3], P.WHITE[1]],
+                                   outfit={'top': 'shirt', 'legs': 'pants'},
+                                   details=[det_cardigan_open], shoes=[P.TRUNK[0], P.TRUNK[1]])
+    C['leader_shannon'] = Person('leader_shannon', 'wavy', P.HAIR_GREY, [P.WHITE[0], P.WHITE[2], P.WHITE[3]], P.ROCK,
+                                 skin=SKIN_FAIR, adult=True,
+                                 acc=[P.CLOTH_GREEN[0], P.TREE[0], P.CLOTH_YELLOW[2]],
+                                 acc2=[P.CLOTH_RED[1], P.CLOTH_RED[1]],
+                                 outfit={'top': 'shirt', 'legs': 'pants', 'sleeves': 3},
+                                 details=[det_waistcoat], shoes=[P.TRUNK[0], P.TRUNK[1]])
+    C['overfit_m'] = Person('overfit_m', 'headband', P.HAIR_BROWN, TRACK, TRACK[1:],
+                            skin=SKIN_TAN, adult=True, acc=GOLD, acc2=GOLD,
+                            outfit={'top': 'shirt', 'legs': 'pants'}, details=[det_track],
+                            shoes=[P.CLOTH_YELLOW[0], P.WHITE[2]])
+    C['overfit_f'] = Person('overfit_f', 'ponytail', auburn, TRACK, P.CLOTH_DARK,
+                            skin=SKIN_FAIR, adult=True, acc=GOLD,
+                            acc2=[P.CLOTH_YELLOW[1], P.WHITE[3], P.WHITE[1]],
+                            outfit={'top': 'shirt', 'legs': 'pants'}, details=[det_shorts, det_track],
+                            shoes=[P.CLOTH_YELLOW[0], P.WHITE[2]])
+    C['overfit_admin'] = Person('overfit_admin', 'swept', P.HAIR_BLOND, P.CLOTH_DARK, P.CLOTH_DARK,
+                                skin=SKIN_FAIR, adult=True, acc=TRACK, acc2=GOLD,
+                                outfit={'top': 'coat', 'legs': 'pants'}, details=[det_coat_trim],
+                                shoes=[P.CLOTH_DARK[0], P.CLOTH_DARK[2]])
+    C['norm'] = Person('norm', 'neat', [(84, 84, 96, 255), (140, 140, 152, 255), (204, 204, 212, 255)],
+                       [P.ROOF_BLUE[2], P.ROOF_BLUE[3], P.SKY[2]], P.ROCK,
+                       skin=SKIN_WARM, adult=True, acc=[P.CLOTH_BLUE[0], P.CLOTH_BLUE[0]], acc2=GOLD,
+                       outfit={'top': 'shirt', 'legs': 'pants', 'sleeves': 3},
+                       details=[det_tie_lanyard], shoes=[P.TRUNK[0], P.TRUNK[1]])
+    # generic NPC variety (cameo / easter-egg NPCs used to share ten bodies)
+    C['barista'] = Person('barista', 'ponytail', P.HAIR_BROWN, [P.WHITE[1], P.WHITE[2], P.WHITE[3]], P.CLOTH_DARK,
+                          skin=SKIN_TAN, adult=True, acc=[P.WOOD[0], P.WOOD[1], P.WOOD[2]],
+                          outfit={'top': 'shirt', 'legs': 'pants', 'sleeves': 2},
+                          details=[det_apron()], shoes=[P.TRUNK[0], P.TRUNK[1]])
+    C['vc'] = Person('vc', 'neat', P.HAIR_BROWN, P.CLOTH_BLUE, [P.SAND[0], P.SAND[1]],
+                     skin=SKIN_FAIR, adult=True, acc=[P.ROCK[0], P.ROCK[1], P.ROCK[2]],
+                     outfit={'top': 'shirt', 'legs': 'pants'}, details=[det_vest, det_collar],
+                     shoes=[P.TRUNK[0], P.TRUNK[1]])
+    C['founder'] = Person('founder', 'messy', P.HAIR_BLOND, P.CLOTH_DARK, P.CLOTH_BLUE,
+                          skin=SKIN_WARM, adult=True, acc2=[P.WHITE[3], P.WHITE[3]],
+                          outfit={'top': 'shirt', 'legs': 'pants'}, details=[det_hoodie],
+                          shoes=[P.WHITE[0], P.WHITE[2]])
+    C['busker'] = Person('busker', 'founder', P.HAIR_BROWN, P.CLOTH_RED, P.CLOTH_BLUE,
+                         skin=SKIN_TAN, adult=True, acc=[P.WOOD[0], P.WOOD[3], P.WOOD[4]],
+                         outfit={'top': 'shirt', 'legs': 'pants', 'sleeves': 3},
+                         details=[det_guitar], shoes=[P.TRUNK[0], P.TRUNK[1]])
+    C['commuter'] = Person('commuter', 'short', P.HAIR_DARK, P.CLOTH_GREEN, P.CLOTH_DARK,
+                           skin=SKIN_TAN, adult=True, acc=[P.SAND[0], P.SAND[1], P.SAND[2]],
+                           outfit={'top': 'coat', 'legs': 'pants'}, details=[det_bag_strap],
+                           shoes=[P.CLOTH_DARK[0], P.CLOTH_DARK[1]])
+    C['guard'] = Person('guard', 'cap', P.HAIR_DARK, [P.UI_FRAME[0], P.UI_FRAME[1], P.UI_FRAME[2]], P.CLOTH_DARK,
+                        skin=SKIN_WARM, adult=True, acc=[P.UI_FRAME[0], P.UI_FRAME[1], P.UI_FRAME[2]],
+                        acc2=GOLD, outfit={'top': 'shirt', 'legs': 'pants', 'sleeves': 2},
+                        details=[det_badge], shoes=[P.CLOTH_DARK[0], P.CLOTH_DARK[1]])
     return C
 
 
@@ -1025,6 +1325,10 @@ def build():
         sh = ch.sheet()
         save(sh, SPRITES, 'chars', cid + '.png')
         out[cid] = sh
+    import mascot
+    ms = mascot.sheet()
+    save(ms, SPRITES, 'chars', 'proxy.png')
+    out['proxy'] = ms
     rs = cast['player'].sheet(run=True)
     save(rs, SPRITES, 'chars', 'player_run.png')
     out['player_run'] = rs

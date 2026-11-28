@@ -21,6 +21,9 @@ import fx  # noqa: E402
 import ui  # noqa: E402
 import screens  # noqa: E402
 import polish  # noqa: E402
+import icons  # noqa: E402
+import portraits  # noqa: E402
+import battle_bgs  # noqa: E402
 import preview  # noqa: E402
 
 
@@ -33,8 +36,11 @@ def main():
     m2 = mons2.build()
     print('mons2:', len(m2))
     print('polish: filled pinholes in', len(polish.build()), 'creature sprites')
+    print('icons: head-and-shoulders icons for', len(icons.build()), 'creatures')
     battle.build()
     print('battle: ok')
+    print('portraits (pinned):', len(portraits.build()))
+    print('battle backgrounds:', sorted(battle_bgs.build()))
     fx.build()
     print('fx: ok')
     ui.build()
@@ -43,6 +49,8 @@ def main():
     if '--no-preview' not in sys.argv:
         out = preview.build(list(built), list(m))
         out.update(mons2.previews())
+        import review_c2
+        out.update(review_c2.build())
         for k, v in out.items():
             print('preview', k, v)
     print('done in %.1fs' % (time.time() - t))

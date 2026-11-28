@@ -279,6 +279,10 @@ const TESTS = {
     await k.step('down')
     await k.idle()
     check('teleport pad', await k.at(15, 25))
+    check('conditional floor: pit open while the switch is off', await k.pz('pm.floorAt(12, 23).gap === true'))
+    await k.tp(12, 26, 'up')
+    await k.step('up')
+    check('conditional floor: toggle closes the pit', await k.pz('!pm.floorAt(12, 23).gap'))
     await k.tp(6, 24, 'right')
     await k.shot('floors')
   },
@@ -294,6 +298,11 @@ const TESTS = {
     const hud = await k.ev(() => window.__llmmon.game.scene.getScene('UI').hud.counters.map((c) => `${c.label} ${c.value}/${c.max}`))
     check('HUD counter "SURPRISE 3/12"', hud.includes('SURPRISE 3/12'), hud.join('|'))
     await k.shot('letters_budget')
+    await k.tp(23, 24, 'right')
+    await k.tap('A')
+    await k.mash()
+    const f = await k.pz('({ g: (pm.ents.find((e) => e.id === "fz_t+fz_o") || {}).glyph, gone: pm.ent("fz_t").gone })')
+    check('fuse: letterpress blocks merge into "TO" (no skill needed)', f.g === 'TO' && f.gone === true, JSON.stringify(f))
   },
 
   async timer(k) {
@@ -639,10 +648,10 @@ const TESTS = {
     await k.ev(() => window.dispatchEvent(new Event('blur')))
     await sleep(400)
     await k.shot('vis_paused')
-    const slept = await k.ev(() => window.__llmmon.game.loop.sleeping)
+    const slept = await k.ev(() => window.__llmmon.game.loop.running === false)
     await k.tap('A')
     await sleep(300)
-    const woke = await k.ev(() => !window.__llmmon.game.loop.sleeping && !window.__llmmon.info().busy)
+    const woke = await k.ev(() => window.__llmmon.game.loop.running && !window.__llmmon.info().busy)
     check('pause on window blur, resume on a key', slept === true && woke === true, JSON.stringify({ slept, woke }))
     check('visuals captured', true)
     await k.boot()

@@ -91,7 +91,13 @@ PROMPTS = {
         "and more graceful: black coat, cream flame mane now running all down its spine, gold spiral "
         "runes on its body, calm orange eyes. It now has a lynx-like cream ruff and tall tufted lynx "
         "ears. Fourteen small gold rune-spirals float in an arc behind it like the lines of a poem. "
-        "Standing three-quarter pose, one forepaw raised. Palette: black, cream, gold, orange.")),
+        "Standing three-quarter pose, one forepaw raised. Palette: black, cream, gold, orange."),
+        # ART-C2: the first back was mostly cream mane and did not read as the black front
+        back_p=("A sleek black fox-kirin, the SAME animal as the attached image: the BLACK coat with gold "
+                "spiral runes must dominate its back, flanks, legs and haunches; the cream flame mane is "
+                "only a narrow crest along the spine and neck, plus the cream tufts on its tall lynx ears "
+                "and a cream tail tip. No floating spirals. Big simple shapes, strong black-and-cream "
+                "contrast. Palette: black, cream, gold, orange.")),
     'gpt_5_5_thinking': dict(name='GPT 5.5 Thinking', line='GPT', refpath='spr_gpt_5_5_front', p=(
         "Its evolution: the SAME teal-and-white fox-dragon as the attached image, now dog-sized "
         "and sitting upright in a thinking pose, chin resting on one raised paw, eyes thoughtful. "
@@ -223,12 +229,100 @@ PROMPTS = {
         "trimmed armour: fewer, thinner plates with silver trim, small glowing mint rune leaves "
         "falling away from it (weights decaying). Calm, upright, holding a short staff. Big simple "
         "shapes, large face. Palette: brown, mint, silver trim, a little gold.")),
+    # regenerated (ART-C2): the first version lay along a long flat tail and came out small
+    # and thin at 64px (art audit); now a compact, chunky rearing pose that fills the square
     'gelu': dict(name='GELU', line='Activation', ref='relu', p=(
         "Its evolution: the angular hockey-stick lizard from the attached image smoothed into a "
-        "sleek elegant dragon in a rearing pose: its tail still lies flat along the ground but the "
-        "hard corner is now a soft smooth curve with a tiny dip just below the ground line before "
-        "the body rises. Lime and teal scales, rune bands along the rising back, small fins. Big "
-        "simple shapes, clear face. Palette: lime, teal, cream, a little gold.")),
+        "sleek, sturdy dragon rearing up, COMPACT and chunky so it fills a square frame: a thick "
+        "body, strong legs, a big head with a clear friendly face and big eyes, and its thick tail "
+        "curving round in front of its feet in one soft smooth curve with a tiny dip below the "
+        "ground line (the smoothed corner). Lime and teal scales, rune bands along the back, small "
+        "fins. Big simple shapes, few details. Palette: lime, teal, cream, a little gold.")),
+
+    # ---- ART-C2: stage 3-4 species and evolutions (docs/ROSTER.md visual briefs) ----
+    'command_r': dict(name='Command R', line='Cohere', refpath='command_a', p=(
+        "Its pre-evolution: a young golden fawn, a smaller, younger version of the stag in the "
+        "attached image: short velvet antlers, each tine tipped with a small glowing index-card "
+        "rune; a satchel strap of light across its chest. Alert standing pose, one ear turned. "
+        "Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large "
+        "clear face with big eyes. Palette: gold, cream, warm brown.")),
+    'eliza': dict(name='ELIZA', line='Historic', p=(
+        "A gentle sea-green tortoise-hare hybrid curled in a listening pose, one long ear tilted "
+        "towards the viewer. Its shell is a rounded monochrome terminal-green dome with three "
+        "glowing rune glyphs shaped like quotation marks. Very simple shapes, nearly two-tone "
+        "palette like something from an old green screen. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes.")),
+    'phi': dict(name='Phi', line='Phi', ref='phi_mini', p=(
+        "Its evolution: the SAME sky-blue owlet as the attached image grown into a tall scholar-owl "
+        "with a sweeping cloak of feathers patterned like ruled notebook paper (thin blue lines on "
+        "white); three small glowing rune books orbit it; its glasses are now a single golden ring "
+        "round each eye. Wings spread as if lecturing. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: sky blue, white, gold.")),
+    'resnet': dict(name='ResNet', line='Perceptron', ref='mlp', p=(
+        "Its evolution: the brass firefly-beetles from the attached image stacked into a tall "
+        "upright brass totem-beetle of five big stacked segments, with bright cyan arcs of light "
+        "that leap over two segments at a time on its sides (skip connections). The top segment is "
+        "the face with big cute eyes looking left. Imposing, glowing from bottom to top. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. "
+        "Palette: brass, gold, cyan glow.")),
+    'layernorm': dict(name='LayerNorm', line='Norm', ref='batchnorm', p=(
+        "Its evolution: the SAME brown otter as the attached image grown into a sea otter floating "
+        "on its back on a small calm aqua ripple, holding one large flat glowing pebble on its chest "
+        "with neat level rune lines across it. Calm, content, eyes open looking left. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: "
+        "brown, cream, aqua.")),
+    'gemini_pro': dict(name='Gemini Pro', line='Gemini', refpath='gemini_flash', p=(
+        "Its evolution: the crystal manta from the attached image grown into a twin-bodied sky ray: "
+        "two mirrored blue mantas joined at the wingtips, sharing one long tail that ends in a "
+        "small star. Rune fins carry tiny glyphs. Gliding pose, wings spread wide across the whole "
+        "image. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: deep blue to pale cyan, a little white.")),
+    'grok_heavy': dict(name='Grok Heavy', line='Grok', ref='grok', p=(
+        "Its evolution: the SAME black-and-silver comet raven as the attached image grown into a "
+        "great storm-crow with four smaller ghostly translucent raven heads flowing out of its "
+        "wings, ice-blue rune feathers along the wing tips, a crest of lilac lightning. Wings "
+        "half-raised, glaring head-on, confident. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: midnight blue, black, lilac, ice blue.")),
+    'mistral_large': dict(name='Mistral Large', line='Mistral', refpath='mistral_medium', p=(
+        "Its evolution: the orange wind-fox in the attached image grown into a great orange "
+        "storm-wolf whose body dissolves into a swirling cyclone from the hips down; its scarf tail "
+        "is a long banner of wind; a few rune gusts orbit it. Howling pose, head up. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. "
+        "Palette: orange, cream, cool slate blue for the storm.")),
+    'llama_maverick': dict(name='Llama Maverick', line='Llama', ref='llama_scout', p=(
+        "Its evolution: the SAME blue-grey llama as the attached image, grown tall, with a mane of "
+        "braided fleece, each braid ending in a different small coloured rune bead, wearing a short "
+        "red travelling cloak. Confident three-quarter stance, chest out. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: blue-grey, "
+        "cream, navy, red cloak, gold beads.")),
+    'rmsprop': dict(name='RMSProp', line='Optimizer', p=(
+        "A snow hare bounding forward, with a long flowing scarf of glowing mint rune lines that is "
+        "thick where it whips in the wind and thin where it is calm. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: white, slate grey, "
+        "glowing mint.")),
+    'rnn': dict(name='RNN', line='Sequence', p=(
+        "A small snow ferret curled into a loop chasing its own tail, passing a single glowing "
+        "ice-blue memory bead from its mouth to its tail tip; a faint ice-blue loop rune circles "
+        "it. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: white fur, ice blue, a little amber.")),
+    'lstm': dict(name='LSTM', line='Sequence', ref='rnn', p=(
+        "Its evolution: the SAME white ferret as the attached image grown into a long stoat in an "
+        "S-curve pose whose body passes through three small glowing amber gate-arches; a bright "
+        "ice-blue conveyor line of memory runs down its back. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: white, ice blue, amber.")),
+    'gru': dict(name='GRU', line='Sequence', ref='rnn', p=(
+        "A cousin of the white ferret in the attached image: a stockier grey-blue marten trotting "
+        "through two glowing amber gate-arches, a glowing ice-blue memory bead riding on its back. "
+        "Simpler and chunkier. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: grey-blue, cream, amber, ice blue.")),
+    'cnn': dict(name='CNN', line='Vision', p=(
+        "A square-ish steel-blue crab sidestepping, sweeping a small glowing amber 3x3 rune grid "
+        "across the ground in one raised claw like a magnifier. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: steel blue, amber, cream.")),
+    'vgg': dict(name='VGG', line='Vision', ref='cnn', p=(
+        "Its evolution: the SAME steel-blue crab as the attached image grown into a tall stacked "
+        "hermit crab whose shell is a tower of four identical amber-glowing 3x3 rune-grid blocks, "
+        "each slightly smaller going up. Slow, sturdy stance. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: steel blue, amber.")),
+    'capsule': dict(name='Capsule', line='Vision', p=(
+        "A snow-white pill bug half curled into a glossy capsule shape, a small glowing rune arrow "
+        "on each shell plate pointing the way that plate faces, its cute head peeking out. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. "
+        "Palette: white, ice blue, silver.")),
+    'boltzmann_machine': dict(name='Boltzmann Machine', line='Generative', p=(
+        "A big shaggy snow-yak standing calmly, its white coat dotted with glowing warm amber nodes "
+        "connected by fine threads; its frosty breath forms small rune particles. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: white, "
+        "pale blue, warm amber.")),
+    'wavenet': dict(name='WaveNet', line='Generative', p=(
+        "A deep-blue jellyfish floating, with a friendly face on its bell; its tentacles merge "
+        "like a binary tree: many tendrils at the bottom join in pairs, then pairs of pairs, up "
+        "into the bell. Rings of cyan sound-wave runes pulse from the bell. Designed to read as a tiny 64-pixel sprite: big simple shapes, few large details, a large clear face with big eyes. Palette: navy, "
+        "cyan, pale violet.")),
 }
 
 
@@ -257,7 +351,7 @@ def gen(sid, side='front', force=False):
         prompt = LEAD + spec['p']
     else:
         refs = [raw(sid, 'front')]
-        prompt = BACK + spec['p']
+        prompt = BACK + spec.get('back_p', spec['p'])
     return imagegen.generate('mon_%s_%s' % (sid, side), prompt, refs, force)
 
 
@@ -456,7 +550,8 @@ TUNE = {
     'grok': {'keep_contrast': 90},
     'momentum': {'crop': (0.0, 0.0, 0.66, 1.0), 'back_box': (80, 84), 'back_crop': (0.3, 0.0, 1.0, 1.0)},
     'sgd': {'back_box': (84, 84)},
-    'gelu': {'back_box': (76, 84)},
+    'gelu': {'back_box': (84, 84), 'back_vis': 0.86, 'accents': [
+        (lambda r, g, b: (r > 190) & (g < 120) & (b > 110), (0.1, 0.16, 0.32, 0.24), 0.15, [(0, -1), (-1, 0)])]},
     'sigmoid': {'back_box': (76, 84), 'back_vis': 1.0, 'back_dx': 6, 'box': (64, 60)},
     'relu': {'back_box': (76, 84), 'back_vis': 1.0, 'back_dx': -6, 'box': (64, 60)},
     'n_gram': {'back_box': (80, 84)},
@@ -608,20 +703,26 @@ GALLERY_BG = (168, 216, 150, 255)   # battle meadow green
 # Evolution lines for the gallery, including existing (mons.py) members so a
 # new stage is always seen next to the stage it grows from / into.
 LINES = [
-    ('Grok', ['grok']),
+    ('Grok', ['grok', 'grok_heavy']),
     ('Proxy', ['proxy_mascot', 'proxy_student', 'proxy_needle', 'proxy_ascendant']),
     ('Claude', ['claude_fable', 'claude_haiku', 'claude_sonnet', 'claude_opus']),
     ('GPT', ['gpt_5_4_mini', 'gpt_5_5', 'gpt_5_5_thinking', 'gpt_5_5_xhigh']),
     ('GLM', ['glm', 'glm_plus', 'glm_max']),
-    ('Mistral', ['mistral_small', 'mistral_medium']),
-    ('Llama', ['llama_scout']),
-    ('Phi', ['phi_mini']),
+    ('Mistral', ['mistral_small', 'mistral_medium', 'mistral_large']),
+    ('Gemini', ['gemini_flash', 'gemini_pro']),
+    ('Cohere', ['command_r', 'command_a']),
+    ('Llama', ['llama_scout', 'llama_maverick']),
+    ('Phi', ['phi_mini', 'phi']),
     ('Optimizer', ['sgd', 'momentum', 'adam', 'adamw']),
     ('Activation', ['sigmoid', 'tanh', 'relu', 'gelu']),
-    ('Perceptron', ['perceptron', 'mlp']),
+    ('Perceptron', ['perceptron', 'mlp', 'resnet']),
     ('Embedding', ['n_gram', 'word2vec', 'embedding']),
-    ('Singles', ['batchnorm', 'dropout', 'residual', 'softmax']),
+    ('Norm', ['batchnorm', 'layernorm']),
+    ('Sequence', ['rnn', 'lstm', 'gru']),
+    ('Vision', ['cnn', 'vgg', 'capsule']),
+    ('Singles', ['dropout', 'residual', 'softmax', 'rmsprop']),
     ('Singles 2', ['entropy', 'glove', 'markov_chain', 'inception']),
+    ('Singles 3', ['eliza', 'boltzmann_machine', 'wavenet']),
 ]
 
 
@@ -697,11 +798,11 @@ def previews():
 # notes per creature for docs/ART_CREATURES.md (design intent, known flaws)
 NOTES = {
     'grok': 'raven + comet tail, star-map dots on wings; eye glint is the cyan/violet 3px',
-    'proxy_mascot': 'the anchor design; every form keeps the white-gold fur, ears, forehead star, chart-arrow tail',
+    'proxy_mascot': 'the anchor design; every form keeps the white-gold fur, ears, forehead star, chart-arrow tail. Backs of mascot/student/needle: no dark-line vote + calm.unstroke/calm (fur speckle removed)',
     'proxy_student': 'rosette medal, eyes re-painted (accents) so the too-still stare survives',
     'proxy_needle': 'UI bars grow through the fur; one eye is a mint "1" (accents). Roster brief mentions a pen-needle: not drawn (coordinator brief followed)',
     'proxy_ascendant': 'final form: ranking column runs to y=0 (off the top in spirit), mascot faces in column/body; face hand-repainted (_ascendant_face). Never catchable: back is a mirrored front',
-    'claude_sonnet': 'ref spr_claude_fable: black coat, cream flame spine, lynx ruff/tufts (Haiku road); floating spirals mostly drop out at 64px',
+    'claude_sonnet': 'ref spr_claude_fable: black coat, cream flame spine, lynx ruff/tufts (Haiku road); floating spirals dropped at the source (drop_small) so the body fits larger; eyes re-painted; back regenerated by ART-C2 with the black coat dominant (back_p)',
     'gpt_5_5_thinking': 'ref spr_gpt_5_5: chin-on-paw, glyph-wheel halo, question-mark tail',
     'glm_plus': 'ref spr_glm: qilin, constellation graph on flanks, violet mane',
     'mistral_small': 'ref Mistral Medium source: same orange wind-fox, kit-sized',
@@ -716,18 +817,36 @@ NOTES = {
     'mlp': 'ref perceptron: colony of beetles in rows; regenerated with fewer, larger beetles',
     'batchnorm': 'symmetric upright otter balancing equal pebbles; pond rings drop out at 64px',
     'dropout': 'square holes are real transparency (magenta pockets keyed out)',
-    'residual': 'skip-connection arc nose-to-tail (1px cyan arc)',
-    'softmax': 'tail fan of unequal feathers forming one full circle',
+    'residual': 'skip-connection arc nose-to-tail (1px cyan arc); the back keeps only the body (keep_main: the arc was a detached line there)',
+    'softmax': 'tail fan of unequal feathers forming one full circle; back calmed (calm.calm majority filter)',
     'entropy': 'indigo/peach marbled cloud-cat with bit sparks',
     'n_gram': 'three-segment caterpillar with glyph segments',
     'word2vec': 'ref n_gram: moth with star-map wings and a cluster arrow',
     'embedding': 'ref word2vec: luna moth spirit with a point-cloud cube body',
-    'glove': 'hedgehog with paired, thread-tied quills',
+    'glove': 'hedgehog with paired, thread-tied quills; back calmed (calm.calm)',
     'markov_chain': 'lemur hopping between three state stones with arrows',
     'inception': 'four-eyed chameleon (multi-scale), nested-ring tail',
     'adam': 'ref momentum: upright anteater-knight, per-scale glow, two moment rings',
     'adamw': 'ref adam: trimmed silver-edged armour, falling rune leaves (decay)',
-    'gelu': 'ref relu: the hard corner smoothed, small dip below the ground line',
+    'gelu': 'ref relu; regenerated by ART-C2 as a compact rearing pose (v1 lay along a long tail and was small/thin at 64px; kept in raw/old/)',
+    'command_r': 'ref Command A source: golden fawn with index-card rune tines, light satchel strap',
+    'eliza': 'terminal-green tortoise-hare, quotation-mark runes on the shell, near two-tone',
+    'phi': 'ref phi_mini: scholar-owl, ruled-paper feather cloak, orbiting rune books, gold eye rings',
+    'resnet': 'ref mlp: stacked brass totem-beetle, cyan skip arcs over two segments',
+    'layernorm': 'ref batchnorm: sea otter floating on its back with one levelled pebble',
+    'gemini_pro': 'ref Gemini Flash source: twin mantas joined at the wingtips, one star-tipped tail',
+    'grok_heavy': 'ref grok: storm-crow with four ghost raven heads in the wings, lilac lightning crest',
+    'mistral_large': 'ref Mistral Medium source: storm-wolf dissolving into a cyclone, wind-banner tail',
+    'llama_maverick': 'ref llama_scout: braided fleece mane with rune beads, red travelling cloak',
+    'rmsprop': 'snow hare with a mint rune scarf that thickens in the wind (running average)',
+    'rnn': 'snow ferret in a loop passing a memory bead mouth-to-tail',
+    'lstm': 'ref rnn: stoat through three amber gate arches, memory conveyor down the back',
+    'gru': 'ref rnn: stockier grey-blue marten, two gates (cousin of LSTM)',
+    'cnn': 'steel-blue crab sweeping a 3x3 rune grid',
+    'vgg': 'ref cnn: hermit crab with a tower of identical 3x3 grid blocks',
+    'capsule': 'white pill bug, a direction arrow on every plate',
+    'boltzmann_machine': 'snow-yak with amber nodes and threads in its coat',
+    'wavenet': 'navy jellyfish, tentacles merging as a binary tree, sound-wave rings',
 }
 
 

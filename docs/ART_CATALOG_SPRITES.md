@@ -86,6 +86,27 @@ without extension (matches `src/game/assets.ts`).
   neighbour kid / rival: short choppy auburn hair poking out of a white
   sports visor with a teal brim, teal zip-up jacket with a white zipper,
   dark leggings, white sneakers.
+- **ART-C2 additions** (same construction, `people.py`, appended after the audited cast,
+  which is unchanged): `yilong` (rival: messy dark hair swept to one side, open charcoal
+  bomber over a black tee with a small white star patch, grey jeans, white sneakers; teen
+  height like Dana), `leader_rumelhart` (grey-brown hair, open mustard cardigan over a white
+  shirt, red arrow pin, brown slacks), `leader_shannon` (voluminous grey waves, white shirt,
+  dark green waistcoat with brass buttons, red bow tie), `overfit_m` / `overfit_f` (Team
+  Overfit: white track jacket with gold collar, zip, shoulder stripes and a gold bar-chart
+  emblem; he has a gold headband and white track pants with a gold stripe, she has an auburn
+  ponytail and white shorts over dark leggings), `overfit_admin` (swept blond, long white
+  coat with gold epaulettes over black), `norm` (Director Norm: salt-and-pepper hair, light
+  blue shirt with rolled sleeves, navy tie, gold lanyard with a white ID badge), and generic
+  NPC bodies for the cameo / egg NPCs: `barista` (ponytail, white tee, brown apron), `vc`
+  (blue shirt, grey fleece vest, khakis), `founder` (blond messy hair, black hoodie, jeans),
+  `busker` (red flannel, acoustic guitar slung across the body), `commuter` (cream trench
+  coat, bag strap), `guard` (navy uniform and cap, gold badge, belt).
+- `proxy` (key `chars/proxy`, 48×96, standard layout; `tools/art/sprites/mascot.py`) —
+  Proxy's mascot form for towns: a small round white-and-gold puffball (gold-tipped ears,
+  gold forehead star, big blue eyes, pink cheeks, gold chart-arrow tail), matching
+  `mons/proxy_mascot_front`. It HOPS instead of walking: col 0 = sitting (1px wider and
+  lower), cols 1 and 2 = the same mid-hop frame 3px up — so stand→A→stand→B is a 2-frame
+  hop. About 12px wide and 13px tall; bottom outline on y=21 like the people.
 - `player_run` (key `chars/player_run`, 48×96, same layout/rows/cols as
   `player`): running variant — head and shoulders lean 1px forward on side
   views, stride 1.5× the walk (3px, not a split: fixed in the audit), feet lifted 2px on front/back views,
@@ -98,17 +119,27 @@ without extension (matches `src/game/assets.ts`).
 | --- | --- | --- |
 | `<id>_front.png` | 64×64 | enemy view, faces left, bottom-anchored (feet ≈ y=61), centred |
 | `<id>_back.png` | 64×64 | player's creature from behind, enlarged ~1.3×; bottom ~18% cut off by the frame edge (as GBA) |
-| `<id>_icon.png` | 32×16 | 2 frames of 16×16 (frame 1 = 1px bob). NB plan said 32×32; the lead brief and `assets.ts` (`auto2`) use 32×16 |
+| `<id>_icon.png` | 32×16 | 2 frames of 16×16 (frame 1 = 1px bob). NB plan said 32×32; the lead brief and `assets.ts` (`auto2`) use 32×16. Since ART-C2 every icon is a **head-and-shoulders crop** of the front painting (`tools/art/sprites/icons.py`, run by `build.py` after the creature modules): a square window over the top of the body centred on the head, reduced straight to 16×15 with `mons2.reduce_mode` and re-inked, so creatures read at 16px instead of becoming balls or 1px lines. Per-creature windows: `icons.WINDOW`; round creatures use the whole body (`icons.WHOLE`) |
 
 Ids: `claude_fable`, `gpt_5_5`, `glm`, `hallucihound`, `gemma_4`,
 `gpt_5_4_mini`, `mistral_medium`, `gemini_flash`, `claude_haiku`,
 `claude_opus`, `command_a`, `deepseek_flash`, `deepseek_pro`, `glm_max`,
 `gpt_5_5_xhigh`, `kimi`.
 
+- ART-C2 creature fixes (see `docs/ART_AUDIT.md` item 4): `calm.py` filters for backs
+  (`unstroke` + `calm` on the Proxy backs' white fur, `calm` on glove/softmax, `keep_main`
+  drops residual's detached arc on the back), claude_sonnet's back regenerated with the black
+  coat dominant, gelu regenerated in a compact pose. All are `TUNE` entries in `mons2.py`.
 - `tools/art/sprites/polish.py` runs after `mons.py`/`mons2.py` in `build.py`
   and fills 1–3px transparent pinholes enclosed by a body (they showed the
   battle background through as bright specks); `dropout` is exempt (its holes
   are the design).
+- Colour count: set 2 (`mons2.py`) is ≤15 colours + the dark outline. Set 1 (`mons.py`,
+  the 16 sprites above) is **about 30 colours** (median cut to 15, then the re-inked outline
+  is tinted per pixel and eye accents are repainted). ART-C2 tested a straight cut to 16
+  colours side by side: the starters lost their eye colours (Fable's orange eyes went brown,
+  GLM's green eyes went dull), so set 1 keeps its colours and **the stated limit for set 1
+  is ≤32**. Old statement for reference:
 - ≤15 colours + dark outline each; checkerboard artefacts flood-removed; thin
   aura wisps removed by morphological opening (mistral, haiku, kimi, hallucihound); specks
   and orphan pixels dropped; eye colours re-painted after quantisation
@@ -164,6 +195,38 @@ steel equator ring with a teal prompt-gem. Original — not a red/white ball.
 | `player_front.png` | 64×96 | **new**: intro-stage portrait of the player (same person as `trainer_back` and `chars/player`), facing the viewer and waving; same scale as `prof_front` |
 | `trainer_m_front.png`, `trainer_f_front.png` | 64×64 | opponent trainer fronts, full body |
 | `rival_front.png` | 64×64 | rival Dana, arms crossed, smirk; same visor/jacket as `chars/rival` |
+
+**ART-C2 portraits** (`tools/art/sprites/portraits.py`, all 64×64, full body, bottom-anchored,
+same placement as `trainer_m_front`; frozen in `tools/art/sprites/pinned/` like the owner-approved
+set, so rebuilds never change them):
+
+| file | who |
+| --- | --- |
+| `yilong_front.png` | rival Yilong: smug, likeable teen founder; messy dark hair, open charcoal bomber with a small star-comet patch over a black tee, one hand in a pocket, two-finger wave. An original character, not a likeness |
+| `rumelhart_front.png` (+ copy `leader_rumelhart_front.png`) | Gym 1 leader: patient ex-teacher, mustard cardigan, red downward-arrow pin, chalk in his raised hand |
+| `shannon_front.png` (+ copy `leader_shannon_front.png`) | Gym 2 leader: playful tinkerer, green waistcoat, red bow tie, juggling red/blue/yellow balls |
+| `overfit_grunt_m_front.png`, `overfit_grunt_f_front.png` | Team Overfit field agents: white-and-gold track jackets, gold bar-chart emblem; proud, friendly (thumbs-up / clipboard) |
+| `overfit_admin_front.png` | Admin Goodhart: long white-and-gold coat, gold epaulettes, tablet with a rising line chart |
+| `director_norm_front.png` | Director Norm: sincere middle-aged executive, rolled sleeves, navy tie, gold lanyard, welcoming open hand |
+
+The leader portraits are homages: original designs that suggest the role, never the real
+person's face. The engine's trainer data uses `rumelhart_front` / `shannon_front`; the
+`leader_*` copies are the same image under the names in the ART-C2 brief.
+How they are made: generated with 2–3 pinned portraits as references (6× nearest upscales in
+`tools/art/gen/raw/refs/`), reduced with `mons2.reduce_mode` (dominant colour per block, ≤16
+colours, solid `#28222e` outline), then the face is hand-placed (`portraits.paint_face`: 2×2
+eyes, dark top row and a blue-grey lower pixel like the pinned set, brows, mouth) because the
+generator's small eyes do not survive 64px. Review: `preview/c2_portraits_battle_4x.png`,
+`preview/c2_portraits_lineup_4x.png`.
+
+**Battle backgrounds for stage 2+** (`tools/art/sprites/battle_bgs.py`): `bg_gym` (Gradient Gym:
+chalkboards with downhill arrows, honey wood floor), `bg_station` (Caltrain platform, double-decker
+train, concrete), `bg_campus` (Benchmark Corp lobby, glass wall, gold bar-chart screen, polished
+floor), `bg_library` (bookshelves, ladder, lamps, dark wood floor, red rug). Each 240×112, drawn at
+(0,0) like `bg_grass`. Each has its own pads, 128×32, drawn at the grass pads' positions:
+`platform_enemy_<id>.png` / `platform_player_<id>.png` (`gym` with a white chalk ring, `station`
+with a yellow safety ring, `campus` with a gold inlay ring, `library` a round red rug). Review:
+`preview/c2_backgrounds_4x.png`.
 
 `player_front`, `prof_front`, `trainer_m_front`, `trainer_f_front`,
 `rival_front` and `trainer_back` are naturalistic people: normal teen/adult
