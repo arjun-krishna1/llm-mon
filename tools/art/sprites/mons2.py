@@ -543,7 +543,10 @@ _CALM = [lambda im: calm(im, 4, 3)]
 TUNE = {
     'proxy_mascot': {'back_line_w': 0.0, 'back_post': _FUR},
     'glove': {'back_post': _CALM},
-    'grok_heavy': {'front_post': [lambda im: calm(im, 5, 2)], 'back_post': [lambda im: calm(im, 5, 2)]},
+    'grok_heavy': {'front_post': [lambda im: calm(im, 5, 2)], 'back_post': [lambda im: calm(im, 5, 2)],
+                   'accents': [(lambda r, g, b: (b > 200) & (r < 120) & (g > 120), (0.4, 0.12, 0.56, 0.26), 0.2,
+                                [(-1, 0), (0, -1), (1, 0)])]},
+    'resnet': {'accents': [(lambda r, g, b: (r < 70) & (g < 60) & (b < 70), (0.1, 0.03, 0.55, 0.16), 0.2)]},
     'softmax': {'back_post': _CALM},
     'residual': {'back_box': (84, 84), 'back_vis': 0.9, 'back_post': [keep_main]},
     'claude_sonnet': {'drop_small': 0.04, 'accents': [
