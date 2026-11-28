@@ -3,7 +3,7 @@
 
 import Phaser from 'phaser'
 import { FONT, TEXT_FAST_CHARS_PER_FRAME, W } from '../config'
-import { textFramesPerChar } from '../options'
+import { autoTextMs, options, textFramesPerChar } from '../options'
 import { controls } from '../controls'
 import { audio } from '../audio'
 import { params } from '../params'
@@ -63,6 +63,7 @@ export class DialogBox implements Widget {
   private opts: SayOptions = {}
   private resolve?: () => void
   private autoTimer = 0
+  private autoTextT = 0
   private closePending = false
   /** Hold-to-speed only counts once A/B was released after the message opened. */
   private holdArmed = false
@@ -180,6 +181,7 @@ export class DialogBox implements Widget {
       return
     }
     this.phase = 'waiting'
+    this.autoTextT = 0
     this.arrow.setVisible(!(this.opts.autoMs && !moreLines && !morePages))
   }
 
@@ -222,6 +224,12 @@ export class DialogBox implements Widget {
     if (this.phase === 'waiting' && this.opts.autoMs) {
       this.autoTimer += 1000 / 60
       if (this.autoTimer >= this.opts.autoMs && this.isLastPageEnd()) this.advance()
+    } else if (this.phase === 'waiting' && options.autoText && !params.fast) {
+      // Options → AUTO TEXT: every page advances after a reading pause (A still advances at once)
+      this.autoTextT += 1000 / 60
+      const L = this.lines()
+      const chars = (L[this.top] ?? '').length + (L[this.top + 1] ?? '').length
+      if (this.autoTextT >= autoTextMs(chars)) this.advance()
     }
   }
 

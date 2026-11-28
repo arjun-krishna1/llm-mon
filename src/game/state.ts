@@ -8,6 +8,17 @@ import { migrateSave } from './battle/core/migrate'
 
 export type FlagValue = boolean | number | string
 
+type Listener = (key: string, value: FlagValue | undefined) => void
+const flagListeners: Listener[] = []
+/** Called after every setFlag (the overworld uses it to refresh EVAL-light NPCs, the HUD, ...). Returns an unsubscribe. */
+export function onFlagChange(fn: Listener): () => void {
+  flagListeners.push(fn)
+  return () => {
+    const i = flagListeners.indexOf(fn)
+    if (i >= 0) flagListeners.splice(i, 1)
+  }
+}
+
 class GameState {
   playerName = DEFAULT_PLAYER_NAME
   map = ''
@@ -26,6 +37,16 @@ class GameState {
   playTimeMs = 0
   /** Spawn name to use when entering `map` (cleared once applied). */
   pendingSpawn: string | null = null
+  /** Per-map puzzle-kit state (saved). `mapState[mapId][entityId]`. */
+  mapState: Record<string, Record<string, unknown>> = {}
+
+  /** The EVAL light (safety arc): global on/off, saved as flag `eval_light`. */
+  get evalLight(): boolean {
+    return this.flag('eval_light')
+  }
+  set evalLight(on: boolean) {
+    this.setFlag('eval_light', on)
+  }
 
   reset(): void {
     this.playerName = DEFAULT_PLAYER_NAME
@@ -43,6 +64,7 @@ class GameState {
     this.healPoint = { map: '', spawn: '' }
     this.playTimeMs = 0
     this.pendingSpawn = null
+    this.mapState = {}
   }
 
   // ------------------------------------------------------------ flags
@@ -53,8 +75,10 @@ class GameState {
     return Boolean(this.flags[k])
   }
   setFlag(k: string, v: FlagValue = true): void {
+    const before = this.flags[k]
     if (v === false) delete this.flags[k]
     else this.flags[k] = v
+    if (before !== this.flags[k]) for (const l of [...flagListeners]) l(k, this.flags[k])
   }
 
   // ------------------------------------------------------------ bag / money
@@ -122,6 +146,7 @@ class GameState {
       healPoint: { ...this.healPoint },
       playTimeMs: Math.floor(this.playTimeMs),
       box: structuredClone(this.box),
+      mapState: structuredClone(this.mapState),
     }
   }
 
@@ -141,6 +166,7 @@ class GameState {
     this.caught = d.caught ?? []
     this.healPoint = d.healPoint ?? { map: '', spawn: '' }
     this.playTimeMs = d.playTimeMs ?? 0
+    this.mapState = d.mapState && typeof d.mapState === 'object' ? d.mapState : {}
   }
 
   save(): boolean {

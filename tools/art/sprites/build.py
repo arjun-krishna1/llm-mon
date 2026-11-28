@@ -15,6 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import chars  # noqa: E402
 import mons  # noqa: E402
+import mons2  # noqa: E402
 import battle  # noqa: E402
 import fx  # noqa: E402
 import ui  # noqa: E402
@@ -28,6 +29,8 @@ def main():
     print('chars:', len(built))
     m = mons.build()
     print('mons:', len(m))
+    m2 = mons2.build()
+    print('mons2:', len(m2))
     battle.build()
     print('battle: ok')
     fx.build()
@@ -37,6 +40,7 @@ def main():
     print('ui: ok')
     if '--no-preview' not in sys.argv:
         out = preview.build(list(built), list(m))
+        out.update(mons2.previews())
         for k, v in out.items():
             print('preview', k, v)
     print('done in %.1fs' % (time.time() - t))

@@ -3,7 +3,7 @@ import { LAB_BEATS, LAB_TYPE_IDS, TYPES, TYPE_IDS, effectiveness, effectivenessT
 
 describe('type chart', () => {
   it('has the 8 labs plus classic and glitch, with names and 3-letter codes', () => {
-    expect([...TYPE_IDS]).toEqual(['anthropic', 'openai', 'google', 'zhipu', 'deepseek', 'mistral', 'moonshot', 'cohere', 'classic', 'glitch'])
+    expect([...TYPE_IDS]).toEqual(['anthropic', 'openai', 'google', 'zhipu', 'deepseek', 'mistral', 'moonshot', 'cohere', 'xai', 'meta', 'microsoft', 'alibaba', 'classic', 'glitch'])
     const codes = new Set<string>()
     for (const t of TYPE_IDS) {
       expect(t).toMatch(/^[a-z]+$/)
@@ -39,7 +39,7 @@ describe('type chart', () => {
       expect(resists, lab).toHaveLength(2)
       expect(beats.filter((b) => beatenBy.includes(b))).toEqual([]) // no mutual arrows
     }
-    expect(LAB_BEATS).toHaveLength(16)
+    expect(LAB_BEATS).toHaveLength(24)
   })
 
   it('classic is neutral both ways against labs', () => {

@@ -150,7 +150,7 @@ export class UIScene extends Phaser.Scene {
       for (;;) {
         // entries come from src/game/ui/startMenu.ts (extension point)
         const entries = visibleStartMenuEntries()
-        const opts = entries.map((e) => ({ label: e.label(), id: e.id }))
+        const opts = entries.map((e) => ({ label: e.label(), id: e.id, disabled: e.disabled?.() ?? false }))
         const m = new ListMenu(this, this.stack, opts, {
           x: W - 2, y: 2, anchor: 'tr', minW: 72, initial: Math.min(this.startCursor, opts.length - 1),
           cancelIndex: opts.length - 1, persist: true, startCancels: true,

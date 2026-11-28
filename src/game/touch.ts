@@ -1,4 +1,4 @@
-// On-screen touch controls (D-pad, A, B, START) as DOM elements OUTSIDE the canvas,
+// On-screen touch controls (D-pad, A, B, START, SELECT) as DOM elements OUTSIDE the canvas,
 // feeding the same input layer as the keyboard (controls.pressCode('V:<btn>')).
 // Shown on touch devices (coarse pointer), or with ?touch=1; ?touch=0 forces them off.
 
@@ -38,6 +38,7 @@ export class TouchControls {
   private a: HTMLDivElement
   private b: HTMLDivElement
   private start: HTMLDivElement
+  private select: HTMLDivElement
   private dpadDir = new Map<number, Button | null>()
 
   constructor() {
@@ -52,10 +53,12 @@ export class TouchControls {
     this.a = this.el('tc btn a', 'A')
     this.b = this.el('tc btn b', 'B')
     this.start = this.el('tc pill', 'START')
+    this.select = this.el('tc pill', 'SELECT')
     document.body.appendChild(this.root)
     this.bindButton(this.a, 'A')
     this.bindButton(this.b, 'B')
     this.bindButton(this.start, 'START')
+    this.bindButton(this.select, 'SELECT')
     this.bindDpad()
     this.root.addEventListener('contextmenu', (e) => e.preventDefault())
   }
@@ -147,6 +150,8 @@ export class TouchControls {
     const pw = Math.max(84, bs * 1.2)
     const startY = mode === 'below' ? Math.min(right.y + right.h - 30, cy + bs * 1.3) : cy + bs * 1.5
     const startX = mode === 'below' ? (left.x + left.w + right.x) / 2 : cx
-    place(this.start, startX, startY, pw, 44)
+    // START and SELECT side by side (SELECT = the registered quick key)
+    place(this.select, startX - pw * 0.56, startY, pw, 44)
+    place(this.start, startX + pw * 0.56, startY, pw, 44)
   }
 }

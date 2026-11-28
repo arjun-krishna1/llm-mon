@@ -10,12 +10,16 @@
 // Starter triangle: anthropic > zhipu > openai > anthropic
 //   (Claude Fable > GLM > GPT 5.5 > Claude Fable)
 //
-// Adding a lab later (meta, xai, alibaba, microsoft...) without rebalancing: pick two
+// Adding a lab later without rebalancing: pick two
 // arrows A > B and C > D from LAB_BEATS (four different labs, none of them already
 // related to the newcomer) and replace them with A > X > B and C > X > D. X then
 // beats two and loses to two, and every existing lab keeps its own two-and-two.
+// xAI, Meta, Microsoft and Alibaba were added this way (stage 1), splitting
+// google>deepseek, moonshot>cohere (xAI); google>moonshot, deepseek>cohere (Meta);
+// zhipu>moonshot, cohere>mistral (Microsoft); deepseek>openai, cohere>google
+// (Alibaba). Arrows the starters, Route 101 and the rival rely on were left alone.
 
-export const LAB_TYPE_IDS = ['anthropic', 'openai', 'google', 'zhipu', 'deepseek', 'mistral', 'moonshot', 'cohere'] as const
+export const LAB_TYPE_IDS = ['anthropic', 'openai', 'google', 'zhipu', 'deepseek', 'mistral', 'moonshot', 'cohere', 'xai', 'meta', 'microsoft', 'alibaba'] as const
 export const TYPE_IDS = [...LAB_TYPE_IDS, 'classic', 'glitch'] as const
 export type LabTypeId = (typeof LAB_TYPE_IDS)[number]
 export type TypeId = (typeof TYPE_IDS)[number]
@@ -40,8 +44,12 @@ export const TYPES: Record<TypeId, TypeInfo> = {
   mistral: { id: 'mistral', name: 'Mistral', short: 'MST', color: '#e8b830', blurb: 'Mistral models: quick and breezy, straight from Paris.' },
   moonshot: { id: 'moonshot', name: 'Moonshot', short: 'MSH', color: '#58b257', blurb: 'Kimi models: long-horizon agents aiming high.' },
   cohere: { id: 'cohere', name: 'Cohere', short: 'COH', color: '#946240', blurb: 'Command models: tidy retrieval for busy offices.' },
+  xai: { id: 'xai', name: 'xAI', short: 'XAI', color: '#363a4c', blurb: 'Grok models: quick, cheeky, a little chaotic.' },
+  meta: { id: 'meta', name: 'Meta', short: 'MTA', color: '#6ca8d4', blurb: 'Llama models: open weights travelling in a big herd.' },
+  microsoft: { id: 'microsoft', name: 'Microsoft', short: 'MSF', color: '#c04444', blurb: 'Phi models: small, studious, raised on textbooks.' },
+  alibaba: { id: 'alibaba', name: 'Alibaba', short: 'ALI', color: '#e09c74', blurb: 'Qwen models: polyglots that code in most languages.' },
   classic: { id: 'classic', name: 'Classic', short: 'CLS', color: '#84808e', blurb: 'Basic moves and the old building blocks of the field.' },
-  glitch: { id: 'glitch', name: 'Glitch', short: 'GLT', color: '#c83c44', blurb: 'Hallucinations, corrupted caches and broken prompts.' },
+  glitch: { id: 'glitch', name: 'Glitch', short: 'GLT', color: '#e06c98', blurb: 'Hallucinations, corrupted caches and broken prompts.' },
 }
 
 export interface Matchup {
@@ -57,18 +65,26 @@ export const LAB_BEATS: Matchup[] = [
   { attacker: 'anthropic', defender: 'google', reason: 'Claude asks Gemini for a source, and Gemini stops to search.' },
   { attacker: 'openai', defender: 'anthropic', reason: "GPT fact-checks Claude's fable with a tool call mid-story." },
   { attacker: 'openai', defender: 'mistral', reason: 'Function calls cut straight through the wind.' },
-  { attacker: 'google', defender: 'deepseek', reason: 'Search goes so deep it finds the bottom of any sea.' },
-  { attacker: 'google', defender: 'moonshot', reason: 'A big telescope spots every moonshot before launch.' },
+  { attacker: 'google', defender: 'xai', reason: "Grok's hot take meets a calm search result." },
+  { attacker: 'google', defender: 'meta', reason: 'A big search finds every llama on the trail.' },
   { attacker: 'zhipu', defender: 'openai', reason: 'GLM maps the call graph before GPT finishes calling.' },
-  { attacker: 'zhipu', defender: 'moonshot', reason: "GLM graphs the moon's orbit and waits where Kimi lands." },
-  { attacker: 'deepseek', defender: 'openai', reason: 'It thinks out loud for so long GPT runs out of effort.' },
-  { attacker: 'deepseek', defender: 'cohere', reason: 'A deep dive surfaces the answer before the rerank.' },
+  { attacker: 'zhipu', defender: 'microsoft', reason: 'GLM graphs the whole textbook before Phi turns a page.' },
+  { attacker: 'deepseek', defender: 'alibaba', reason: 'Open rivals trade tricks; today the deep thinker wins.' },
+  { attacker: 'deepseek', defender: 'meta', reason: 'Deep water slows down even the fluffiest llama.' },
   { attacker: 'mistral', defender: 'zhipu', reason: 'A cool mistral breeze scatters the carefully drawn graph.' },
   { attacker: 'mistral', defender: 'deepseek', reason: 'Wind from Paris whips the deep water into waves.' },
   { attacker: 'moonshot', defender: 'anthropic', reason: 'Claude stops mid-sentence to admire the moon.' },
-  { attacker: 'moonshot', defender: 'cohere', reason: 'Kimi reads every document before Command can sort them.' },
-  { attacker: 'cohere', defender: 'mistral', reason: 'Clear commands: even the wind follows instructions.' },
-  { attacker: 'cohere', defender: 'google', reason: "Rerank shuffles Google's results and it gets flustered." },
+  { attacker: 'moonshot', defender: 'xai', reason: 'A night raven flies by moonlight, not against it.' },
+  { attacker: 'cohere', defender: 'microsoft', reason: 'Command cites the page Phi was about to quote.' },
+  { attacker: 'cohere', defender: 'alibaba', reason: "Rerank files Qwen's hundred languages into neat folders." },
+  { attacker: 'xai', defender: 'deepseek', reason: 'The raven dives fast enough to catch fish in the deep.' },
+  { attacker: 'xai', defender: 'cohere', reason: 'Grok answers before Command has finished filing.' },
+  { attacker: 'meta', defender: 'moonshot', reason: "The herd's long trail reaches the moon first." },
+  { attacker: 'meta', defender: 'cohere', reason: 'So many open weights that Command cannot file them all.' },
+  { attacker: 'microsoft', defender: 'moonshot', reason: 'Phi read the astronomy textbook and knows where Kimi lands.' },
+  { attacker: 'microsoft', defender: 'mistral', reason: "Phi studied the wind charts: Mistral's gusts are on the exam." },
+  { attacker: 'alibaba', defender: 'openai', reason: "Qwen answers GPT's question in a hundred languages." },
+  { attacker: 'alibaba', defender: 'google', reason: 'Qwen out-translates the search box.' },
 ]
 
 /** Every lab can fact-check a hallucination; glitch corrupts the plain classics. */

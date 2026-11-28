@@ -82,4 +82,6 @@ export interface SaveData {
   playTimeMs: number
   /** ENGINE: overflow storage when the party is full (no PC UI in the slice). */
   box?: MonInstance[]
+  /** ENGINE: per-map puzzle-kit state (block positions, switch states, graph inputs, ...). Optional; absent = fresh. */
+  mapState?: Record<string, Record<string, unknown>>
 }

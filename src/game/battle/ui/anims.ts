@@ -35,6 +35,10 @@ export const TYPE_PARTICLE: Record<string, string> = {
   mistral: 'bfx/slash',
   moonshot: 'bfx/orb',
   cohere: 'bfx/note',
+  xai: 'bfx/slash',
+  meta: 'bfx/dot',
+  microsoft: 'bfx/note',
+  alibaba: 'bfx/spark',
   classic: 'bfx/orb',
   glitch: 'bfx/pixel',
 }

@@ -81,7 +81,11 @@ export const TYPE_COLOR: Record<string, number> = {
   deepseek: 0x7088f0,
   mistral: 0xf8d850,
   moonshot: 0x88d058,
-  cohere: 0xf07890,
+  cohere: 0xc89060,
+  xai: 0x9098c8,
+  meta: 0x90c8f0,
+  microsoft: 0xf07060,
+  alibaba: 0xf8b890,
   classic: 0xf0ece0,
   glitch: 0xe85080,
 }

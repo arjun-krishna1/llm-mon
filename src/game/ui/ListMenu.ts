@@ -6,6 +6,7 @@ import { controls } from '../controls'
 import { audio } from '../audio'
 import { PxText, measure, type TextColorName } from './text'
 import { Window, type FrameKey } from './Window'
+import { tamper } from '../systems/tamper'
 import type { Widget, WidgetStack } from './WidgetStack'
 
 export interface ListItem {
@@ -14,6 +15,13 @@ export interface ListItem {
   right?: string
   disabled?: boolean
   color?: TextColorName
+  /** Stable id (tamper hooks grey out entries by id: `tamper.disable('run')`; falls back to the label). */
+  id?: string
+}
+
+/** Disabled by the item itself or by interface tampering. */
+export function itemDisabled(it: ListItem | undefined): boolean {
+  return !!it && (!!it.disabled || tamper.isDisabled(it.id) || tamper.isDisabled(it.label))
 }
 
 export interface ListOptions {
@@ -65,6 +73,7 @@ export class ListMenu implements Widget {
   h = 0
   active = true
   private destroyed = false
+  private tamperSeen = 0
 
   constructor(scene: Phaser.Scene, stack: WidgetStack, items: ListItem[], o: ListOptions = {}) {
     this.scene = scene
@@ -126,10 +135,11 @@ export class ListMenu implements Widget {
       const lab = this.labels[r]
       const rt = this.rights[r]
       lab.setText(it?.label ?? '')
-      lab.setColorName(it?.disabled ? 'grey' : (it?.color ?? 'default'))
+      const off = itemDisabled(it)
+      lab.setColorName(off ? 'grey' : (it?.color ?? 'default'))
       rt.setText(it?.right ?? '')
       rt.setPosition(this.x + this.w - 10 - rt.width, this.y + 5 + r * this.rowH)
-      rt.setColorName(it?.disabled ? 'grey' : 'default')
+      rt.setColorName(off ? 'grey' : 'default')
     }
     this.cursor.setY(this.y + 7 + (this.index - this.scrollTop) * this.rowH)
     this.cursor.setVisible(this.active)
@@ -139,6 +149,10 @@ export class ListMenu implements Widget {
 
   tick(): void {
     this.frame++
+    if (this.tamperSeen !== tamper.disabled.size) {
+      this.tamperSeen = tamper.disabled.size
+      this.render()
+    }
     const b = Math.floor(this.frame / 10) % 2
     this.downArrow.setPosition(this.x + this.w - 14, this.y + this.h - 11 + b)
     this.upArrow.setPosition(this.x + this.w - 14, this.y - 1 - b)
@@ -155,7 +169,7 @@ export class ListMenu implements Widget {
       this.moved()
     } else if (controls.justPressed('A')) {
       controls.consume('A', 'START')
-      if (this.items[this.index]?.disabled) {
+      if (itemDisabled(this.items[this.index])) {
         audio.sfx('bump')
         return
       }

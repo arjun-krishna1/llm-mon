@@ -3,6 +3,7 @@
 import Phaser from 'phaser'
 import { COLORS, FONT, type FontKey } from '../config'
 import { state } from '../state'
+import { PROBE_GREEN, tamper } from '../systems/tamper'
 
 export type ShadowStyle = 'none' | 'drop' | 'full'
 
@@ -58,8 +59,25 @@ export class PxText {
       this.shadows.push(s)
     }
     this.main = scene.add.bitmapText(this._x, this._y, this.font, '')
-    this.main.setTint(style.color ?? COLORS.text)
+    this.baseColor = style.color ?? COLORS.text
+    this.main.setTint(this.baseColor)
+    ;(this.main as unknown as { __px?: PxText }).__px = this
     this.setText(text)
+  }
+
+  private baseColor: number
+
+  /** Re-apply interface tampering (systems/tamper.ts) to the current text. */
+  refreshTamper(): void {
+    this.render()
+  }
+
+  private render(): void {
+    const key = this.scene.sys.settings.key
+    const shown = forFont(this.font, tamper.filterText(this._text, key))
+    this.main.setText(shown)
+    for (const s of this.shadows) s.setText(shown)
+    this.main.setTint(tamper.probe && tamper.appliesTo(key) && tamper.wouldChange(this._text, key) ? PROBE_GREEN : this.baseColor)
   }
 
   get text(): string {
@@ -75,9 +93,7 @@ export class PxText {
   setText(t: string): this {
     if (t === this._text) return this
     this._text = t
-    const shown = forFont(this.font, t)
-    this.main.setText(shown)
-    for (const s of this.shadows) s.setText(shown)
+    this.render()
     return this
   }
 
@@ -112,6 +128,7 @@ export class PxText {
   }
 
   setColor(color: number, shadowColor?: number): this {
+    this.baseColor = color
     this.main.setTint(color)
     if (shadowColor !== undefined) for (const s of this.shadows) s.setTint(shadowColor)
     return this
@@ -273,4 +290,17 @@ export function fitLabel(scene: Phaser.Scene, s: string, maxW: number): FittedLa
   let t = s
   while (t.length > 1 && measure(scene, m, t) > maxW) t = t.slice(0, -1)
   return { text: t.trimEnd(), font: m, spacing: 0 }
+}
+
+/** Re-filter every PxText in the given scenes (called when tampering changes). */
+export function refreshTamperedText(scenes: Phaser.Scene[]): void {
+  const visit = (list: Phaser.GameObjects.GameObject[]) => {
+    for (const o of list) {
+      const px = (o as unknown as { __px?: PxText }).__px
+      if (px) px.refreshTamper()
+      const kids = (o as Phaser.GameObjects.Container).list
+      if (Array.isArray(kids)) visit(kids as Phaser.GameObjects.GameObject[])
+    }
+  }
+  for (const sc of scenes) if (sc.sys?.displayList) visit(sc.sys.displayList.list)
 }

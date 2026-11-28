@@ -1,10 +1,11 @@
 // Global input: one source of truth for every scene, sampled once per game frame.
-// Buttons: up/down/left/right, A (Z/Space/Enter), B (X/Shift/Backspace), START (Enter/Esc).
+// Buttons: up/down/left/right, A (Z/Space/Enter), B (X/Shift/Backspace), START (Enter/Esc),
+// SELECT (C / Tab; gamepad button 8): the registered quick key (field skill / key item).
 // Enter maps to both A and START: scenes ask for START only where a menu can open.
 
 import { FRAME_MS, type Dir } from './config'
 
-export type Button = 'up' | 'down' | 'left' | 'right' | 'A' | 'B' | 'START'
+export type Button = 'up' | 'down' | 'left' | 'right' | 'A' | 'B' | 'START' | 'SELECT'
 
 const KEYMAP: Record<string, Button[]> = {
   ArrowUp: ['up'], KeyW: ['up'],
@@ -14,9 +15,10 @@ const KEYMAP: Record<string, Button[]> = {
   KeyZ: ['A'], Space: ['A'], Enter: ['A', 'START'], NumpadEnter: ['A', 'START'],
   KeyX: ['B'], ShiftLeft: ['B'], ShiftRight: ['B'], Backspace: ['B'],
   Escape: ['START'],
+  KeyC: ['SELECT'], Tab: ['SELECT'],
 }
 
-const BUTTONS: Button[] = ['up', 'down', 'left', 'right', 'A', 'B', 'START']
+const BUTTONS: Button[] = ['up', 'down', 'left', 'right', 'A', 'B', 'START', 'SELECT']
 
 /** Buttons for a source code: keyboard codes via KEYMAP, virtual `V:<btn>` / gamepad `G:<btn>` map 1:1. */
 function codeButtons(code: string): Button[] | undefined {
@@ -30,7 +32,7 @@ function codeButtons(code: string): Button[] | undefined {
 class Controls {
   private down = new Set<string>() // physical codes held
   private pressedRaw = new Set<Button>() // pressed since last sample
-  private held: Record<Button, number> = { up: 0, down: 0, left: 0, right: 0, A: 0, B: 0, START: 0 }
+  private held: Record<Button, number> = { up: 0, down: 0, left: 0, right: 0, A: 0, B: 0, START: 0, SELECT: 0 }
   private pressed = new Set<Button>()
   private consumed = new Set<Button>()
   /** Most recently pressed direction still held (for diagonal-free movement). */
@@ -69,6 +71,12 @@ class Controls {
     for (const b of btns) if (isDir(b) && !this.isPhysDown(b)) this.dirStack = this.dirStack.filter((d) => d !== b)
   }
 
+  /** Drop every held key (focus loss, pause). */
+  releaseAll(): void {
+    this.down.clear()
+    this.dirStack = []
+  }
+
   isCodeDown(code: string): boolean {
     return this.down.has(code)
   }
@@ -84,16 +92,13 @@ class Controls {
       e.preventDefault()
       this.releaseCode(e.code)
     })
-    window.addEventListener('blur', () => {
-      this.down.clear()
-      this.dirStack = []
-    })
+    window.addEventListener('blur', () => this.releaseAll())
   }
 
   // ------------------------------------------------------------ gamepad
   private padDown = new Set<string>()
 
-  /** Poll the Gamepad API (standard mapping): d-pad / left stick, A=0, B=1 (also 2), Start=9 (also 8). */
+  /** Poll the Gamepad API (standard mapping): d-pad / left stick, A=0, B=1 (also 2), Start=9, Select=8. */
   private pollGamepads(): void {
     const pads = typeof navigator !== 'undefined' && navigator.getGamepads ? navigator.getGamepads() : []
     const now = new Set<string>()
@@ -108,7 +113,8 @@ class Controls {
       if (b(15) || ax > 0.5) now.add('G:right')
       if (b(0)) now.add('G:A')
       if (b(1) || b(2)) now.add('G:B')
-      if (b(9) || b(8)) now.add('G:START')
+      if (b(9)) now.add('G:START')
+      if (b(8)) now.add('G:SELECT')
     }
     for (const c of now) if (!this.padDown.has(c)) this.pressCode(c)
     for (const c of this.padDown) if (!now.has(c)) this.releaseCode(c)
