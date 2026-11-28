@@ -14,13 +14,17 @@ src/game/assets.ts            asset manifest, texture keys, missing-asset placeh
 src/game/adapters/monInfo.ts  the ONLY bridge to BATTLE-CORE (species/moves/items/trainers/encounters)
 src/game/params.ts            URL flags (?debug ?seed ?fast ?new ?map)
 src/game/rng.ts               seeded RNG (all engine randomness; BATTLE-CORE gets it as `{ next }`)
-src/game/world/               TiledMap (map loader), Actor (grid character)
+src/game/world/               TiledMap (map loader + connections), Actor (grid character), Puzzle (puzzle kit),
+                              graph (graph-floor autodiff), cond (condition expressions), FieldSkills,
+                              Atmosphere (weather + darkness), kitTextures (procedural kit sprites)
+src/game/systems/             notebook, badges, skills, locations (town map), tamper (finale hooks)
 src/game/script/              registry, runner, ScriptApi
 src/game/ui/                  PxText, Window, DialogBox, ListMenu, WidgetStack, Banner, draw helpers, screens/
 src/game/scenes/              Boot, Title, Intro, Overworld, UI, Battle (stub → BATTLE-UI)
 src/game/content/index.ts     CONTENT entry (engine wrote a tiny sample)
 tools/font/build_font.py      bitmap fonts → public/assets/game/fonts/
 tools/maps/testmap.py         public/assets/game/maps/_test.tmj
+tools/maps/kitmap.py          public/assets/game/maps/_kit.tmj + _kit_east.tmj (ENGINE-F kit, §11)
 ```
 
 ## 1. Running and debugging
@@ -31,6 +35,7 @@ tools/maps/testmap.py         public/assets/game/maps/_test.tmj
 | --- | --- |
 | `/` | title → New Game / Continue |
 | `/?debug=1&map=_test` | straight into the engine test map (gives a Lv5 Claude Fable if the party is empty) |
+| `/?debug=1&map=_kit` | the ENGINE-F kit: every full-game foundation (§11) |
 | `/?debug=1&map=overworld&spawn=home_door` | any map + spawn name; or `&x=12&y=8` |
 | `&seed=N` | seeds all RNG (engine + BATTLE-CORE via the adapter) |
 | `&fast=1` | instant text, no fades/slides (automated playtests) |
@@ -222,21 +227,29 @@ Tile properties (merged across all layers at a cell):
 | `door` | outdoors, walking into a door tile that has a warp plays `door`, a procedural door-open animation (dark opening grows over ~8 frames), the player steps into the doorway, then the fade. Arriving on an outdoor door tile: the doorway starts open, the player steps out one tile (in the arrival facing; a door spawn without `facing` faces down), the door closes behind. Indoors (`indoor` maps) door tiles are exit mats: plain warp + `exit` sfx. |
 | `animation` | Tiled tile animation, played per tile |
 
+More map properties (§11): `connections` / `north` `northOffset` … (seamless neighbours),
+`weather`, `weatherIntensity`, `dark`, `lightRadius`, `raft`, `waterEncounters`,
+`evalEncounters`, `puzzleReset` (`never` default, `enter` = fresh puzzle on every entry).
+
 Objects (`type`, or `class` in Tiled ≥1.9; tile coords = rect top-left, size ≥1 tile):
 
 | type | properties |
 | --- | --- |
 | `spawn` | `name` (object name), optional `facing` |
 | `warp` | `toMap`, `toSpawn`, optional `facing`, `sfx` (`door`/`stairs`/`exit`; default by context). Fires when the player *steps onto* it (not on arrival). Placed on a solid tile it still lets the player in. |
-| `npc` | `id`, `sprite` (chars id), `facing`, `movement` (`static`/`look`/`wander`), `radius` (wander, default 2), `script` or `text`, `hideIfFlag`, `showIfFlag`, `noFace` (don't turn to the player). Trainers: `trainer` (BATTLE-CORE trainer id), `sight` (tiles), optional `seeText`, `afterText`, `defeatedFlag` (default `trainer_<trainer>_defeated`), `sightScript` (replaces the default walk-up flow's dialogue + battle) |
+| `npc` | `id`, `sprite` (chars id), `facing`, `movement` (`static`/`look`/`wander`), `radius` (wander, default 2), `script` or `text`, `hideIfFlag`, `showIfFlag`, `showWhen` / `hideWhen` (condition, §11.5), `evalOnly` (bool: shown only while the EVAL light is on/off), `evalText` / `evalScript` / `evalSprite` / `evalFacing` / `evalMovement` (used while the EVAL light is on, §11.9), `noFace` (don't turn to the player). Trainers: `trainer` (BATTLE-CORE trainer id), `sight` (tiles), optional `seeText`, `afterText`, `defeatedFlag` (default `trainer_<trainer>_defeated`), `sightScript` (replaces the default walk-up flow's dialogue + battle) |
 | `sign` | `text` (`\n`, `\f` allowed literally) or `script`. Read with A while facing it **from below (facing up)**; set `anySide: true` to allow every side. |
 | `trigger` | rect; `script`; `once` (flag name, set when it fires), `ifFlag`, `unlessFlag` |
 | `item` | `itemId`, `count`, `flag` (default `item_<map>_<objId>`), `hidden: true` (invisible, walkable, A while facing) |
-| `zone` | rect; `name` (banner), `music`, `encounters` (table id, e.g. `route_101`). Smallest containing zone wins. |
+| `zone` | rect; `name` (banner), `music`, `encounters` (table id, e.g. `route_101`), `waterEncounters` (while rafting), `evalEncounters` / `evalWaterEncounters` (EVAL light on), `weather`, `weatherIntensity`, `dark`, `lightRadius`, `raft` (water here can be rafted with Normalize). Smallest containing zone wins. |
+| puzzle kit | `switch`, `door`/`gate`, `block`, `boulder`, `floor`, `teleport`, `counter`, `timer`, `statue`, `key`, `beam`, `letter`, `gnode`, `wire`, `graph`, `reset`, `anchor`: §11.5 |
 | `prop` | static sprite (e.g. the moving truck, the satchel). Rect = collision footprint (a point/1-tile object: footprint from the image size as in `spawnProp`). `id`, `sprite` (texture key, e.g. `fx/truck`), `frame`, `solid` (default **true**), `depth` (`y`/`ground`/`over`), `offsetX`/`offsetY` (px), `hideIfFlag`, `showIfFlag`, `script` or `text` (A while facing any footprint tile). Scripts can then `moveProp`/`despawnProp` it by `id`. |
 
-Step order after each player step: warp → triggers → zone (banner/music) →
-trainer sight → Firewall countdown → encounter roll. Sight is only checked while
+Step order after each player step: map-edge crossing → Firewall countdown → warp →
+triggers → puddle splash / raft dismount → puzzle kit (switches, keys, letters, counters,
+timers; then forced moves: teleport, spinner, conveyor, ice) → zone (banner, music,
+weather, darkness, visited town) → trainer sight → encounter roll (grass, or water while
+rafting; a Sample pre-roll is used first). Sight is only checked while
 the player stands on a tile and nothing else is running (one sighting at a time);
 regression: `node tools/playtest/trainer_sight.cjs`. NPC talk / trainer / item
 / sign interactions happen on A. NPC visibility flags are re-evaluated after
@@ -501,3 +514,254 @@ tileset image becomes a placeholder grid.
   `|` separates descender rows).
 - `python3 tools/maps/testmap.py` → `_test.tmj` from the real exterior +
   interior catalogs (falls back to a generated `_placeholder` tileset).
+
+## 11. Full-game foundations (ENGINE-F)
+
+Everything below is demonstrated in the **kit map**: `/?debug=1&map=_kit` (built by
+`python3 tools/maps/kitmap.py`; scripts `kit.*` in `src/game/script/kitScripts.ts`).
+Regression: `node tools/playtest/kit.cjs [--no-build] [--only graph,skills]` plays it with
+real key presses (60 checks, screenshots in `tools/playtest/out/kit/`).
+
+| kit area | shows |
+| --- | --- |
+| Kit Plaza (start) | guide (ALL SKILLS / KEY ITEMS / TOWN MAP / RESET MAP), badge pedestal, notebook lectern, travel kiosk |
+| Graph Floor | `gnode` + `wire` + `graph` (out = a·b + c, goal 0), gradient toggle sign, gate `when: g.solved` |
+| Switch Hall | toggle / weight (+ pushable block) / momentary (latched gate) switches, reset pad |
+| Statue Hall | floor key, statue holding a key, statues accepting keys, beams, gate |
+| Floor Lab | ice + rocks, conveyor, spinner, one-way arrows, teleport pads, puddles |
+| Letter Hall | `letter` tiles spelling C-A-T, SURPRISE budget counter in the HUD, gate |
+| Timer Run | `timer` area with ranks, stopped by a momentary switch |
+| Dark Room | zone `dark`, light radius 1, Dilate → 4, two hidden items |
+| Kit Meadow | ledges (Backprop), tall grass (Sample), falling leaves |
+| Embedding Yard | heavy A/B blocks (Embed: like attracts like), weight switch |
+| Rough Water | `rough_water` (Normalize raft, water encounters), fog |
+| Chasm | `gap` + `anchor`s (Chain Rule), two `stone` boulders (Merge → bridge) |
+| Eval Lab | EVAL light switch, NPC + creature with EVAL variants, tamper terminal, rain |
+| east edge | seamless connection to `_kit_east` (snow weather, footprints, ice) |
+
+### 11.1 Notebook
+
+Start-menu **NOTEBOOK** (shown once the player holds item `notebook` or has found any page).
+A spiral notebook with tabs **BUILD** and **SAFETY** (←/→), the page list with found /
+NOT YET FOUND rows, and the page view (title, ruled sentences, CREDIT / SOURCE in the mini
+font). Pages are data; CONTENT registers them at import time:
+
+```ts
+import { registerNotebookPage } from '../systems/notebook'
+registerNotebookPage({ id: 'micrograd', tab: 'build', order: 1, title: 'Gradients',
+  lines: ['A network is a graph of tiny sums.', 'A gradient says which way to nudge.', 'Backprop sends blame back, node by node.'],
+  credit: 'Rumelhart, Hinton & Williams 1986', source: 'micrograd (lecture 1)' })
+
+registerScript('gym1.after', async (s) => {
+  await s.unlockPage('micrograd')      // toast "NOTEBOOK: Gradients" + item_get jingle; false if already found
+})
+```
+
+A page fits 6 ruled lines of the dialog font (~36 characters a line): three short
+sentences. Overflow is cut and warned in the console. `&` and commas are shown as `+` and
+dropped in the mini-font credit line. Saved as flag `nb_<id>` (`nb_read_<id>` once opened).
+Also `s.hasPage(id)`, `s.page(id)`; `notebookPages(tab)`, `foundCount(tab)`.
+
+### 11.2 Badges
+
+```ts
+await s.giveBadge('gradient', 'Rumelhart')   // flag badge_gradient + the badge-get scene
+s.hasBadge('gradient'); s.badgeCount()
+```
+
+The scene dims the map, spins the badge in over turning rays, lands with a flash and
+sparkles to the `key_item_get` fanfare, then "{player} received the Gradient Badge from
+Rumelhart!" and "…lets your team use BACKPROP outside of battle." Ids (systems/badges.ts):
+`gradient likelihood embedding normal chain wave attention merge`; icons
+`ui/badge_<id>` (16×16) and `ui/badge_<id>_big` (32×32) from `tools/ui/badges.py`.
+The trainer card (start menu → name) shows a badge strip; A flips to the **BADGE CASE**
+(8 sockets, cursor, name, leader, town, field skill). `registerBadge(def)` renames/recolours.
+
+### 11.3 Field skills
+
+Unlocked by the badge flag (`badge_<id>`) or flag `skill_<skill>` (story/debug). Used with
+**A at the object** (a "Use SKILL?" prompt; locked skills just describe the object), from
+**FIELD** in the start menu (USE / SET TO SELECT), or with **SELECT** (C / Tab / pad 8): the
+skill set as quick key (flag `quick_skill`), else whatever applies in front of the player.
+Every use plays the GBA-style cut-in (lead LLMMON's front sprite + skill name, skill sfx;
+`skill_<id>` sfx when AUDIO adds it, else a fallback).
+
+| skill (badge) | how | map support |
+| --- | --- | --- |
+| BACKPROP (gradient) | walk into a one-way ledge from below: hop up it (rewind chevrons) | ledge tiles (`ledge`) |
+| SAMPLE (likelihood) | in tall grass: a die rolls, the next encounter is pre-rolled and named; YES keeps it, NO rerolls once. One sample per entry into a grass zone | `zone.encounters` |
+| EMBED (embedding) | heavy blocks can be pushed; A at a block slides it along its row/column until it touches the nearest block of the same `kind` ("like attracts like"); with no kin in line it is pulled one tile toward the player | `block` (`kind`, `heavy`, `glyph`) |
+| NORMALIZE (normal) | A at rough water: ripple, raft, ride across any water; stepping ashore drops it; `waterEncounters` roll on water | `floor kind=rough_water`, or water tiles in a `raft: true` zone/map |
+| CHAIN RULE (chain) | A at a gap with an `anchor` across: links shoot out one by one, zip over (≤ 7 gap tiles) | `floor kind=gap`, `anchor` |
+| DILATE (wave) | in the dark: the light grows from `lightRadius` (1) to 4 tiles; hidden items in the light glint and can be picked up | zone/map `dark`, `lightRadius`, `item hidden` |
+| ATTEND (attention) | Town Map in fly mode: visited towns with an arrival; lift-off beam, warp | `registerLocation` (§11.7) |
+| MERGE (merge) | A at a boulder next to a same-kind boulder: they fuse into a bridge over the gap/water beside them, or a bigger block (`merge: block`), or run a script | `boulder` (`kind`, `merge`, `resultKind`, `bridgeLen`); `registerMergeRule(kind, rule)` |
+
+From scripts: `s.skillUnlocked('embed')`, `await s.useSkill('dilate')`.
+
+### 11.4 Conditions
+
+Door `when`, beam `when`, teleport `when`, timer `stopWhen`, NPC/prop `showWhen` /
+`hideWhen` use one small expression language (world/cond.ts): `& | ! ( )`, `and or not`,
+comparisons `< <= > >= == !=`, numbers, and names: an object id (switch pressed, door open,
+statue holding what it accepts, counter value, block present, key taken), `<graph>.out`,
+`<graph>.solved`, `<graph>.<node>`, `<group>.word` / `<group>.len` (letters), `flag:x`,
+`eval`, `carry:K`, `var:x` or a bare var name (`s.puzzle.setVar`). Examples:
+`"sw1 & sw2"`, `"!lever"`, `"flag:badge_gradient | sw3"`, `"surprise <= 20"`, `"g.solved"`.
+
+### 11.5 Puzzle kit (map objects)
+
+Declared as Tiled objects; state is saved per map in `state.mapState[mapId]` (block
+positions, switch states, keys, graph inputs, counters, words, timers, bridges) and survives
+save/load and warps. `reset` pads / `s.puzzle.reset()` restore the map's start state
+(Merge bridges stay unless `{ all: true }`). Map property `puzzleReset: enter` resets on
+every entry. Every object accepts `id` (else the object name) and `sprite` (a texture key
+replacing the procedural look).
+
+| type | properties | behaviour |
+| --- | --- | --- |
+| `switch` | `mode`: `momentary` (default: player, NPC or block on it), `toggle` (flips each time it is stepped on), `weight` (blocks only) | signal = pressed |
+| `door` / `gate` | rect; `when` (condition), `latch` (true, or a flag name: stays open once opened), `onOpen` (script) | solid while closed; bars slide down; never closes on the player |
+| `block` | `kind` (a/b/c… or a colour name), `heavy` (needs Embed), `glyph` (letter on top) | pushed by walking into it (one push per ~16 frames); slides on ice; falls into a `gap` and fills it |
+| `boulder` | `kind` (default `stone`), `heavy` (default true), `merge`, `resultKind`, `bridgeLen` | Embed pushes; Merge fuses |
+| `floor` | rect; `kind`: `ice`, `conveyor` (+`dir`), `oneway` (+`dir`: enter and leave only along it), `spinner` (+`dir`), `gap`, `rough_water`, `snow` (footprints), `puddle` (splash); `draw: false` = logic only (use your own tiles) | the same keys also work as tile properties |
+| `teleport` | `to` (another object id or `"x,y"`), `when` | step on: flash, move (arriving does not re-teleport) |
+| `counter` | rect = HUD area (1×1 or `area: map` = whole map); `label`, `start`, `max`, `style` (`budget` red over max, `goal` green at max, `plain`), `perStep`, `hud: false` | HUD chip "SURPRISE 3/12" while the player is in its area |
+| `timer` | rect; `label`, `ranks` ("S,A,B" seconds: `"6,10,16"`), `stopWhen` | starts on entering the rect (once), stops when the condition holds: toast "TIME 0:05 RANK S", var `<id>.rank` |
+| `statue` | `holds` (key it starts with), `accepts` ("Q" or "Q,K"), `label`, `text` | A: take / place / swap keys; signal = holds what it accepts |
+| `key` | `keyId` | floor key token, picked up by walking on it (the player carries one key: HUD chip + icon over the head) |
+| `beam` | `from`, `to` (object ids or `"x,y"`), `when`, `color` | flickering light line drawn while the condition holds |
+| `letter` | rect; `text` (one glyph per tile, row-major), `group`, `counter` + `cost`, `script` | stepping on a glyph appends it to the group's word and fires a `letter` event (`{ glyph, prev, word }`); `script` runs with `s.ctx.letter` |
+| `gnode`, `wire`, `graph` | §11.6 | graph floor |
+| `reset` | — | step on: reset the map's puzzle |
+| `anchor` | — | Chain Rule target |
+
+Scripts get `s.puzzle` (the current map):
+
+```ts
+s.puzzle.value('sw1')                      // any condition name
+s.puzzle.counter('surprise'); s.puzzle.addCounter('surprise', 2); s.puzzle.setCounter('surprise', 0)
+s.puzzle.showCounter('budget', 'TOKENS', 40)   // HUD chip without a map object
+s.puzzle.startTimer('run', { label: 'TIME', ranks: [20, 35, 60] }); s.puzzle.stopTimer('run')  // → { ms, rank }
+s.puzzle.setVar('spelled', true)           // usable in conditions
+s.puzzle.carry; s.puzzle.setCarry('Q')     // statue keys
+s.puzzle.word('w'); s.puzzle.clearWord('w')
+s.puzzle.graph('g')?.value('o'); s.puzzle.setInput('a', 3); s.puzzle.showGrad('g', true); s.puzzle.solved('g')
+await s.puzzle.moveBlock('blk1', 'left', 2)
+await s.puzzle.reset({ all: false })
+const off = s.puzzle.on((e) => { if (e.type === 'letter') … })   // this map's events; call off() to stop
+```
+
+Events (`onPuzzleEvent(fn)` from `world/Puzzle.ts` for all maps): `switch {id,on}`,
+`door {id,open}`, `block {id,x,y}`, `block_fill`, `key`, `statue {id,key,match}`,
+`letter {id,group,glyph,prev,word}`, `teleport`, `timer {id,ms,rank}`, `graph_solved {id,value}`,
+`merge {id,partner,result}`, `reset`.
+
+### 11.6 Graph floor
+
+```
+gnode  id=a op=input value=2 label=a step=1 min=-9 max=9 graph=g   (input: stand on it, A, ↑/↓ nudges)
+gnode  id=m op=mul graph=g          ops: input const add mul neg tanh relu pow2 out
+gnode  id=o op=out graph=g          (out sums its inputs)
+wire   from=a to=m [points="20,4;20,6"]   (route via tile points; default an L: horizontal then vertical)
+graph  id=g target=0 onSolve=script solveFlag=flag showGrad=false gradMode=shown|hidden|quiz latch=true
+```
+
+Values are drawn on chips above each node (yellow > 0, blue < 0, OUT green when solved),
+the op inside the plate, and (when shown) each node's gradient d(out)/d(node) in red below
+it, from a tiny reverse-mode autodiff (`world/graph.ts`, `CompGraph`): forward in topological
+order, then gradients accumulated backwards over every path (a value feeding two paths gets
+the sum: Gym 1 room 3). Wires glow orange/blue by sign with a pulse flowing to the output.
+Standing on an input and pressing A opens the nudge bar ("C = 4   OUT = -2 (GOAL 0)") with
+live forward propagation. `gradMode: quiz` (Gym 5) hides gradients: A on a node asks for its
+gradient from four choices; right answers reveal it. When the output hits `target` the graph
+is solved (`<graph>.solved`, `graph_solved` event, `onSolve`, `solveFlag`).
+
+### 11.7 World: connections, town map, travel
+
+**Connections.** Map property `connections` (JSON) or flat properties:
+
+```json
+{ "north": { "map": "route_102", "offset": 0 }, "east": "soma_node" }
+```
+
+`offset` shifts the neighbour along the shared edge (tiles). Neighbours are drawn at the
+edges (their tile layers and static puzzle floors), the camera scrolls into them, and
+walking off the edge onto a walkable neighbour tile swaps maps with no fade (zone banner and
+music follow; `onEnter` runs). Both maps should list each other. Single maps without
+connections (the slice's `overworld`) work as before.
+
+**Town map** (`TownMapScreen`): start menu **TOWN MAP** once the player has item
+`town_map` (an engine fallback item until data defines it; same for `notebook`), or
+`await s.townMap()`. A schematic of the regions drawn from the location table, routes,
+rail/air/ferry links, visited towns filled, the player's location blinking.
+
+```ts
+import { registerLocation, registerLink } from '../systems/locations'
+registerLocation({ ...location('menlo_park')!, map: 'menlo_park', spawn: 'center_door', facing: 'down' })
+```
+
+Entering a zone whose `name` matches a location's `zones` (or a map in its `maps`) sets
+`visited_<id>` and `last_location`. Attend flies to visited towns that have a `map`.
+
+**Travel cutscenes:**
+
+```ts
+await s.travelCutscene({ kind: 'plane', from: 'sfo', to: 'toronto' })            // arrives at the location's map/spawn
+await s.travelCutscene({ kind: 'ferry', from: 'seattle', to: 'redmond', map: 'redmond_dock', spawn: 'pier' })
+```
+
+`train` (carriages over scrolling sleepers), `plane` (arc over clouds and sea), `ferry`
+(bobbing over waves): a 3 s card "SFO ▶ TORONTO" with a progress dot; then the warp and fade-in.
+
+### 11.8 Weather and darkness
+
+Zone or map property `weather`: `snow`, `rain`, `fog`, `leaves` (`weatherIntensity` scales
+particles; indoor maps never have weather). Pixel particles in screen space that drift
+against camera motion; fog is two dithered layers. Snow leaves footprints that fade after
+~4 s (also on `snow` floors/tiles); `puddle` floors/tiles splash. Looping ambience
+`amb_<kind>` plays if AUDIO provides it. `dark: true` (zone or map) draws darkness with a
+dithered round light around the player (`lightRadius`, default 1 tile; Dilate 4). Script
+overrides: `s.setWeather('rain' | null)`, `s.setDark(true | null)`.
+
+### 11.9 EVAL light and interface tampering
+
+`state.evalLight` (flag `eval_light`; saved). Scripts: `s.evalLight`, `s.setEvalLight(on)`.
+The HUD lamp (top-right, "EVAL", pulsing red when on) shows once flag `eval_lamp` is set or
+the player holds `eval_suite`; FIELD then has an EVAL LIGHT toggle. While it is on, NPCs use
+`evalText` / `evalScript` / `evalSprite` / `evalFacing` / `evalMovement`; `showWhen: eval`,
+`hideWhen: eval`, `evalOnly` swap whole NPCs/creatures; zones can use `evalEncounters`.
+Battle code reads `state.evalLight`.
+
+`s.tamper` (systems/tamper.ts) is the finale's toolkit, usable from any scene:
+
+```ts
+s.tamper.set({ scenes: ['Battle', 'UI'], scramble: 0.3, relabel: { RUN: 'STAY', BAG: 'SURRENDER' } })
+s.tamper.disable('run', 'bag')         // ListMenu entries / start-menu entries by id or label grey out
+s.tamper.setFake('enemy_hp', 1)        // displays use tamper.shown('enemy_hp', trueFrac) → 1
+s.tamper.setProbe(true)                // Probe: tampered text shows the truth in green; bars show truth + the fake as an outline
+s.tamper.reset()
+await s.meter({ id: 'enemy_hp', label: 'ENEMY HP', value: 0.28 })   // demo window; SELECT toggles the Probe
+```
+
+Battle UI: `drawTamperBar(g, x, y, w, 'enemy_hp', trueFrac)` (ui/TamperMeter.ts) draws the
+shown value and, with the Probe on, the truth tick and the fake outline. Every `PxText` is
+filtered (relabel → custom `filter` → scramble, re-glitching every 10 frames); list menus
+size themselves to the relabelled text.
+
+### 11.10 Quality of life
+
+- **SELECT** quick key for field skills (§11.3).
+- **Options**: TEXT SPEED, AUTO TEXT (pages advance after a reading pause; prompts still
+  wait), RUNNING (HOLD: hold B to run / AUTO: run unless B is held; needs `has_run`), MUSIC,
+  SOUND, CONTROLS (keyboard / gamepad / touch page).
+- **Pause on blur**: losing focus or hiding the tab shows PAUSED, mutes audio and sleeps the
+  game loop until a click or key (in-game scenes only; off under ?fast=1 / webdriver unless
+  `?pausetest=1`).
+
+### 11.11 Contracts and flags
+
+`SaveData.mapState?: Record<mapId, Record<string, unknown>>` (optional; old saves load with
+none). Flags: `badge_<id>`, `skill_<id>`, `quick_skill`, `nb_<id>`, `nb_read_<id>`,
+`visited_<loc>`, `last_location`, `eval_light`, `eval_lamp`. Debug `info()` adds `weather`,
+`dark`, `lightTiles`, `rafting`, `neighbours`, `evalLight`.

@@ -11,7 +11,7 @@ import type { WidgetStack } from '../WidgetStack'
 const ROWS: Array<[string, string, string]> = [
   ['MOVE', 'Arrows / WASD', 'D-PAD / STICK'],
   ['A', 'Z, Space, Enter', 'BUTTON 0'],
-  ['B', 'X, Shift, Backspace', 'BUTTON 1'],
+  ['B', 'X, Shift, Bksp', 'BUTTON 1'],
   ['START', 'Enter, Esc', 'BUTTON 9'],
   ['SELECT', 'C, Tab', 'BUTTON 8'],
 ]

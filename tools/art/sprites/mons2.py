@@ -19,6 +19,7 @@ import numpy as np
 from PIL import Image
 
 import mons as M
+from calm import calm, unstroke, keep_main
 from common import SPRITES, ROOT, save
 
 GEN_RAW = M.GEN_RAW
@@ -439,8 +440,19 @@ def _ascendant_face(im):
         px[x, y] = (247, 186, 186, 255)
 
 
-# per-creature tuning, same keys as mons.TUNE
+# Proxy's white fur: 1px fur strokes and teal/red specks survived the reduction on
+# the backs (art audit). Reduce without the dark-line vote, then clear strokes.
+_FUR = [lambda im: calm(unstroke(im, need=4), 4, 2)]
+_CALM = [lambda im: calm(im, 4, 3)]
+
+# per-creature tuning, same keys as mons.TUNE (+ drop_small, back_line_w, back_post)
 TUNE = {
+    'proxy_mascot': {'back_line_w': 0.0, 'back_post': _FUR},
+    'glove': {'back_post': _CALM},
+    'softmax': {'back_post': _CALM},
+    'residual': {'back_box': (84, 84), 'back_vis': 0.9, 'back_post': [keep_main]},
+    'claude_sonnet': {'drop_small': 0.04, 'accents': [
+        (lambda r, g, b: (r > 200) & (g > 70) & (g < 160) & (b < 70), (0.0, 0.1, 0.4, 0.4), 0.18, [(-1, 0), (0, -1)])]},
     'grok': {'keep_contrast': 90},
     'momentum': {'crop': (0.0, 0.0, 0.66, 1.0), 'back_box': (80, 84), 'back_crop': (0.3, 0.0, 1.0, 1.0)},
     'sgd': {'back_box': (84, 84)},
@@ -448,14 +460,13 @@ TUNE = {
     'sigmoid': {'back_box': (76, 84), 'back_vis': 1.0, 'back_dx': 6, 'box': (64, 60)},
     'relu': {'back_box': (76, 84), 'back_vis': 1.0, 'back_dx': -6, 'box': (64, 60)},
     'n_gram': {'back_box': (80, 84)},
-    'residual': {'back_box': (84, 84), 'back_vis': 0.9},
     'proxy_ascendant': {'box': (64, 63), 'mb': 1, 'touch': [_ascendant_face], 'accents': [
         # blue eyes of the embedded mascot faces
         (lambda r, g, b: (b > 160) & (r < 110) & (g > 80) & (g < 200), (0.0, 0.0, 1.0, 1.0), 0.22)]},
-    'proxy_student': {'icon_crop': (0.0, 0.62), 'box': (62, 62), 'mb': 1,
+    'proxy_student': {'icon_crop': (0.0, 0.62), 'box': (62, 62), 'mb': 1, 'back_line_w': 0.0, 'back_post': _FUR,
                       'accents': [(lambda r, g, b: (b > 170) & (r < 130) & (g > 90),
                                    (0.2, 0.15, 0.55, 0.3), 0.2, [(-1, 0), (0, -1)])]},
-    'proxy_needle': {'icon_crop': (0.0, 0.62), 'box': (62, 62), 'mb': 1, 'line_w': 0.0,
+    'proxy_needle': {'icon_crop': (0.0, 0.62), 'box': (62, 62), 'mb': 1, 'line_w': 0.0, 'back_post': _FUR,
                      'accents': [
                          (lambda r, g, b: (b > 170) & (r < 130) & (g > 90), (0.1, 0.18, 0.3, 0.32), 0.2, [(-1, 0), (0, -1)]),
                          (lambda r, g, b: (g > 170) & (g > r + 40) & (b < g), (0.28, 0.18, 0.48, 0.32), 0.2, [(-1, 0), (0, 1)])]},
@@ -471,6 +482,43 @@ def tune(sid):
 def load(path):
     a = M.key_magenta(np.array(Image.open(path).convert('RGBA')))
     return Image.fromarray(a)
+
+
+def drop_small(src, frac):
+    """Remove source components smaller than `frac` of the largest one (floating
+    rune dots etc. that vanish at 64px but still shrink the creature's fit box)."""
+    a = np.array(src)
+    m = a[..., 3] > 40
+    small = Image.fromarray((m * 255).astype(np.uint8))
+    k = max(1, max(small.size) // 128)
+    ms = np.array(small.resize((small.width // k, small.height // k), Image.BOX)) > 60
+    lab, sizes = M.label(ms)
+    if len(sizes) <= 2:
+        return src
+    big = max(sizes[1:])
+    keep = np.zeros_like(ms)
+    for i, n in enumerate(sizes):
+        if i and n >= big * frac:
+            keep |= lab == i
+    keep = np.array(Image.fromarray((keep * 255).astype(np.uint8)).resize(small.size, Image.NEAREST)) > 0
+    a = a.copy()
+    a[~keep, 3] = 0
+    return Image.fromarray(a)
+
+
+def front_source(sid):
+    """The keyed, cropped, cleaned front painting the sprite and icon are made from."""
+    t = tune(sid)
+    src = load(raw(sid, 'front'))
+    if t.get('crop'):   # (x0, y0, x1, y1) fractions: drop e.g. a long thin trail
+        x0, y0, x1, y1 = t['crop']
+        src = src.crop((int(x0 * src.width), int(y0 * src.height),
+                        int(x1 * src.width), int(y1 * src.height)))
+    if t.get('dewisp'):
+        src = M.dewisp(src, t['dewisp'], t.get('protect', ()))
+    if t.get('drop_small'):
+        src = drop_small(src, t['drop_small'])
+    return src
 
 
 def make_front(sid, src):
@@ -494,7 +542,7 @@ def make_back(sid, src, back_src):
         bw, bh = t.get('back_box', (64, 84))
     arr = reduce_mode(back_src, bw, bh, colors=t['colors'], thresh=t.get('thresh', 0.5),
                       sat=t.get('sat', 1.06), despeckle=t.get('despeckle', 1),
-                      keep_contrast=t.get('keep_contrast', 140), line_w=t.get('line_w', 0.5), premode=t.get('premode', 0), contrast=t.get('contrast', 2.5), accents=t.get('back_accents', ()))
+                      keep_contrast=t.get('keep_contrast', 140), line_w=t.get('back_line_w', t.get('line_w', 0.5)), premode=t.get('premode', 0), contrast=t.get('contrast', 2.5), accents=t.get('back_accents', ()))
     spr = Image.fromarray(arr)
     im = M.new(64, 64)
     x = (64 - spr.width) // 2 + t.get('back_dx', 0)
@@ -502,6 +550,8 @@ def make_back(sid, src, back_src):
     im.paste(spr, (x, y), spr)
     for fn in t.get('back_touch', []):
         fn(im)
+    for fn in t.get('back_post', []):   # im -> im filters (calm.py)
+        im = fn(im)
     return im
 
 
@@ -532,18 +582,14 @@ def build(only=None):
         if not os.path.exists(raw(sid, 'front')):
             continue
         t = tune(sid)
-        src = load(raw(sid, 'front'))
-        if t.get('crop'):   # (x0, y0, x1, y1) fractions: drop e.g. a long thin trail
-            x0, y0, x1, y1 = t['crop']
-            src = src.crop((int(x0 * src.width), int(y0 * src.height),
-                            int(x1 * src.width), int(y1 * src.height)))
-        if t.get('dewisp'):
-            src = M.dewisp(src, t['dewisp'], t.get('protect', ()))
+        src = front_source(sid)
         back_src = load(raw(sid, 'back')) if os.path.exists(raw(sid, 'back')) else None
         if back_src is not None and t.get('back_crop'):
             x0, y0, x1, y1 = t['back_crop']
             w, h = back_src.size
             back_src = back_src.crop((int(x0 * w), int(y0 * h), int(x1 * w), int(y1 * h)))
+        if back_src is not None and t.get('drop_small'):
+            back_src = drop_small(back_src, t['drop_small'])
         front = make_front(sid, src)
         back = make_back(sid, src, back_src)
         icon = make_icon(sid, src)

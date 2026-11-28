@@ -117,7 +117,9 @@ export async function travelCard(ui: UIScene, kind: TravelKind, from: string, to
     const k = p.t
     g.clear()
     // sky bands (dusk for planes)
-    const sky = kind === 'plane' ? [0x3c64c8, 0x6c98ec, 0xa8d8f8, 0xd8f0fc] : [0x78b8f0, 0xa8d8f8, 0xd8f0fc, 0xf4f6fa]
+    const sky = kind === 'plane' ? [0x3c64c8, 0x6c98ec, 0xa8d8f8, 0xd8f0fc, 0xf4f6fa] : [0x78b8f0, 0xa8d8f8, 0xd8f0fc, 0xf4f6fa]
+    g.fillStyle(sky[sky.length - 1])
+    g.fillRect(0, 0, W, H)
     sky.forEach((c, i) => {
       g.fillStyle(c)
       g.fillRect(0, i * 22, W, 22)

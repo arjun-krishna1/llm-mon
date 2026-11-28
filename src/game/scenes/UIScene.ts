@@ -57,10 +57,13 @@ export class UIScene extends Phaser.Scene {
 
   /**
    * Pause on tab blur / hide (in-game only): the PAUSED overlay is drawn, audio is muted, then
-   * the game loop sleeps until a click or key. Off for automated runs (?fast=1, webdriver).
+   * the game loop sleeps until a click or key. Off for automated runs (?fast=1, webdriver)
+   * unless ?pausetest=1.
    */
   private installPauseOnBlur(): void {
-    if (params.fast || navigator.webdriver) return
+    // automated runs (webdriver / ?fast=1) opt in with ?pausetest=1
+    const forced = new URLSearchParams(location.search).has('pausetest')
+    if (!forced && (params.fast || navigator.webdriver)) return
     const inGame = () => ['Overworld', 'Battle'].some((k) => this.game.scene.isActive(k))
     const pause = () => {
       if (this.paused || !inGame()) return
