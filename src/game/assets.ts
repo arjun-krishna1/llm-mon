@@ -27,6 +27,10 @@ export interface ImageAsset {
 export const CHAR_IDS = ['player', 'mom', 'prof', 'aide', 'boy', 'girl', 'man', 'woman', 'elder', 'techie',
   'nurse', 'clerk', 'trainer_m', 'trainer_f', 'hallucihound', 'rival']
 
+/** Gym badge ids (systems/badges.ts): ui/badge_<id> 16×16, ui/badge_<id>_big 32×32. */
+export const BADGE_IDS = ['gradient', 'likelihood', 'embedding', 'normal', 'chain', 'wave', 'attention', 'merge']
+const BADGE_FALLBACK = ['#c04444', '#3f6cc0', '#2c9458', '#2a9490', '#788494', '#7050c0', '#e07028', '#e06c98']
+
 export const TYPE_IDS = ['anthropic', 'openai', 'google', 'zhipu', 'deepseek', 'mistral', 'moonshot', 'cohere', 'xai', 'meta', 'microsoft', 'alibaba', 'classic', 'glitch']
 
 const P = COLORS
@@ -144,6 +148,23 @@ export function imageManifest(): ImageAsset[] {
   // a missing file is simply skipped there, so no placeholder is registered for these).
   for (const e of ['question', 'heart', 'dots', 'music']) list.push({ key: `fx/emote_${e}`, w: 16, h: 16, optional: true })
   for (const t of TYPE_IDS) list.push({ key: `ui/type_${t}`, w: 32, h: 12 })
+  // Gym badges (tools/ui/badges.py); procedural disc fallback keyed by colour
+  BADGE_IDS.forEach((id, i) => {
+    for (const n of [16, 32]) {
+      list.push({
+        key: `ui/badge_${id}${n === 32 ? '_big' : ''}`, w: n, h: n,
+        fallback: (c) => {
+          const col = BADGE_FALLBACK[i]
+          c.fillStyle = hex(P.outline)
+          c.beginPath(); c.arc(n / 2, n / 2, n / 2 - 0.5, 0, Math.PI * 2); c.fill()
+          c.fillStyle = col
+          c.beginPath(); c.arc(n / 2, n / 2, n / 2 - 1.5, 0, Math.PI * 2); c.fill()
+          c.fillStyle = '#fcfaf0'
+          c.fillRect(n / 2 - n / 8, n / 2 - n / 8, n / 4, n / 4)
+        },
+      })
+    }
+  })
   for (const id of allSpeciesIds()) {
     list.push({ key: `mons/${id}_front`, w: 64, h: 64 })
     list.push({ key: `mons/${id}_back`, w: 64, h: 64 })

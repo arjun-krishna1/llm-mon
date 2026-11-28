@@ -24,6 +24,14 @@ export interface MonInstance {
   moves: MoveSlot[]
   /** 0-15 per stat, rolled at creation. */
   ivs: Stats
+  /** (BATTLE-CORE) Held item id (data/items.ts pocket 'held'). Consumables are cleared when used. */
+  heldItem?: string
+  /**
+   * (BATTLE-CORE) Trust between trainer and mon, 0-255. Grows with battles won, level-ups and
+   * Model Center heals (see docs/BATTLE_API.md "Bond"); drives obedience checks in the finale.
+   * Absent on old saves: migrateSave fills it in.
+   */
+  bond?: number
 }
 
 export interface TrainerInfo {
@@ -56,6 +64,12 @@ export interface BattleRequest {
   defeatText?: string
   /** (CONTENT/BATTLE-CORE) Trainer AI: chance (0..1) to pick a random usable move instead of the best one. Default 0.1. */
   aiRandomness?: number
+  /** (BATTLE-CORE) Enemy AI tier. Default: 'wild' for wild/scripted, 'basic' for trainers. */
+  aiTier?: 'wild' | 'basic' | 'smart' | 'leader' | 'champion'
+  /** (BATTLE-CORE) Items the enemy trainer may use (leader/champion tiers), itemId -> count. */
+  trainerItems?: Record<string, number>
+  /** (BATTLE-CORE) Arena rules: gym/League/finale mechanics as data. See battle/core/arena.ts. */
+  arena?: { id: string; params?: Record<string, unknown> }[]
 }
 
 export interface BattleResult {
@@ -63,6 +77,10 @@ export interface BattleResult {
   caught?: MonInstance
   /** (BATTLE-CORE) Prize tokens for a trainer win. The caller adds it to state.money. */
   prize?: number
+  /** (BATTLE-CORE) Evolutions accepted after the battle (party indexes, species ids). */
+  evolved?: { partyIndex: number; from: string; to: string }[]
+  /** (BATTLE-CORE) Species ids to mark as seen+caught in the PromptDex (new evolutions). */
+  dexRegister?: string[]
 }
 
 export interface SaveData {

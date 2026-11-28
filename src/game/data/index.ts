@@ -13,6 +13,9 @@ export * from './species.ts'
 export * from './items.ts'
 export * from './encounters.ts'
 export * from './trainers.ts'
+export * from './abilities.ts'
+export { ROSTER, type RosterEntry } from './roster.ts'
+export { LEARNSETS } from './learnsets.ts'
 
 function lookup<T>(table: Record<string, T>, id: string, what: string): T {
   const v = table[id]

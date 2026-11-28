@@ -83,6 +83,127 @@ PROMPTS = {
         "big simple shapes, few large details, strong value contrast, soft blue-grey shading on "
         "the white fur, no fine fur strokes. Unsettling through serenity and scale, not horror: "
         "no gore, no red eyes, no teeth. Palette: white, blue-grey shadow, gold, sky blue, teal.")),
+
+    # ---- first batch (docs/ROSTER.md, stages 2-3) ----
+    'claude_sonnet': dict(name='Claude Sonnet', line='Claude', refpath='spr_claude_fable_front', p=(
+        "Its evolution: the SAME black fox-kirin as the attached image, grown half again as large "
+        "and more graceful: black coat, cream flame mane now running all down its spine, gold spiral "
+        "runes on its body, calm orange eyes. It now has a lynx-like cream ruff and tall tufted lynx "
+        "ears. Fourteen small gold rune-spirals float in an arc behind it like the lines of a poem. "
+        "Standing three-quarter pose, one forepaw raised. Palette: black, cream, gold, orange.")),
+    'gpt_5_5_thinking': dict(name='GPT 5.5 Thinking', line='GPT', refpath='spr_gpt_5_5_front', p=(
+        "Its evolution: the SAME teal-and-white fox-dragon as the attached image, now dog-sized "
+        "and sitting upright in a thinking pose, chin resting on one raised paw, eyes thoughtful. "
+        "Small teal wings folded on its back with gold tips. A ring of glowing rune wheels "
+        "(abstract glyph circles, not machinery) orbits its head like a halo of thought. Its "
+        "ribbon tail curls into a question-mark shape. Palette: teal, white, cream, a little gold.")),
+    'glm_plus': dict(name='GLM Plus', line='GLM', refpath='spr_glm_front', p=(
+        "Its evolution: the SAME jade-and-indigo kirin as the attached image, grown into a "
+        "long-legged qilin with a flowing violet mane and short antler horns. Its gold constellation "
+        "markings now connect with thin glowing lines into a visible graph of nodes across its "
+        "flanks; three small glowing node-stars float above the horns. Proud trotting pose, leafy "
+        "jade tail streaming. Palette: deep indigo, jade green, violet, gold, ice-blue highlights.")),
+    'mistral_small': dict(name='Mistral Small', line='Mistral', refpath='mistral_medium', p=(
+        "Its pre-evolution: a tiny baby version of the orange wind-fox in the attached image: a "
+        "small orange-and-cream fox kit made of swirling air, huge ears pinned back as if facing a "
+        "headwind, a scarf-like wisp tail. A single curling rune gust swirl hovers behind it. "
+        "Mid-leap pose, cheerful. Palette: bright orange, cream, a touch of rust.")),
+    'llama_scout': dict(name='Llama Scout', line='Llama', p=(
+        "A woolly baby llama in soft blue-grey fleece with a little red explorer's scarf; a trail "
+        "of three glowing hoof-print runes behind it. Big curious eyes, ears up, mid-step. The "
+        "fleece has faint woven glyph patterns like a blanket. A small pendant shaped like a plain "
+        "infinity loop hangs from the scarf. Palette: blue-grey, cream, red scarf, gold.")),
+    'phi_mini': dict(name='Phi mini', line='Phi', p=(
+        "A small fluffy sky-blue owlet with round study-glasses made of glowing light and a tiny "
+        "open book of glowing runes held under one wing. Upright, slightly too-serious studious "
+        "expression. Palette: sky blue, white, warm yellow book, a little navy.")),
+    'sgd': dict(name='SGD', line='Optimizer', p=(
+        "A small round armoured pill-bug / armadillo creature rolling downhill, shown mid-roll and "
+        "slightly tilted, its banded shell marked with small glowing mint downward-arrow runes. "
+        "Behind it a dotted glowing trail that wobbles zig-zag (noisy steps). Determined little "
+        "face peeking out. Palette: earthy brown, tan, glowing mint.")),
+    'momentum': dict(name='Momentum', line='Optimizer', ref='sgd', p=(
+        "Its evolution: the SAME armoured bug as the attached image, grown into a sleek armoured "
+        "pangolin leaning far forward as it rolls at speed, body half-curled into a wheel, head "
+        "low and determined, small fins on its sides. Its mint arrow runes now all point forward "
+        "in one steady direction and a long SMOOTH straight speed trail streams behind it (no "
+        "wobble). Palette: brown armour, tan, glowing mint.")),
+    'sigmoid': dict(name='Sigmoid', line='Activation', p=(
+        "A soft lavender snake lying in a lazy S-shaped curve: its head end and tail end both rest "
+        "FLAT along the ground at different heights, with a smooth rising S-curve between them. A "
+        "rune scale pattern glows brightest pink in its middle and fades dim toward both tips. "
+        "Sleepy, gentle expression. Palette: lavender, cream belly, warm pink glow.")),
+    'tanh': dict(name='Tanh', line='Activation', ref='sigmoid', p=(
+        "Its evolution: the SAME S-curved snake as the attached image, now longer and perfectly "
+        "centred, coiled symmetrically around a small glowing zero-ring rune; one half of its "
+        "body is lavender, the other half teal (negative and positive). Head raised, balanced "
+        "and alert. Palette: lavender, teal, cream, pink glow at the centre.")),
+    'relu': dict(name='ReLU', line='Activation', ref='tanh', p=(
+        "Its evolution: the snake from the attached image becomes a sharp-angled lizard shaped "
+        "like a hockey stick: its long tail lies perfectly flat and straight along the ground with a "
+        "hard flat underside, then its body bends at one hard corner and rises in a straight "
+        "diagonal line up to its head. Everything below the flat ground line is clipped clean. "
+        "Bold teal body, bright lime edge along the rising half, grey on the flat half. Alert, "
+        "poised to dash.")),
+    'perceptron': dict(name='Perceptron', line='Perceptron', p=(
+        "A small round firefly-beetle with exactly three long antenna-whiskers (inputs), each with "
+        "a glowing rune dot, and one big round glowing tail-light lantern (output). Hovering with "
+        "small wings. Cute round eyes. Palette: warm brass, soft gold glow, cream.")),
+    'mlp': dict(name='MLP', line='Perceptron', ref='perceptron', p=(
+        "Its evolution: a colony creature made of the firefly-beetles from the attached image: "
+        "three rows of small brass beetles linked by thin glowing threads into one lantern-shaped "
+        "hovering body, a larger beetle in the middle row acting as its face with big eyes; tail "
+        "lights glowing row by row. Palette: brass, gold glow, cream, the same as the attached "
+        "beetle.")),
+    'batchnorm': dict(name='BatchNorm', line='Norm', p=(
+        "A plump otter standing upright, perfectly balanced, centred and symmetric, front view, "
+        "balancing on its head a neat stack of glowing pebbles that are all exactly the same size. "
+        "Calm rune ripple rings radiate around its feet like a still pond. Proud, serene. "
+        "Palette: brown, cream, calm aqua glow.")),
+    'dropout': dict(name='Dropout', line='Dropout', p=(
+        "A playful ghost-kitten that is only partly there: several random patches of its body are "
+        "missing as clean square holes showing the background straight through it, and some of its "
+        "spots are faded out. Pouncing pose, mischievous grin. Soft white fur with mint rune "
+        "whiskers and mint spots.")),
+    'residual': dict(name='Residual', line='Residual', p=(
+        "A small brass salamander crawling low, with a bright glowing cyan arc of light that leaps "
+        "from its nose in a high bridge over its back and lands at its tail tip (a skip "
+        "connection). Friendly face. Palette: brass, bronze, cyan glow.")),
+    'softmax': dict(name='Softmax', line='Softmax', p=(
+        "A round fluffy puffball bird, perched and fluffed up, whose tail is a big round fan of "
+        "feathers of clearly different lengths that together form one full circle behind it, "
+        "faint glowing rune marks on each feather. Palette: pastel peach, pink, white, a little "
+        "gold.")),
+    'entropy': dict(name='Entropy', line='Entropy', p=(
+        "A small curled cloud-cat whose fur is a slowly mixing swirled marble of indigo and peach, "
+        "with tiny glowing square sparks popping off it. Curled-up pose, mysterious half-smile, "
+        "glowing eyes. Palette: indigo, peach, cream, small cyan sparks.")),
+    'n_gram': dict(name='N-gram', line='Embedding', p=(
+        "A chain of three small round caterpillar segments, each segment carrying a glowing "
+        "rune glyph (abstract symbol, not a real letter), the head turned back to look at the two "
+        "segments behind it. Inching pose. Palette: spring green, cream, soft gold glow.")),
+    'word2vec': dict(name='Word2Vec', line='Embedding', ref='n_gram', p=(
+        "Its evolution: the caterpillar from the attached image becomes a moth with spring-green "
+        "body and wide spread wings that are a night-blue star map: little glowing dots clustered "
+        "in groups with one faint glowing arrow from one cluster to another. Same face and green "
+        "colouring as the caterpillar. Palette: spring green, cream, night blue, soft gold.")),
+    'embedding': dict(name='Embedding', line='Embedding', ref='word2vec', p=(
+        "Its evolution: the moth from the attached image becomes a graceful luna-moth spirit with "
+        "long tail streamers; its body is a translucent glowing cube of space with clusters of "
+        "glowing points floating inside it; its wings are a deep star field. Hovering, serene. "
+        "Palette: night blue, green, silver, soft gold.")),
+    'glove': dict(name='GloVe', line='GloVe', p=(
+        "A plump round hedgehog whose quills are tipped with tiny glowing rune dots, some pairs "
+        "of quills tied together by thin glowing threads. Cupped little paws held in front. "
+        "Curled-ready pose, friendly. Palette: sand, moss green, soft gold.")),
+    'markov_chain': dict(name='Markov Chain', line='Markov', p=(
+        "A ring-tailed lemur mid-hop between three small floating stepping-stones, each stone "
+        "marked with a glowing rune, curved glowing arrows between the stones. Long striped "
+        "ringed tail. Palette: grey, white, coral, black rings.")),
+    'inception': dict(name='Inception', line='Inception', p=(
+        "A chameleon perched on a short branch with four eyes of different sizes on short stalks, "
+        "each looking a different way, violet eye-rings, and a curled spiral tail made of rune "
+        "rings nested inside each other. Palette: leaf green, gold, violet.")),
 }
 
 
@@ -90,12 +211,24 @@ def raw(sid, side):
     return os.path.join(GEN_RAW, 'mon_%s_%s.png' % (sid, side))
 
 
+def ref_path(sid):
+    spec = PROMPTS[sid]
+    if spec.get('ref'):
+        return raw(spec['ref'], 'front')
+    r = spec.get('refpath')
+    if not r:
+        return None
+    if r in M.SPECIES and 'ai' in M.SPECIES[r]:
+        return os.path.join(M.SRC_AI, M.SPECIES[r]['ai'] + '.png')
+    return os.path.join(GEN_RAW, r + '.png')
+
+
 def gen(sid, side='front', force=False):
     sys.path.insert(0, os.path.join(ROOT, 'tools', 'art', 'gen'))
     import imagegen
     spec = PROMPTS[sid]
     if side == 'front':
-        refs = [raw(spec['ref'], 'front')] if spec.get('ref') else []
+        refs = [ref_path(sid)] if ref_path(sid) else []
         prompt = LEAD + spec['p']
     else:
         refs = [raw(sid, 'front')]
@@ -162,7 +295,7 @@ def _despeckle(cl, C, keep_contrast):
 
 
 def reduce_mode(src, box_w, box_h, colors=15, thresh=0.5, min_island=6, pre=40, sat=1.06,
-                despeckle=1, keep_contrast=140, line_w=1.0, premode=0, accents=()):
+                despeckle=1, keep_contrast=140, line_w=1.0, premode=0, accents=(), contrast=0.0, min_share=0.22):
     bb = src.getchannel('A').point(lambda v: 255 if v > 40 else 0).getbbox()
     src = src.crop(bb)
     s = min(box_w / src.width, box_h / src.height)
@@ -202,7 +335,24 @@ def reduce_mode(src, box_w, box_h, colors=15, thresh=0.5, min_island=6, pre=40, 
             blk = qi[y0:y1, x0:x1][op[y0:y1, x0:x1]]
             if blk.size == 0:
                 blk = qi[y0:y1, x0:x1].ravel()
-            out_idx[y, x] = np.bincount(blk, weights=vw[blk], minlength=pre).argmax()
+            bc = np.bincount(blk, weights=vw[blk], minlength=pre)
+            if contrast:
+                # detail-preserving vote: a colour covering a fair share of the
+                # block wins if it stands out from the surrounding area (eyes,
+                # mouths, gems), instead of always the majority fur colour
+                ny0, ny1 = max(0, 2 * y0 - y1), min(H, 2 * y1 - y0)
+                nx0, nx1 = max(0, 2 * x0 - x1), min(W, 2 * x1 - x0)
+                nb = a[ny0:ny1, nx0:nx1][op[ny0:ny1, nx0:nx1]][:, :3]
+                if len(nb):
+                    mean = nb.mean(0)
+                    cand = np.nonzero(bc >= bc.sum() * min_share)[0]
+                    if len(cand) == 0:
+                        cand = np.array([bc.argmax()])
+                    d = np.sqrt(((pal[cand] - mean) ** 2).sum(1)) / 255.0
+                    score = bc[cand] * (1 + contrast * d)
+                    out_idx[y, x] = cand[int(np.argmax(score))]
+                    continue
+            out_idx[y, x] = bc.argmax()
     used, counts = np.unique(out_idx[mask], return_counts=True)
     C, lab = _kmeans(pal[used], counts.astype(float), colors)
     C = np.clip(C, 0, 255)
@@ -245,10 +395,33 @@ def reduce_mode(src, box_w, box_h, colors=15, thresh=0.5, min_island=6, pre=40, 
     return out
 
 
+# ------------------------------------------------------- touch-ups ----
+
+def _leader_face(im):
+    """Proxy leader: the source's fine closed-eye lines don't survive 64px;
+    repaint a clean serene face (closed eyes, small smile, blush)."""
+    px = im.load()
+    fur = (255, 246, 228, 255)
+    for y in range(25, 32):
+        for x in range(16, 31):
+            if px[x, y][3]:
+                px[x, y] = fur
+    ink = (74, 36, 40, 255)
+    for x, y in [(17, 28), (18, 29), (19, 29), (20, 28),
+                 (25, 28), (26, 29), (27, 29), (28, 28),
+                 (22, 31), (23, 31)]:
+        px[x, y] = ink
+    for x, y in [(17, 30), (18, 30), (27, 30), (28, 30)]:
+        px[x, y] = (247, 186, 186, 255)
+
+
 # per-creature tuning, same keys as mons.TUNE
 TUNE = {
     'grok': {'keep_contrast': 90},
-    'proxy_leader': {'box': (64, 63), 'mb': 1},
+    'momentum': {'crop': (0.0, 0.0, 0.66, 1.0)},
+    'proxy_leader': {'box': (64, 63), 'mb': 1, 'touch': [_leader_face], 'accents': [
+        # blue eyes of the embedded mascot faces
+        (lambda r, g, b: (b > 160) & (r < 110) & (g > 80) & (g < 200), (0.0, 0.0, 1.0, 1.0), 0.22)]},
     'proxy_student': {'icon_crop': (0.0, 0.62), 'box': (62, 62), 'mb': 1,
                       'accents': [(lambda r, g, b: (b > 170) & (r < 130) & (g > 90),
                                    (0.2, 0.15, 0.55, 0.3), 0.2, [(-1, 0), (0, -1)])]},
@@ -274,7 +447,7 @@ def make_front(sid, src):
     t = tune(sid)
     arr = reduce_mode(src, *t['box'], colors=t['colors'], thresh=t.get('thresh', 0.5),
                       sat=t.get('sat', 1.06), despeckle=t.get('despeckle', 1),
-                      keep_contrast=t.get('keep_contrast', 140), line_w=t.get('line_w', 1.0), premode=t.get('premode', 0), accents=t.get('accents', ()))
+                      keep_contrast=t.get('keep_contrast', 140), line_w=t.get('line_w', 0.5), premode=t.get('premode', 0), contrast=t.get('contrast', 2.5), accents=t.get('accents', ()))
     im = M.place(arr, 64, 64, margin_bottom=t.get('mb', 2), dx=t.get('dx', 0), dy=t.get('dy', 0))
     for fn in t.get('touch', []):
         fn(im)
@@ -291,7 +464,7 @@ def make_back(sid, src, back_src):
         bw, bh = t.get('back_box', (64, 84))
     arr = reduce_mode(back_src, bw, bh, colors=t['colors'], thresh=t.get('thresh', 0.5),
                       sat=t.get('sat', 1.06), despeckle=t.get('despeckle', 1),
-                      keep_contrast=t.get('keep_contrast', 140), line_w=t.get('line_w', 1.0), premode=t.get('premode', 0), accents=t.get('back_accents', ()))
+                      keep_contrast=t.get('keep_contrast', 140), line_w=t.get('line_w', 0.5), premode=t.get('premode', 0), contrast=t.get('contrast', 2.5), accents=t.get('back_accents', ()))
     spr = Image.fromarray(arr)
     im = M.new(64, 64)
     x = (64 - spr.width) // 2 + t.get('back_dx', 0)
@@ -330,6 +503,10 @@ def build(only=None):
             continue
         t = tune(sid)
         src = load(raw(sid, 'front'))
+        if t.get('crop'):   # (x0, y0, x1, y1) fractions: drop e.g. a long thin trail
+            x0, y0, x1, y1 = t['crop']
+            src = src.crop((int(x0 * src.width), int(y0 * src.height),
+                            int(x1 * src.width), int(y1 * src.height)))
         if t.get('dewisp'):
             src = M.dewisp(src, t['dewisp'], t.get('protect', ()))
         back_src = load(raw(sid, 'back')) if os.path.exists(raw(sid, 'back')) else None
@@ -348,13 +525,39 @@ def build(only=None):
 GALLERY_BG = (168, 216, 150, 255)   # battle meadow green
 
 
+# Evolution lines for the gallery, including existing (mons.py) members so a
+# new stage is always seen next to the stage it grows from / into.
+LINES = [
+    ('Grok', ['grok']),
+    ('Proxy', ['proxy_mascot', 'proxy_student', 'proxy_tamper', 'proxy_leader']),
+    ('Claude', ['claude_fable', 'claude_haiku', 'claude_sonnet', 'claude_opus']),
+    ('GPT', ['gpt_5_4_mini', 'gpt_5_5', 'gpt_5_5_thinking', 'gpt_5_5_xhigh']),
+    ('GLM', ['glm', 'glm_plus', 'glm_max']),
+    ('Mistral', ['mistral_small', 'mistral_medium']),
+    ('Llama', ['llama_scout']),
+    ('Phi', ['phi_mini']),
+    ('Optimizer', ['sgd', 'momentum']),
+    ('Activation', ['sigmoid', 'tanh', 'relu']),
+    ('Perceptron', ['perceptron', 'mlp']),
+    ('Embedding', ['n_gram', 'word2vec', 'embedding']),
+    ('Singles', ['batchnorm', 'dropout', 'residual', 'softmax']),
+    ('Singles 2', ['entropy', 'glove', 'markov_chain', 'inception']),
+]
+
+
 def lines():
-    """Evolution lines in roster order: [(line name, [ids])]."""
-    out = {}
-    for sid, spec in PROMPTS.items():
-        if os.path.exists(os.path.join(SPRITES, 'mons', sid + '_front.png')):
-            out.setdefault(spec.get('line', sid), []).append(sid)
-    return list(out.items())
+    """[(line name, [ids with a built front])], only lines with a set-2 member."""
+    have = lambda s: os.path.exists(os.path.join(SPRITES, 'mons', s + '_front.png'))
+    out, seen = [], set()
+    for name, ids in LINES:
+        ids = [i for i in ids if have(i)]
+        seen.update(ids)
+        if any(i in PROMPTS for i in ids):
+            out.append((name, ids))
+    rest = [i for i in PROMPTS if i not in seen and have(i)]
+    if rest:
+        out.append(('Other', rest))
+    return out
 
 
 def gallery():
@@ -402,9 +605,11 @@ def previews():
     if g is not None:
         out['gallery'] = save(g, PREVIEW, 'creatures_gallery_3x.png')
     for lname, ids in lines():
-        enemy = ids[-1]
-        player = ids[0]
-        key = 'battle_c_%s_4x.png' % ids[0]
+        if lname.startswith('Singles'):
+            continue
+        mine = [i for i in ids if i in PROMPTS]
+        enemy, player = mine[-1], mine[0]
+        key = 'battle_c_%s_4x.png' % mine[0]
         out[key] = save(battle_mock(enemy, player), PREVIEW, key)
     return out
 

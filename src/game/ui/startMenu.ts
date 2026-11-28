@@ -12,11 +12,13 @@ import { BagScreen } from './screens/BagScreen'
 import { PlayerCard } from './screens/PlayerCard'
 import { OptionsScreen } from './screens/OptionsScreen'
 import { PromptDexScreen } from './screens/PromptDexScreen'
+import { NotebookScreen } from './screens/NotebookScreen'
+import { TownMapScreen } from './screens/TownMapScreen'
 
 export interface StartMenuEntry {
   id: string
   label: () => string
-  /** Sort key (lower = higher in the list). Built-ins: 10 party, 20 dex, 30 bag, 40 card, 50 save, 60 options, 99 exit. */
+  /** Sort key (lower = higher in the list). Built-ins: 10 party, 20 dex, 22 notebook, 26 field, 30 bag, 35 town map, 40 card, 50 save, 60 options, 99 exit. */
   order: number
   /** Only listed while this returns true. */
   when?: () => boolean
@@ -24,12 +26,17 @@ export interface StartMenuEntry {
   screen?: (ui: UIScene) => Promise<unknown>
   /** Custom flow; the start menu closes afterwards. */
   action?: (ui: UIScene) => Promise<unknown>
+  /** Listed but greyed out (bump on select) while this returns true. Tamper hooks can also grey entries by id. */
+  disabled?: () => boolean
 }
 
 export const START_MENU_ENTRIES: StartMenuEntry[] = [
   { id: 'party', label: () => 'LLMMON', order: 10, when: () => state.party.length > 0, screen: (ui) => new PartyScreen(ui, ui.stack, { mode: 'view' }).run() },
   { id: 'dex', label: () => 'PROMPTDEX', order: 20, when: () => state.flag('got_dex'), screen: (ui) => new PromptDexScreen(ui, ui.stack).run() },
+  { id: 'notebook', label: () => 'NOTEBOOK', order: 22, when: () => state.itemCount('notebook') > 0, screen: (ui) => new NotebookScreen(ui, ui.stack).run() },
+  // 'field' (order 26) is registered by the overworld (src/game/world/FieldSkills.ts)
   { id: 'bag', label: () => 'BAG', order: 30, screen: (ui) => new BagScreen(ui, ui.stack, { mode: 'view' }).run() },
+  { id: 'townmap', label: () => 'TOWN MAP', order: 35, when: () => state.itemCount('town_map') > 0, screen: (ui) => new TownMapScreen(ui, ui.stack, { mode: 'view' }).run() },
   { id: 'card', label: () => state.playerName.toUpperCase(), order: 40, screen: (ui) => new PlayerCard(ui, ui.stack).run() },
   { id: 'save', label: () => 'SAVE', order: 50, action: (ui) => ui.saveFlow() },
   { id: 'options', label: () => 'OPTIONS', order: 60, screen: (ui) => new OptionsScreen(ui, ui.stack).run() },

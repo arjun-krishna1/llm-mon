@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { readFileSync, writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { rosterMarkdown } from '../rosterDoc.ts'

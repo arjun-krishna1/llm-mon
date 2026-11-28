@@ -13,7 +13,11 @@ import { DialogBox, type SayOptions } from '../ui/DialogBox'
 import { ListMenu, type ListOptions } from '../ui/ListMenu'
 import { WidgetStack } from '../ui/WidgetStack'
 import { Banner } from '../ui/Banner'
-import { PxText, expand } from '../ui/text'
+import { PxText, expand, refreshTamperedText } from '../ui/text'
+import { Hud } from '../ui/Hud'
+import { tamper } from '../systems/tamper'
+import { badgeGetScene, travelCard, type TravelKind } from '../ui/Cutscenes'
+import { badgeDef } from '../systems/badges'
 import { Window } from '../ui/Window'
 import { PartyScreen, type PartyOptions } from '../ui/screens/PartyScreen'
 import { BagScreen, type BagOptions } from '../ui/screens/BagScreen'
@@ -34,17 +38,62 @@ export class UIScene extends Phaser.Scene {
     super({ key: 'UI', active: false })
   }
 
+  hud!: Hud
+  private pauseObjs: Array<{ destroy(): void }> = []
+
   create(): void {
     this.dialog = new DialogBox(this, this.stack)
     this.banner = new Banner(this)
+    this.hud = new Hud(this)
     this.fader = this.add.rectangle(0, 0, W, H, 0x000000).setOrigin(0, 0).setDepth(9000).setAlpha(0).setScrollFactor(0)
+    // interface tampering (systems/tamper.ts): re-filter live text in every scene when it changes
+    const off = tamper.onChange(() => refreshTamperedText(this.game.scene.getScenes(true)))
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, off)
   }
 
   update(): void {
+    const sm = this.game.scene
+    this.hud.visible = sm.isActive('Overworld') && !sm.isActive('Battle') && !sm.isPaused('Overworld')
     controls.each(() => {
       this.stack.update()
       this.banner.tick()
+      this.hud.tick()
+      tamper.tick()
     })
+  }
+
+  /** Small non-blocking notice above the dialog area ("New Notebook page!"). */
+  toast(text: string, icon?: string): void {
+    this.hud.toast(text, icon)
+  }
+
+  /** Badge-get scene (dims, spins the badge in, fanfare, two lines). Flag handling is the caller's. */
+  async badgeGet(id: string, leader?: string): Promise<void> {
+    const def = badgeDef(id)
+    if (!def) {
+      console.warn(`[ui] badgeGet: unknown badge '${id}'`)
+      return
+    }
+    await badgeGetScene(this, def, leader)
+  }
+
+  /** Region-travel card. Leaves the screen black (warp next, or fade(0)). */
+  travelCard(kind: TravelKind, from: string, to: string): Promise<void> {
+    return travelCard(this, kind, from, to)
+  }
+
+  /** Pause overlay (window lost focus). */
+  showPause(on: boolean): void {
+    for (const o of this.pauseObjs) o.destroy()
+    this.pauseObjs = []
+    if (!on) return
+    const dim = this.add.rectangle(0, 0, W, H, 0x101420).setOrigin(0, 0).setDepth(9500).setAlpha(0.6).setScrollFactor(0)
+    const win = new Window(this, W / 2 - 56, H / 2 - 20, 112, 40, 'ui/frame_menu').setDepth(9501)
+    const t1 = new PxText(this, 0, H / 2 - 14, 'PAUSED').setDepth(9502).setScrollFactor(0)
+    t1.setPosition(Math.round(W / 2 - t1.width / 2), H / 2 - 14)
+    const t2 = new PxText(this, 0, H / 2 + 4, 'CLICK OR PRESS A KEY', { font: FONT.mini, shadow: 'none' }).setDepth(9502).setScrollFactor(0)
+    t2.setPosition(Math.round(W / 2 - t2.width / 2), H / 2 + 4)
+    this.pauseObjs = [dim, win, t1, t2]
   }
 
   /** True while any dialog/menu is up (the overworld should not move the player). */
@@ -152,7 +201,7 @@ export class UIScene extends Phaser.Scene {
         const entries = visibleStartMenuEntries()
         const opts = entries.map((e) => ({ label: e.label(), id: e.id, disabled: e.disabled?.() ?? false }))
         const m = new ListMenu(this, this.stack, opts, {
-          x: W - 2, y: 2, anchor: 'tr', minW: 72, initial: Math.min(this.startCursor, opts.length - 1),
+          x: W - 2, y: 2, anchor: 'tr', minW: 72, rows: Math.min(opts.length, 9), initial: Math.min(this.startCursor, opts.length - 1),
           cancelIndex: opts.length - 1, persist: true, startCancels: true,
         })
         const i = await m.result()
