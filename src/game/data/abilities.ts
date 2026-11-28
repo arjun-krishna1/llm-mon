@@ -36,7 +36,7 @@ const LIST: AbilityDef[] = [
   { id: 'dropout', name: 'Dropout', description: 'Dodges 10% of attacks outright.' },
   { id: 'stochastic', name: 'Stochastic', description: 'Its damage rolls swing wider: anywhere from 70% to 115%.' },
   { id: 'compressed', name: 'Compressed', description: 'Every other move it uses costs no PP.' },
-  { id: 'pioneer', name: 'Pioneer', description: 'Same-type moves hit 2x instead of 1.5x.' },
+  { id: 'pioneer', name: 'Pioneer', description: 'An ancestor of the field: even its Classic moves get a same-type bonus, and that bonus is 2x instead of 1.5x.' },
   { id: 'move_37', name: 'Move 37', description: 'The first attack it makes in a battle is always a critical hit.' },
   { id: 'overconfident', name: 'Overconfident', description: 'Hits 25% harder but its accuracy is 10% lower.' },
   { id: 'goodhart', name: 'Goodhart', description: 'Any stat boost it gains is doubled.' },

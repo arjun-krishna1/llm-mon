@@ -61,6 +61,8 @@ export interface ArenaView {
   evalLight?: boolean
   /** Finale phase 1-4. */
   phase?: number
+  /** Phase 2: the Probe has been used this phase (until then Proxy cannot drop past its gate). */
+  probed?: boolean
   keys?: { turned: number; needed: number; available: number; failures: number; maxFailures: number }
   disabled?: InputKind[]
 }

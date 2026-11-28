@@ -103,9 +103,10 @@ function t(def: Omit<TrainerDef, 'postBattle' | 'preBattle'> & { preBattle?: str
 // anthropic) and his ace is Grok. Battle 1 (Route 101): a Route 101 catch your
 // starter beats, his counter-starter, then Grok. Balance locked by
 // data/__tests__/rival.test.ts (62-85% for a Lv8 starter + Lv2-3 catch, rematch
-// easier, both sides land a super-effective hit). The `_rematch` variant is used
-// once after you lose to him. `rival_dana_*` ids remain as aliases until CONTENT
-// switches over.
+// easier, both sides land a super-effective hit). Ids are keyed by the PLAYER's
+// starter: rival_yilong_<yours>, rival_yilong_<yours>_rematch (used once after you
+// lose to him), rival_yilong2_<yours> (Palo Alto). `rival_dana_<his starter>` ids
+// remain as aliases until CONTENT switches over.
 const RIVAL_COUNTER: Record<string, { moves: string[]; iv: number; level: number; catchId: string; catchMoves: string[] }> = {
   gpt_5_5: { moves: ['autocomplete', 'focus_token', 'function_call'], iv: 5, level: 5, catchId: 'gemma_4', catchMoves: ['autocomplete', 'small_talk'] }, // vs Claude Fable
   glm: { moves: ['graph_paw', 'pattern_guard', 'graph_reason'], iv: 5, level: 5, catchId: 'mistral_medium', catchMoves: ['autocomplete', 'jailbreak'] }, // vs GPT 5.5
@@ -119,11 +120,16 @@ const YILONG = {
   loseText: 'Okay. OKAY. Respect. Grok says it let you win. It did not.',
   prize: 300,
 }
-function yilong1(starter: string, rematch: boolean): TrainerDef {
+/** Player's starter -> the counter-starter Yilong carries. */
+export const RIVAL_STARTER_FOR: Record<string, string> = { claude_fable: 'gpt_5_5', gpt_5_5: 'glm', glm: 'claude_fable' }
+
+/** `playerStarter` = the starter YOU chose; Yilong carries RIVAL_STARTER_FOR[playerStarter]. */
+function yilong1(playerStarter: string, rematch: boolean): TrainerDef {
+  const starter = RIVAL_STARTER_FOR[playerStarter]
   const r = RIVAL_COUNTER[starter]
   return {
     ...YILONG,
-    id: `rival_yilong_${starter}${rematch ? '_rematch' : ''}`,
+    id: `rival_yilong_${playerStarter}${rematch ? '_rematch' : ''}`,
     party: [
       p(r.catchId, 3, { moves: r.catchMoves }),
       p(starter, rematch ? r.level - 1 : r.level, { moves: r.moves, ivs: iv(r.iv) }),
@@ -135,12 +141,13 @@ function yilong1(starter: string, rematch: boolean): TrainerDef {
   }
 }
 // Battle 2: Palo Alto library, ~Lv 22-25. Counter-starter evolved, Grok, a Llama.
-function yilong2(starter: string): TrainerDef {
+function yilong2(playerStarter: string): TrainerDef {
   const evo: Record<string, string> = { gpt_5_5: 'gpt_5_5_thinking', glm: 'glm_plus', claude_fable: 'claude_sonnet' }
+  const starter = RIVAL_STARTER_FOR[playerStarter]
   return {
     ...YILONG,
-    id: `rival_yilong2_${starter}`,
-    party: [p('llama_scout', 22), p('mistral_small', 22), p('grok', 24), p(evo[starter], 25)],
+    id: `rival_yilong2_${playerStarter}`,
+    party: [p('llama_scout', 22), p('mistral_small', 22), p('grok', 24), p(evo[starter], 24)],
     preBattle: ['The library is quiet. Let’s fix that.'],
     postBattle: ['I read the whole chart this time. You read it better.'],
     prize: 1500,
@@ -148,10 +155,12 @@ function yilong2(starter: string): TrainerDef {
     background: 'library',
   }
 }
-for (const s of Object.keys(RIVAL_COUNTER)) {
-  TRAINER_LIST.push(yilong1(s, false), yilong1(s, true), yilong2(s))
-  // Deprecated aliases (CONTENT still uses these ids).
-  TRAINER_LIST.push({ ...yilong1(s, false), id: `rival_dana_${s}` }, { ...yilong1(s, true), id: `rival_dana_${s}_rematch` })
+for (const mine of Object.keys(RIVAL_STARTER_FOR)) {
+  TRAINER_LIST.push(yilong1(mine, false), yilong1(mine, true), yilong2(mine))
+  // Deprecated aliases keyed by the RIVAL's starter, as Dana's were (CONTENT still uses
+  // rival_dana_<her starter>); same teams. Remove once CONTENT switches to rival_yilong_<yours>.
+  const hers = RIVAL_STARTER_FOR[mine]
+  TRAINER_LIST.push({ ...yilong1(mine, false), id: `rival_dana_${hers}` }, { ...yilong1(mine, true), id: `rival_dana_${hers}_rematch` })
 }
 
 // ── Gym 1: Gradient Gym (SoMa Node), Rumelhart ─────────────────────────────
@@ -162,7 +171,7 @@ TRAINER_LIST.push(
   t({ id: 'gym1_c', trainerClass: 'Researcher', name: 'Ronald', sprite: 'trainer_m_front', overworldSprite: 'trainer_m', party: [p('perceptron', 11), p('mlp', 12)], loseText: 'The chain rule never lies. I do, sometimes.', prize: 480, aiTier: 'smart', arena: GYM1, preBattle: ['One layer, then two. Watch them learn!'], postBattle: ['The leader trained all three of his with the same rule.'] }),
   t({
     id: 'gym1_leader', trainerClass: 'Leader', name: 'Rumelhart', sprite: 'rumelhart_front', overworldSprite: 'man', badge: 'gradient',
-    party: [p('perceptron', 12, { ivs: iv(12), moves: ['fire_neuron', 'guardrail', 'descent', 'small_talk'] }), p('sgd', 12, { ivs: iv(12) }), p('mlp', 14, { ivs: iv(12), moves: ['fire_neuron', 'hidden_layer', 'backprop', 'descent'] })],
+    party: [p('perceptron', 12, { ivs: iv(10), moves: ['fire_neuron', 'guardrail', 'descent', 'small_talk'] }), p('sgd', 12, { ivs: iv(10) }), p('mlp', 13, { ivs: iv(10), moves: ['fire_neuron', 'hidden_layer', 'descent', 'small_talk'] })],
     preBattle: ['A network is just tiny sums and products.', 'Every turn my LLMMON survive, they take one step downhill. Let’s see how many steps you allow.'],
     loseText: 'You found the steepest way down. The Gradient Badge is yours.', postBattle: ['Backprop lets you walk back up ledges. Blame flows backwards, after all.'],
     prize: 1400, aiTier: 'leader', items: { patch: 1 }, arena: GYM1, music: 'battle_leader', background: 'gym',
@@ -186,11 +195,11 @@ TRAINER_LIST.push(
 
 // ── Gyms 3-8 leaders (full gyms come in later stages) ─────────────────────
 TRAINER_LIST.push(
-  t({ id: 'gym3_leader', trainerClass: 'Leader', name: 'Bengio', sprite: 'bengio_front', overworldSprite: 'elder', badge: 'embedding', party: [p('tanh', 22, { ivs: iv(12) }), p('mlp', 23, { ivs: iv(12) }), p('word2vec', 24, { ivs: iv(13) }), p('embedding', 26, { ivs: iv(14) })], loseText: 'Your moves were all over the map. In a good way.', prize: 2600, aiTier: 'leader', items: { big_patch: 1 }, arena: [{ id: 'context_window' }], music: 'battle_leader', background: 'gym' }),
+  t({ id: 'gym3_leader', trainerClass: 'Leader', name: 'Bengio', sprite: 'bengio_front', overworldSprite: 'elder', badge: 'embedding', party: [p('tanh', 22, { ivs: iv(12) }), p('mlp', 23, { ivs: iv(12) }), p('word2vec', 24, { ivs: iv(12) }), p('embedding', 24, { ivs: iv(11), moves: ['embed', 'next_token', 'long_memory', 'bigram_bite'] })], loseText: 'Your moves were all over the map. In a good way.', prize: 2600, aiTier: 'leader', items: { big_patch: 1 }, arena: [{ id: 'context_window' }], music: 'battle_leader', background: 'gym' }),
   t({ id: 'gym4_leader', trainerClass: 'Leader', name: 'Ioffe', sprite: 'ioffe_front', overworldSprite: 'man', badge: 'normal', party: [p('batchnorm', 29, { ivs: iv(13) }), p('dropout', 29, { ivs: iv(13) }), p('inception', 30, { ivs: iv(13) }), p('relu', 32, { ivs: iv(14) })], loseText: 'Fundamentals. Exactly. The Normal Badge is yours.', prize: 3200, aiTier: 'leader', items: { big_patch: 1 }, arena: [{ id: 'stage_reset' }], music: 'battle_leader', background: 'gym' }),
-  t({ id: 'gym5_leader', trainerClass: 'Leader', name: 'Hinton', sprite: 'hinton_front', overworldSprite: 'elder', badge: 'chain', party: [p('rmsprop', 35, { ivs: iv(13) }), p('boltzmann_machine', 35, { ivs: iv(13) }), p('capsule', 36, { ivs: iv(14) }), p('alexnet', 38, { ivs: iv(14) })], loseText: 'You did it by hand. That is the only way to really know.', prize: 3800, aiTier: 'leader', items: { big_patch: 2 }, arena: [{ id: 'hidden_numbers' }], music: 'battle_leader', background: 'gym' }),
-  t({ id: 'gym6_leader', trainerClass: 'Leader', name: 'van den Oord', sprite: 'vandenoord_front', overworldSprite: 'man', badge: 'wave', party: [p('pixelcnn', 41, { ivs: iv(14) }), p('vq_vae', 41, { ivs: iv(14) }), p('lstm', 42, { ivs: iv(14) }), p('wavenet', 43, { ivs: iv(15) })], loseText: 'Quick and decisive. My receptive field never got wide enough.', prize: 4300, aiTier: 'leader', items: { big_patch: 2 }, arena: [{ id: 'history_damage' }], music: 'battle_leader', background: 'gym' }),
-  t({ id: 'gym7_leader', trainerClass: 'Leader', name: 'Vaswani', sprite: 'vaswani_front', overworldSprite: 'man', badge: 'attention', party: [p('transformer_base', 46, { ivs: iv(14) }), p('attention_head', 46, { ivs: iv(14) }), p('bert', 46, { ivs: iv(14) }), p('t5', 47, { ivs: iv(14) }), p('adam', 48, { ivs: iv(15) })], loseText: 'Attention was not all I needed, it seems.', prize: 4800, aiTier: 'leader', items: { big_patch: 2 }, arena: [{ id: 'smart_targeting' }, { id: 'copy_best_move' }], music: 'battle_leader', background: 'gym' }),
+  t({ id: 'gym5_leader', trainerClass: 'Leader', name: 'Hinton', sprite: 'hinton_front', overworldSprite: 'elder', badge: 'chain', party: [p('rmsprop', 35, { ivs: iv(13) }), p('boltzmann_machine', 35, { ivs: iv(13) }), p('capsule', 36, { ivs: iv(14) }), p('alexnet', 37, { ivs: iv(12), moves: ['convolve', 'hidden_layer', 'drop_units', 'fire_neuron'] })], loseText: 'You did it by hand. That is the only way to really know.', prize: 3800, aiTier: 'leader', items: { big_patch: 2 }, arena: [{ id: 'hidden_numbers' }], music: 'battle_leader', background: 'gym' }),
+  t({ id: 'gym6_leader', trainerClass: 'Leader', name: 'van den Oord', sprite: 'vandenoord_front', overworldSprite: 'man', badge: 'wave', party: [p('pixelcnn', 40, { ivs: iv(12) }), p('vq_vae', 41, { ivs: iv(12) }), p('lstm', 41, { ivs: iv(12), moves: ['long_memory', 'forget_gate', 'next_token', 'recur'] }), p('wavenet', 42, { ivs: iv(12) })], loseText: 'Quick and decisive. My receptive field never got wide enough.', prize: 4300, aiTier: 'leader', items: { big_patch: 2 }, arena: [{ id: 'history_damage' }], music: 'battle_leader', background: 'gym' }),
+  t({ id: 'gym7_leader', trainerClass: 'Leader', name: 'Vaswani', sprite: 'vaswani_front', overworldSprite: 'man', badge: 'attention', party: [p('attention_head', 45, { ivs: iv(12) }), p('bert', 46, { ivs: iv(12) }), p('t5', 46, { ivs: iv(12) }), p('adam', 47, { ivs: iv(13) }), p('transformer_base', 48, { ivs: iv(13) })], loseText: 'Attention was not all I needed, it seems.', prize: 4800, aiTier: 'leader', items: { big_patch: 2 }, arena: [{ id: 'smart_targeting' }, { id: 'copy_best_move' }], music: 'battle_leader', background: 'gym' }),
   t({ id: 'gym8_leader', trainerClass: 'Leader', name: 'Sennrich', sprite: 'sennrich_front', overworldSprite: 'man', badge: 'merge', party: [p('byte', 50, { ivs: iv(14) }), p('wordpiece', 51, { ivs: iv(14) }), p('sentencepiece', 51, { ivs: iv(14) }), p('bpe', 53, { ivs: iv(15) })], loseText: 'Short, efficient, merged. You speak tokenizer.', prize: 5300, aiTier: 'leader', items: { big_patch: 2 }, arena: [{ id: 'token_budget', params: { budget: 24 } }], music: 'battle_leader', background: 'gym' }),
 )
 
@@ -200,7 +209,15 @@ TRAINER_LIST.push(
   t({ id: 'league_howard', trainerClass: 'Frontier Four', name: 'Howard', sprite: 'howard_front', overworldSprite: 'man', party: [p('mingpt', 56, { ivs: iv(15) }), p('awd_lstm', 56, { ivs: iv(15) }), p('lora', 56, { ivs: iv(15) }), p('ulmfit', 58, { ivs: iv(15) })], loseText: 'Pretrain, then fine-tune. You did both.', prize: 6000, aiTier: 'champion', items: { big_patch: 2 }, arena: [{ id: 'base_model', params: { to: 'nanochat', hpFraction: 0.5, turn: 3 } }], music: 'battle_league', background: 'league' }),
   t({ id: 'league_li', trainerClass: 'Frontier Four', name: 'Li', sprite: 'li_front', overworldSprite: 'woman', party: [p('softmax', 57, { ivs: iv(15) }), p('vgg', 58, { ivs: iv(15) }), p('resnet', 58, { ivs: iv(15) }), p('temperature', 59, { ivs: iv(15) })], loseText: 'Measured carefully. You were never just guessing.', prize: 6000, aiTier: 'champion', items: { big_patch: 2 }, arena: [{ id: 'temperature', params: { value: 1.6 } }], music: 'battle_league', background: 'league' }),
   t({ id: 'league_russell', trainerClass: 'Frontier Four', name: 'Russell', sprite: 'russell_front', overworldSprite: 'elder', party: [p('classifier', 59, { ivs: iv(15) }), p('guardrail', 59, { ivs: iv(15) }), p('rlhf', 59, { ivs: iv(15) }), p('constitution_ai', 61, { ivs: iv(15) })], loseText: 'Your LLMMON trust you. That is the whole lesson.', prize: 6200, aiTier: 'champion', items: { big_patch: 2 }, arena: [{ id: 'refusal' }], music: 'battle_league', background: 'league' }),
-  t({ id: 'champion_karpathy', trainerClass: 'Champion', name: 'Karpathy', sprite: 'prof_front', overworldSprite: 'prof', party: [p('micrograd', 60, { ivs: iv(15) }), p('makemore', 60, { ivs: iv(15) }), p('char_rnn', 61, { ivs: iv(15) }), p('mingpt', 61, { ivs: iv(15) }), p('nanogpt', 62, { ivs: iv(15) }), p('nanochat', 62, { ivs: iv(15) })], loseText: 'You didn’t memorise it. You built it.', prize: 10000, aiTier: 'champion', items: { big_patch: 3 }, arena: [{ id: 'gradient_descent' }], music: 'battle_champion', background: 'league' }),
+  t({ id: 'champion_karpathy', trainerClass: 'Champion', name: 'Karpathy', sprite: 'prof_front', overworldSprite: 'prof', party: [
+      // One per lecture, in order; only the last one has learned Zero to Hero.
+      p('micrograd', 59, { ivs: iv(12), moves: ['backprop', 'descent', 'fire_neuron', 'hidden_layer'] }),
+      p('makemore', 59, { ivs: iv(12), moves: ['bigram_bite', 'sample', 'embed', 'next_token'] }),
+      p('char_rnn', 60, { ivs: iv(12), moves: ['recur', 'next_token', 'long_memory', 'sample'] }),
+      p('mingpt', 60, { ivs: iv(12), moves: ['attend', 'next_token', 'backprop', 'multi_head'] }),
+      p('nanogpt', 61, { ivs: iv(12), moves: ['attend', 'multi_head', 'backprop', 'next_token'] }),
+      p('nanochat', 62, { ivs: iv(13), moves: ['multi_head', 'self_critique', 'knowledge_transfer', 'zero_to_hero'] }),
+    ], loseText: 'You didn’t memorise it. You built it.', prize: 10000, aiTier: 'champion', items: { big_patch: 3 }, arena: [{ id: 'gradient_descent' }], music: 'battle_champion', background: 'league' }),
 )
 
 // ── Caltrain Line (stage 2) ──────────────────────────────────────────────
@@ -212,7 +229,7 @@ TRAINER_LIST.push(
   t({ id: 'caltrain_5', trainerClass: 'Student', name: 'Wen', sprite: 'trainer_f_front', overworldSprite: 'girl', party: [p('phi_mini', 14), p('sigmoid', 13)], loseText: 'I studied for the wrong test.', prize: 420 }),
   t({ id: 'caltrain_6', trainerClass: 'Hacker', name: 'Max', sprite: 'trainer_m_front', overworldSprite: 'techie', party: [p('gpt_5_4_mini', 14), p('softmax', 14)], loseText: 'Ship it anyway.', prize: 420 }),
   t({ id: 'caltrain_7', trainerClass: 'Commuter', name: 'Rosa', sprite: 'trainer_f_front', overworldSprite: 'woman', party: [p('entropy', 15), p('mistral_small', 14)], loseText: 'Statistically, I should have won one of these by now.', prize: 450, aiTier: 'smart' }),
-  t({ id: 'caltrain_8', trainerClass: 'Founder', name: 'Theo', sprite: 'trainer_m_front', overworldSprite: 'man', party: [p('qwen', 15), p('llama_scout', 15), p('markov_chain', 15)], loseText: 'Pivoting to a different train.', prize: 600, aiTier: 'smart' }),
+  t({ id: 'caltrain_8', trainerClass: 'Founder', name: 'Theo', sprite: 'trainer_m_front', overworldSprite: 'man', party: [p('phi_mini', 15), p('llama_scout', 15), p('markov_chain', 15)], loseText: 'Pivoting to a different train.', prize: 600, aiTier: 'smart' }),
 )
 
 // ── Team Overfit (fictional) ─────────────────────────────────────────────
@@ -231,7 +248,7 @@ TRAINER_LIST.push(
 
 // ── The finale: Proxy (never catchable) ──────────────────────────────────
 TRAINER_LIST.push(
-  t({ id: 'proxy_finale', trainerClass: '', name: 'Proxy', sprite: 'proxy', overworldSprite: 'proxy', party: [p('proxy_student', 62, { ivs: iv(15) })], loseText: '', prize: 0, aiTier: 'champion', arena: [{ id: 'proxy_finale', params: { keysAvailable: 4, keysNeeded: 4, maxFailures: 3 } }], introText: 'Proxy is at the top of the board.', music: 'battle_proxy', background: 'leaderboard' }),
+  t({ id: 'proxy_finale', trainerClass: '', name: 'Proxy', sprite: 'proxy', overworldSprite: 'proxy', party: [p('proxy_student', 62, { ivs: iv(15) })], loseText: '', prize: 0, aiTier: 'champion', arena: [{ id: 'proxy_finale', params: { keysAvailable: 4, keysNeeded: 4, maxFailures: 2 } }], introText: 'Proxy is at the top of the board.', music: 'battle_proxy', background: 'leaderboard' }),
 )
 
 export const TRAINERS: Record<string, TrainerDef> = Object.fromEntries(TRAINER_LIST.map((t) => [t.id, t]))

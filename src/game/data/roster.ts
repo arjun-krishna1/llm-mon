@@ -115,7 +115,7 @@ export const ROSTER: RosterEntry[] = [
   // ── OpenAI: GPT 5.5 (starter) -> Thinking -> xhigh; GPT-5.4 mini grows into GPT 5.5
   {
     id: 'gpt_5_4_mini', name: 'GPT-5.4 mini', family: 'model', type: 'openai', stage: 1,
-    evolvesTo: [{ to: 'gpt_5_5', level: 14 }], areas: ['route_101', 'caltrain_line'], ability: 'warm_start',
+    evolvesTo: [{ to: 'gpt_5_5', level: 14 }], areas: ['route_101', 'route_101_north', 'caltrain_line'], ability: 'warm_start',
     baseStats: S(34, 40, 30, 36, 30, 68), catchRate: 200, expYield: 50, growth: 'fast',
     concept: 'The pocket GPT. Grows into GPT 5.5.',
     brief: 'Existing sprite (keep): a round teal seed-sprite with a pale glowing face and floating crystal shards. Its evolution, GPT 5.5, should keep the teal and the shards.',
@@ -315,7 +315,7 @@ export const ROSTER: RosterEntry[] = [
   // ── Alibaba: Qwen -> Qwen Max
   {
     id: 'qwen', name: 'Qwen', family: 'model', type: 'alibaba', stage: 1,
-    evolvesTo: [{ to: 'qwen_max', level: 34 }], areas: ['menlo_park', 'palo_alto'], ability: 'polyglot',
+    evolvesTo: [{ to: 'qwen_max', level: 34 }], areas: ['seattle', 'redmond'], ability: 'polyglot',
     baseStats: S(50, 46, 46, 58, 50, 56), catchRate: 150, expYield: 64, growth: 'medium_fast',
     concept: 'Speaks every language and codes in most of them.',
     brief: 'A slim violet-and-amber dragon pup with whisker-ribbons that end in tiny glowing characters from many scripts. Coiled sitting pose, tail wrapped around its paws, curious tilt. Violet, amber, a little jade.',
@@ -333,7 +333,7 @@ export const ROSTER: RosterEntry[] = [
   // ── Microsoft: Phi mini -> Phi
   {
     id: 'phi_mini', name: 'Phi mini', family: 'model', type: 'microsoft', stage: 1,
-    evolvesTo: [{ to: 'phi', level: 28 }], areas: ['caltrain_line', 'palo_alto'], ability: 'textbook',
+    evolvesTo: [{ to: 'phi', level: 28 }], areas: ['caltrain_line', 'menlo_park', 'palo_alto'], ability: 'textbook',
     baseStats: S(40, 36, 44, 52, 48, 50), catchRate: 180, expYield: 58, growth: 'medium_fast', firstBatch: true,
     concept: 'Small model, raised on textbooks.',
     brief: 'A small sky-blue owlet with round study-glasses made of light and a tiny open book of glowing runes under one wing. Fluffy, upright, slightly too-serious expression. Sky blue, white and a warm yellow for the book.',
@@ -588,7 +588,7 @@ export const ROSTER: RosterEntry[] = [
   },
   {
     id: 'entropy', name: 'Entropy', family: 'component', type: 'classic', role: 'sampling', stage: 1,
-    areas: ['caltrain_line', 'trainer'], ability: 'stochastic',
+    areas: ['caltrain_line', 'menlo_park', 'trainer'], ability: 'stochastic',
     baseStats: S(58, 44, 50, 70, 60, 60), catchRate: 120, expYield: 90, growth: 'medium_fast', firstBatch: true,
     concept: 'How surprised you are, on average, measured in bits.',
     brief: 'A small swirling cloud-cat whose fur is a slowly mixing marble of two colours, with tiny binary rune sparks (bits) popping off it. Curled, mysterious smile. Indigo and peach marble.',
@@ -628,7 +628,7 @@ export const ROSTER: RosterEntry[] = [
   },
   {
     id: 'markov_chain', name: 'Markov Chain', family: 'component', type: 'classic', role: 'language', stage: 1,
-    areas: ['caltrain_line', 'trainer'], ability: 'stochastic',
+    areas: ['caltrain_line', 'menlo_park', 'trainer'], ability: 'stochastic',
     baseStats: S(56, 52, 56, 56, 56, 56), catchRate: 160, expYield: 70, growth: 'medium_fast', firstBatch: true,
     concept: 'The next step depends only on where you are now.',
     brief: 'A ring-tailed lemur hopping between three floating stepping-stones, each stone marked with a state rune and arrows between them showing the odds. Mid-hop pose. Grey, white and coral.',

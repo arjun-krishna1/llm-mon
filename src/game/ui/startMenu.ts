@@ -14,6 +14,7 @@ import { OptionsScreen } from './screens/OptionsScreen'
 import { PromptDexScreen } from './screens/PromptDexScreen'
 import { NotebookScreen } from './screens/NotebookScreen'
 import { TownMapScreen } from './screens/TownMapScreen'
+import { foundCount } from '../systems/notebook'
 
 export interface StartMenuEntry {
   id: string
@@ -33,8 +34,8 @@ export interface StartMenuEntry {
 export const START_MENU_ENTRIES: StartMenuEntry[] = [
   { id: 'party', label: () => 'LLMMON', order: 10, when: () => state.party.length > 0, screen: (ui) => new PartyScreen(ui, ui.stack, { mode: 'view' }).run() },
   { id: 'dex', label: () => 'PROMPTDEX', order: 20, when: () => state.flag('got_dex'), screen: (ui) => new PromptDexScreen(ui, ui.stack).run() },
-  { id: 'notebook', label: () => 'NOTEBOOK', order: 22, when: () => state.itemCount('notebook') > 0, screen: (ui) => new NotebookScreen(ui, ui.stack).run() },
-  // 'field' (order 26) is registered by the overworld (src/game/world/FieldSkills.ts)
+  { id: 'notebook', label: () => 'NOTEBOOK', order: 22, when: () => state.itemCount('notebook') > 0 || foundCount() > 0, screen: (ui) => new NotebookScreen(ui, ui.stack).run() },
+  // 'field' (order 26: skills, quick key, EVAL light) is registered by src/game/world/FieldSkills.ts
   { id: 'bag', label: () => 'BAG', order: 30, screen: (ui) => new BagScreen(ui, ui.stack, { mode: 'view' }).run() },
   { id: 'townmap', label: () => 'TOWN MAP', order: 35, when: () => state.itemCount('town_map') > 0, screen: (ui) => new TownMapScreen(ui, ui.stack, { mode: 'view' }).run() },
   { id: 'card', label: () => state.playerName.toUpperCase(), order: 40, screen: (ui) => new PlayerCard(ui, ui.stack).run() },

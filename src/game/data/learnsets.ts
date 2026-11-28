@@ -8,12 +8,12 @@ export const LEARNSETS: Record<string, L> = {
   // ── Anthropic ──
   claude_fable: [[1, 'warm_nudge'], [1, 'guardrail'], [7, 'artifact'], [11, 'constitution'], [15, 'summarize'], [19, 'extended_thinking'], [25, 'quick_reply']],
   claude_haiku: [[1, 'warm_nudge'], [1, 'quick_reply'], [4, 'artifact'], [9, 'constitution'], [14, 'extended_thinking'], [20, 'summarize']],
-  claude_sonnet: [[1, 'warm_nudge'], [1, 'guardrail'], [1, 'artifact'], [16, 'self_critique'], [20, 'knowledge_transfer'], [24, 'extended_thinking'], [29, 'summarize'], [33, 'polite_refusal']],
+  claude_sonnet: [[1, 'warm_nudge'], [1, 'guardrail'], [1, 'artifact'], [16, 'self_critique'], [19, 'extended_thinking'], [24, 'knowledge_transfer'], [29, 'summarize'], [33, 'polite_refusal']],
   claude_opus: [[1, 'warm_nudge'], [1, 'guardrail'], [1, 'artifact'], [1, 'constitution'], [34, 'extended_thinking'], [38, 'self_critique'], [40, 'summarize'], [46, 'reward_model']],
   // ── OpenAI ──
   gpt_5_4_mini: [[1, 'autocomplete'], [1, 'small_talk'], [4, 'function_call'], [7, 'quick_reply'], [11, 'custom_instruction'], [16, 'reasoning_effort']],
   gpt_5_5: [[1, 'autocomplete'], [1, 'focus_token'], [7, 'function_call'], [11, 'jailbreak'], [15, 'custom_instruction'], [19, 'reasoning_effort'], [25, 'quick_reply']],
-  gpt_5_5_thinking: [[1, 'autocomplete'], [1, 'focus_token'], [1, 'function_call'], [16, 'jailbreak'], [20, 'backprop'], [24, 'custom_instruction'], [28, 'reasoning_effort'], [33, 'big_batch']],
+  gpt_5_5_thinking: [[1, 'autocomplete'], [1, 'focus_token'], [1, 'function_call'], [16, 'jailbreak'], [19, 'reasoning_effort'], [22, 'next_token'], [24, 'backprop'], [28, 'custom_instruction'], [33, 'big_batch']],
   gpt_5_5_xhigh: [[1, 'function_call'], [1, 'focus_token'], [1, 'custom_instruction'], [32, 'reasoning_effort'], [38, 'brute_force'], [40, 'quick_reply'], [46, 'loss_spike']],
   // ── Google ──
   gemini_flash: [[1, 'prompt_pulse'], [1, 'small_talk'], [4, 'multimodal_beam'], [7, 'quick_reply'], [11, 'grounding'], [15, 'long_context'], [22, 'next_token']],
@@ -21,7 +21,7 @@ export const LEARNSETS: Record<string, L> = {
   gemma_4: [[1, 'autocomplete'], [1, 'small_talk'], [4, 'multimodal_beam'], [8, 'long_context'], [12, 'grounding'], [17, 'tpu_slam'], [22, 'augment']],
   // ── Zhipu ──
   glm: [[1, 'graph_paw'], [1, 'pattern_guard'], [7, 'graph_reason'], [11, 'thinking_mode'], [15, 'summarize'], [19, 'blank_infill'], [25, 'quick_reply']],
-  glm_plus: [[1, 'graph_paw'], [1, 'pattern_guard'], [1, 'graph_reason'], [16, 'thinking_mode'], [20, 'embed'], [24, 'blank_infill'], [29, 'summarize'], [33, 'analogy']],
+  glm_plus: [[1, 'graph_paw'], [1, 'pattern_guard'], [1, 'graph_reason'], [16, 'thinking_mode'], [19, 'blank_infill'], [24, 'embed'], [29, 'summarize'], [33, 'analogy']],
   glm_max: [[1, 'graph_paw'], [1, 'graph_reason'], [1, 'thinking_mode'], [30, 'blank_infill'], [36, 'summarize'], [42, 'multi_head']],
   // ── Mistral ──
   mistral_small: [[1, 'autocomplete'], [1, 'small_talk'], [5, 'tailwind'], [9, 'jailbreak'], [13, 'le_chat'], [17, 'cool_breeze']],

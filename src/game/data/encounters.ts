@@ -59,7 +59,7 @@ const TABLE_LIST: EncounterTable[] = [
       { speciesId: 'llama_scout', rate: 15, minLevel: 15, maxLevel: 17 },
       { speciesId: 'mistral_small', rate: 15, minLevel: 15, maxLevel: 17 },
       { speciesId: 'gemma_4', rate: 12, minLevel: 15, maxLevel: 17 },
-      { speciesId: 'qwen', rate: 10, minLevel: 15, maxLevel: 17 },
+      { speciesId: 'phi_mini', rate: 10, minLevel: 15, maxLevel: 17 },
       { speciesId: 'entropy', rate: 8, minLevel: 16, maxLevel: 18 },
     ],
   },

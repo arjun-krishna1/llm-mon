@@ -25,7 +25,7 @@ def write(path, sh):
     w('Art sources: ground, path/sand/water edge sets, ledges, tall grass, flowers and fences are '
       'hand-placed pixels in code (`ground.py`, `props.py`). Buildings, the tree, bush, rocks, signs, '
       'mailbox, lamp and bench are generated source images (`gen_sources.py`, cached in '
-      '`tools/art/gen/raw/ext_*.png`), pixelized and snapped to `tools/art/palette.py`, then '
+      '`tools/art/gen/raw/ext_*.png`), pixelized and snapped to `tools/art/palette.py` (red key-fringe pixels on the silhouette are re-inked with the warm outline: `genart._defringe`), then '
       'hand-corrected in `buildings.py` / `nature.py`.')
     w('')
     w('## Layers')

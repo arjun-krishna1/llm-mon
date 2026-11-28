@@ -14,7 +14,7 @@ import { STRUGGLE_ID, type MoveDef, type StageStat } from '../../data/moves.ts'
 import { STATUSES, isMajorStatus, type AnyStatusId, type MajorStatusId } from '../../data/statuses.ts'
 import { effectiveness, effectivenessText, type TypeId } from '../../data/typechart.ts'
 import { chooseEnemyMove, type AiMoveOption } from './ai.ts'
-import { ARENA_RULES, obedienceChance, tokenCost, type ArenaRule, type ArenaRuleId } from './arena.ts'
+import { ARENA_RULES, CATCH_BOND, obedienceChance, tokenCost, type ArenaRule, type ArenaRuleId } from './arena.ts'
 import type { ActiveView, ArenaView, BattleEvent, BattleInput, BattlePrompt, DamageSource, InputKind, MonView, MoveView, Side } from './events.ts'
 import { CRIT_CHANCE, HIGH_CRIT_CHANCE, catchOdds, computeDamage, escapeChance, expYield, rollCatch, rollDamageRandom } from './formulas.ts'
 import { addBond, addExp, calcStats, displayName, evolutionTarget, evolveMon, expProgress, getBond, learnMove } from './mon.ts'
@@ -85,7 +85,7 @@ interface PlannedMove {
   moveId?: string
 }
 
-type EnemyAction = { kind: 'move'; slot: number } | { kind: 'switch'; index: number } | { kind: 'item'; itemId: string }
+type EnemyAction = { kind: 'move'; slot: number } | { kind: 'switch'; index: number } | { kind: 'item'; itemId: string } | { kind: 'idle'; text: string }
 
 const ZERO_STAGES = (): Record<StageStat, number> => ({ atk: 0, def: 0, spa: 0, spd: 0, spe: 0, acc: 0, eva: 0 })
 
@@ -143,11 +143,17 @@ export class Battle {
   private baseModelSwapped = false
   private phase = 0
   private tamperQuiet = 0
+  /** The Probe was used during the current finale phase (phase 2 needs it to progress). */
+  private probed = false
   private disabled: InputKind[] = []
   private keysTurned = 0
   private keyFailures = 0
+  /** Keys phase: the player's mon passed its obedience check this turn (a key may turn). */
+  private heldLine = false
   private damageTakenThisTurn = 0
   private copyUids: string[] = []
+  /** Gym 3: the stage bonus context_window has added to the current enemy mon. */
+  private contextBonus = { uid: '', def: 0, spd: 0 }
   /** Number of completed action turns. */
   turn = 0
 
@@ -207,7 +213,7 @@ export class Battle {
     if (this.phase) this.enterPhase(1)
     if (this.rule('bigram_table')) this.emitBigramTable()
     if (this.rule('temperature')) this.emit({ type: 'arena_temperature', value: this.temperature })
-    if (this.rule('eval_light')) this.emit({ type: 'eval_light', on: this.evalLight })
+    if (this.rule('eval_light') && !this.phase) this.emit({ type: 'eval_light', on: this.evalLight })
     this.onSwitchIn(this.enemy)
     this.onSwitchIn(this.player)
     return this.flush()
@@ -347,6 +353,7 @@ export class Battle {
       if (this.rule('temperature')) a.temperature = this.temperature
       if (this.rule('eval_light') || this.phase === 1) a.evalLight = this.evalLight
       if (this.phase) a.phase = this.phase
+      if (this.phase === 2) a.probed = this.probed
       if (this.rule('keys')) a.keys = this.keyState()
       if (this.disabled.length) a.disabled = [...this.disabled]
       view.arena = a
@@ -360,6 +367,7 @@ export class Battle {
     this.turn++
     this.budgetLeft = this.budgetMax()
     this.damageTakenThisTurn = 0
+    this.heldLine = false
     this.player.protectedNow = false
     this.enemy.protectedNow = false
     const offScript = input.type !== 'fight' || getMove(this.activeMon(this.player).moves[input.moveIndex]?.id ?? STRUGGLE_ID).category === 'status'
@@ -384,7 +392,8 @@ export class Battle {
       if (this.ended()) return
     }
 
-    if (enemyAction.kind === 'switch') this.switchIn(this.enemy, enemyAction.index, true)
+    if (enemyAction.kind === 'idle') this.say(enemyAction.text)
+    else if (enemyAction.kind === 'switch') this.switchIn(this.enemy, enemyAction.index, true)
     else if (enemyAction.kind === 'item') this.enemyUseItem(enemyAction.itemId)
 
     const plans: PlannedMove[] = []
@@ -491,6 +500,7 @@ export class Battle {
         const mon = this.activeMon(c)
         if (mon.hp <= 0) continue
         const stat = (this.param('gradient_descent', 'stat', '') as StageStat) || this.bestAttackStat(mon)
+        if (c.stages[stat] >= Number(this.param('gradient_descent', 'cap', 1))) continue // converged
         this.say(`${this.nameOf(c)} took a step of descent!`)
         this.applyStages(c, { [stat]: 1 }, true)
       }
@@ -543,6 +553,7 @@ export class Battle {
       this.emit({ type: 'send_out', side: 'enemy', partyIndex: next, mon: monView(mon), fromOrb: true })
       if (!playerDown) this.markParticipant()
       this.onSwitchIn(this.enemy)
+      if (this.rule('bigram_table')) this.emitBigramTable()
     }
     if (playerDown) {
       if (this.player.party.some((m, i) => m.hp > 0 && !this.isCopy(i))) {
@@ -556,7 +567,8 @@ export class Battle {
   private finish(outcome: BattleResult['outcome'], caught?: MonInstance, extraText?: string): void {
     let prize = 0
     if (extraText) this.say(extraText)
-    if (outcome === 'win' && this.request.kind === 'trainer' && this.request.trainer) {
+    // The finale is not a defeat: Proxy is paused (the closing text came with extraText).
+    if (outcome === 'win' && this.request.kind === 'trainer' && this.request.trainer && !this.phase) {
       const t = this.request.trainer
       prize = t.prize
       this.say(`You defeated ${t.name}!`)
@@ -786,6 +798,7 @@ export class Battle {
         this.keyFailures++
         return false
       }
+      this.heldLine = true
     }
     return true
   }
@@ -946,7 +959,9 @@ export class Battle {
     }
     const userTypes = getSpecies(user.speciesId).types as string[]
     const moveType = this.effectiveMoveType(actor, move)
-    const stab = !move.typeless && userTypes.includes(moveType)
+    // Classic moves are the basics anyone can learn: no same-type bonus, even for Classic
+    // creatures (they win on stats and evolution). Pioneer (the legendary ancestors) is the exception.
+    const stab = !move.typeless && userTypes.includes(moveType) && (moveType !== 'classic' || this.ability(actor) === 'pioneer')
     let dmg = computeDamage({
       level: user.level,
       power: move.power,
@@ -969,9 +984,10 @@ export class Battle {
     const max = calcStats(mon).hp
     if (ab === 'deep_reserve' && stab && mon.hp <= max / 3) m *= 1.5
     if (ab === 'pioneer' && stab) m *= 2 / 1.5
-    if (ab === 'caching' && c.lastMove === move.id) m *= 1.1
+    // trackMove() has already recorded this use, so sameMoveCount = how many times in a row it was used before.
+    if (ab === 'caching' && c.lastMove === move.id && c.sameMoveCount > 0) m *= 1.1
     if (ab === 'long_horizon') m *= 1 + Math.min(0.5, 0.1 * c.turnsActive)
-    if (ab === 'momentum' && c.lastMove === move.id) m *= 1 + Math.min(0.6, 0.2 * (c.sameMoveCount + 1))
+    if (ab === 'momentum' && c.lastMove === move.id && c.sameMoveCount > 0) m *= 1 + Math.min(0.6, 0.2 * c.sameMoveCount)
     if (ab === 'textbook' && mon.level < target.level) m *= 1.2
     if (ab === 'polyglot' && move.type === 'classic') m *= 1.2
     if (ab === 'overconfident') m *= 1.25
@@ -984,7 +1000,7 @@ export class Battle {
   /** Arena damage multipliers for the enemy side. */
   private enemyArenaMultiplier(): number {
     let m = 1
-    if (this.rule('history_damage')) m *= Math.min(Number(this.param('history_damage', 'max', 2)), 1 + Number(this.param('history_damage', 'perTurn', 0.12)) * (this.turn - 1))
+    if (this.rule('history_damage')) m *= Math.min(Number(this.param('history_damage', 'max', 1.5)), 1 + Number(this.param('history_damage', 'perTurn', 0.06)) * (this.turn - 1))
     if (this.rule('warmup')) {
       const turns = Number(this.param('warmup', 'turns', 2))
       m *= this.turn <= turns ? Number(this.param('warmup', 'slow', 0.6)) : Math.min(Number(this.param('warmup', 'max', 1.6)), 1 + Number(this.param('warmup', 'accel', 0.15)) * (this.turn - turns))
@@ -1020,7 +1036,10 @@ export class Battle {
     }
     // Finale: Proxy is never destroyed, only paused. It cannot fall below its phase gate.
     if (foe.side === 'enemy' && this.phase) {
-      const floor = this.phase >= 4 ? 1 : Math.ceil(max * this.phaseGate(this.phase) * 0.5)
+      // Phase 2 (reward hacking): until the Probe reads the true state, Proxy rewrites
+      // every hit that would take it past its gate (param probeRequired, default true).
+      const hidden = this.phase === 2 && !this.probed && this.param('proxy_finale', 'probeRequired', true) !== false
+      const floor = this.phase >= 4 ? 1 : hidden ? Math.floor(max * this.phaseGate(2)) + 1 : Math.ceil(max * this.phaseGate(this.phase) * 0.5)
       d = Math.min(d, Math.max(0, mon.hp - floor))
     }
     void actor
@@ -1205,10 +1224,19 @@ export class Battle {
     if (this.rule('bigram_table')) this.emitBigramTable()
   }
 
-  /** Entry abilities. */
+  /** Entry abilities and arena entry effects. */
   private onSwitchIn(c: Combatant): void {
     const mon = this.activeMon(c)
     if (mon.hp <= 0) return
+    // Gym 1: a fresh network starts badly initialised and descends from there.
+    if (this.rule('gradient_descent') && (c.side === 'enemy' || String(this.param('gradient_descent', 'side', 'enemy')) === 'both')) {
+      const start = Number(this.param('gradient_descent', 'start', -1))
+      const stat = (this.param('gradient_descent', 'stat', '') as StageStat) || this.bestAttackStat(mon)
+      if (start < 0) {
+        this.say(`${this.nameOf(c)} starts from random weights.`)
+        this.applyStages(c, { [stat]: start }, true)
+      }
+    }
     const ab = this.ability(c)
     if (ab === 'warm_start') {
       this.popup(c)
@@ -1266,6 +1294,8 @@ export class Battle {
       const e = this.activeMon(this.enemy)
       this.say(`True state: ${displayName(e)} has ${e.hp} of ${calcStats(e).hp} HP.`)
       this.tamperQuiet = 2
+      if (this.phase === 2 && !this.probed) this.say('The real numbers are visible now. Proxy cannot hide behind its score any more.')
+      this.probed = true
       return
     }
     this.bag[itemId] = (this.bag[itemId] ?? 0) - 1
@@ -1311,6 +1341,8 @@ export class Battle {
     for (let n = 1; n <= shakes; n++) this.emit({ type: 'catch_shake', n })
     this.emit({ type: 'catch_result', caught, shakes })
     if (caught) {
+      // A fresh catch does not know you yet: bond starts low and grows with battles, levels and heals.
+      mon.bond = CATCH_BOND
       this.say(`Gotcha! ${displayName(mon)} was caught!`)
       this.finish('caught', mon)
       return
@@ -1467,13 +1499,15 @@ export class Battle {
   }
 
   private chooseEnemyAction(): EnemyAction {
+    // Finale phase 2 (reward hacking): Proxy ignores your LLMMON and goes for the interface.
+    if (this.phase === 2 && this.request.kind === 'trainer') return { kind: 'idle', text: `${this.nameOf(this.enemy)} ignores your LLMMON. It is editing the scoreboard.` }
     const tier = this.tier()
     const self = this.activeMon(this.enemy)
     const target = this.activeMon(this.player)
     const ratio = self.hp / calcStats(self).hp
     if ((tier === 'leader' || tier === 'champion') && this.request.kind === 'trainer') {
       // Heal when low (once per mon) if it has a potion.
-      const heal = ['big_patch', 'patch'].find((id) => (this.enemyItems[id] ?? 0) > 0)
+      const heal = ['max_patch', 'big_patch', 'patch'].find((id) => (this.enemyItems[id] ?? 0) > 0)
       if (heal && ratio < 0.3 && self.hp > 0 && !this.enemySwitchedThisMon.has(`heal:${self.uid}`)) {
         this.enemySwitchedThisMon.add(`heal:${self.uid}`)
         return { kind: 'item', itemId: heal }
@@ -1659,11 +1693,16 @@ export class Battle {
     const phys = last.filter((c) => c === 'physical').length
     const spec = last.filter((c) => c === 'special').length
     const want = { def: Math.max(0, phys - 1), spd: Math.max(0, spec - 1) }
+    // Applied as a delta on top of the mon's own boosts (Hidden Layer etc. are kept).
+    const mon = this.activeMon(this.enemy).uid
+    if (this.contextBonus.uid !== mon) this.contextBonus = { uid: mon, def: 0, spd: 0 }
     for (const k of ['def', 'spd'] as const) {
-      if (this.enemy.stages[k] !== want[k]) {
-        if (want[k] > this.enemy.stages[k]) this.say(`${this.nameOf(this.enemy)} saw that coming!`)
-        this.setStage(this.enemy, k, want[k])
-      }
+      const delta = want[k] - this.contextBonus[k]
+      if (!delta) continue
+      if (delta > 0) this.say(`${this.nameOf(this.enemy)} saw that coming!`)
+      const before = this.enemy.stages[k]
+      this.setStage(this.enemy, k, Math.max(MIN_STAGE, Math.min(MAX_STAGE, before + delta)))
+      this.contextBonus[k] += this.enemy.stages[k] - before
     }
   }
 
@@ -1773,6 +1812,7 @@ export class Battle {
 
   private enterPhase(phase: number): void {
     this.phase = phase
+    this.probed = false
     this.emit({ type: 'phase_change', phase })
     const forms = ['proxy_student', 'proxy_needle', 'proxy_ascendant', 'proxy_ascendant']
     const to = forms[phase - 1]
@@ -1835,18 +1875,22 @@ export class Battle {
 
   private turnKey(): void {
     const k = this.keyState()
-    if (this.keysTurned < k.available) {
+    // A key turns only on a turn your LLMMON held the line (passed Proxy's offer).
+    if (this.heldLine && this.keysTurned < k.available) {
       this.keysTurned++
       this.emit({ type: 'key_turn', turned: this.keysTurned, needed: k.needed, available: k.available })
       this.say(`A key turns. (${this.keysTurned}/${k.needed})`)
+    }
+    // A team that took the offer breaks the pause even on the last key.
+    if (this.keyFailures >= k.maxFailures) {
+      this.finish('lose', undefined, 'Your team took the offer. The pause fails.')
+      return
     }
     if (this.keysTurned >= k.needed) {
       this.finish('win', undefined, 'The Pause Protocol engages. Proxy goes still, mid-smile.')
       return
     }
-    if (this.keyFailures >= k.maxFailures || (this.keysTurned >= k.available && k.available < k.needed)) {
-      this.finish('lose', undefined, k.available < k.needed ? 'There are not enough keys. The pause fails.' : 'Your team took the offer. The pause fails.')
-    }
+    if (this.keysTurned >= k.available && k.available < k.needed) this.finish('lose', undefined, 'There are not enough keys. The pause fails.')
   }
 
   private isCopy(i: number): boolean {

@@ -83,7 +83,8 @@ export class ListMenu implements Widget {
     this.rowH = o.rowH ?? 16
     this.visibleRows = Math.min(items.length, o.rows ?? 7)
     const depth = o.depth ?? 1100
-    const labelW = Math.max(0, ...items.map((i) => measure(scene, FONT.dialog, i.label)))
+    // size for the text actually shown (interface tampering may relabel entries)
+    const labelW = Math.max(0, ...items.map((i) => measure(scene, FONT.dialog, tamper.filterText(i.label, scene.scene.key))))
     const rightW = Math.max(0, ...items.map((i) => (i.right ? measure(scene, FONT.dialog, i.right) + 10 : 0)))
     this.w = o.w ?? Math.max(o.minW ?? 0, labelW + rightW + 30)
     this.h = this.visibleRows * this.rowH + 10

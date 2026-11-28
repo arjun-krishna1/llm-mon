@@ -14,6 +14,19 @@ import type { ListOptions } from '../ui/ListMenu'
 import type { NameEntryOptions } from '../ui/screens/NameEntryScreen'
 import { openStorage } from '../ui/screens/StorageScreen'
 import { getScript } from './registry'
+import type { OverworldScene } from '../scenes/OverworldScene'
+import { notebookPage, markPageFound, pageFound, type NotebookPage } from '../systems/notebook'
+import { badgeCount, badgeDef, badgeFlag, hasBadge } from '../systems/badges'
+import { skillUnlocked, type SkillId } from '../systems/skills'
+import { tamper } from '../systems/tamper'
+import { location } from '../systems/locations'
+import { iconTexture } from '../world/kitTextures'
+import { onPuzzleEvent, type PuzzleEvent } from '../world/Puzzle'
+import type { CompGraph } from '../world/graph'
+import type { WeatherKind } from '../world/Atmosphere'
+import type { TravelKind } from '../ui/Cutscenes'
+import { TownMapScreen } from '../ui/screens/TownMapScreen'
+import { showMeter, type MeterOptions } from '../ui/TamperMeter'
 
 export type EmoteKind = 'exclaim' | 'question' | 'heart' | 'dots' | 'note' | 'music'
 
@@ -311,6 +324,112 @@ export class ScriptApi {
     }
   }
 
+  // ------------------------------------------------------------ notebook, badges, skills
+  /**
+   * Mark a Notebook page found: toast "New Notebook page!" + jingle. Returns false (and does
+   * nothing visible) if it was already found. Pages are registered by CONTENT with
+   * `registerNotebookPage` (systems/notebook.ts).
+   */
+  async unlockPage(id: string, opts: { silent?: boolean } = {}): Promise<boolean> {
+    if (!markPageFound(id)) return false
+    if (!opts.silent) {
+      const p = notebookPage(id)
+      audio.sfx('item_get')
+      this.ui.toast(p ? `NOTEBOOK: ${p.title}` : 'New Notebook page!', iconTexture(this.ui, 'notebook'))
+    }
+    return true
+  }
+  hasPage(id: string): boolean {
+    return pageFound(id)
+  }
+  page(id: string): NotebookPage | undefined {
+    return notebookPage(id)
+  }
+  /** Award a gym badge: sets flag `badge_<id>`, plays the badge-get scene (spin-in, fanfare, two lines). */
+  async giveBadge(id: string, leader?: string, opts: { silent?: boolean } = {}): Promise<void> {
+    if (!badgeDef(id)) console.warn(`[script] giveBadge: unknown badge '${id}'`)
+    state.setFlag(badgeFlag(id))
+    if (!opts.silent) await this.ui.badgeGet(id, leader)
+  }
+  hasBadge(id: string): boolean {
+    return hasBadge(id)
+  }
+  badgeCount(): number {
+    return badgeCount()
+  }
+  skillUnlocked(id: SkillId): boolean {
+    return skillUnlocked(id)
+  }
+  /** Use a field skill as if chosen from the FIELD menu (no-op when locked). */
+  async useSkill(id: SkillId): Promise<void> {
+    await this.ow.skills.use(id)
+  }
+  /** Non-blocking notice above the dialog area. */
+  toast(text: string, icon?: string): void {
+    this.ui.toast(text, icon)
+  }
+
+  // ------------------------------------------------------------ world state
+  /** The EVAL light (saved as flag `eval_light`). NPCs with eval* props switch behaviour. */
+  get evalLight(): boolean {
+    return state.evalLight
+  }
+  setEvalLight(on: boolean): void {
+    if (state.evalLight !== on) audio.sfx(on ? 'select' : 'cancel')
+    state.evalLight = on
+  }
+  /** Interface tampering (systems/tamper.ts): scramble/relabel text, fake bars, grey menu entries, Probe. */
+  get tamper(): typeof tamper {
+    return tamper
+  }
+  /** Show a labelled bar that respects tampering (`tamper.setFake(id, v)`); A closes. The finale's display-vs-truth demo. */
+  meter(o: MeterOptions): Promise<void> {
+    return showMeter(this.ui, o)
+  }
+  /** Override the weather ('snow' | 'rain' | 'fog' | 'leaves' | ''); null = back to the map/zone's. */
+  setWeather(kind: WeatherKind | null): void {
+    this.ow.weatherOverride = kind
+    this.ow.updateAtmosphere()
+  }
+  /** Override darkness (null = the map/zone's `dark`). */
+  setDark(on: boolean | null): void {
+    this.ow.darkOverride = on
+    this.ow.updateAtmosphere()
+  }
+  /** The puzzle kit of the current map (counters, timers, graph floor, vars, reset, events). */
+  get puzzle(): PuzzleApi {
+    return new PuzzleApi(() => this.ow)
+  }
+  /** Town Map (view) or `{ fly: true }` (Attend's picker; resolves with a location id or null). */
+  async townMap(o: { fly?: boolean } = {}): Promise<string | null> {
+    const ui = this.ui
+    await ui.fade(1, 160)
+    const p = new TownMapScreen(ui, ui.stack, { mode: o.fly ? 'fly' : 'view' }).run()
+    await ui.fade(0, 160)
+    const r = await p
+    await ui.fade(1, 160)
+    await ui.fade(0, 160)
+    return r
+  }
+  /**
+   * Region travel: fade, a train / plane / ferry card ("FROM ▶ TO"), then (if `map` is given,
+   * or `to` is a location id with an arrival) the warp, and fade back in.
+   */
+  async travelCutscene(o: { kind: TravelKind; from: string; to: string; map?: string; spawn?: string; facing?: Dir }): Promise<void> {
+    const dest = location(o.to)
+    const name = (id: string) => location(id)?.name ?? id
+    await this.ui.travelCard(o.kind, name(o.from), name(o.to))
+    const map = o.map ?? dest?.map
+    if (map) {
+      const ow = this.ow
+      await ow.travelArrive(map, o.spawn ?? dest?.spawn ?? '', o.facing ?? dest?.facing)
+    } else await this.ui.fade(0, 300)
+  }
+
+  private get ow(): OverworldScene {
+    return this.world as unknown as OverworldScene
+  }
+
   // ------------------------------------------------------------ battle
   startBattle(req: BattleRequest): Promise<BattleResult> {
     return this.world.startBattle(req)
@@ -394,4 +513,97 @@ export interface IntroStage {
   showPlayer(): Promise<void>
   hidePlayer(): Promise<void>
   spotlight(on: boolean): Promise<void>
+}
+
+/**
+ * `s.puzzle`: the current map's puzzle kit (world/Puzzle.ts). Names are the map objects' ids.
+ * Everything is saved per map in `state.mapState[mapId]` and survives save/load.
+ */
+export class PuzzleApi {
+  private get_: () => OverworldScene
+  constructor(get: () => OverworldScene) {
+    this.get_ = get
+  }
+  private get pm() {
+    const p = this.get_().puzzle
+    if (!p) throw new Error('[script] s.puzzle used with no map loaded')
+    return p
+  }
+  /** Any condition name (switch / door / statue / counter / `graph.out` / `flag:x` / `eval` / var). */
+  value(name: string): number | boolean | string | undefined {
+    return this.pm.resolve(name)
+  }
+  counter(id: string): number {
+    return this.pm.counterGet(id)
+  }
+  setCounter(id: string, v: number): void {
+    this.pm.counterSet(id, v)
+  }
+  addCounter(id: string, n = 1): number {
+    return this.pm.counterAdd(id, n)
+  }
+  /** HUD counter without a map object: `showCounter('surprise', 'SURPRISE', 20)` → "SURPRISE 0/20". */
+  showCounter(id: string, label: string, max?: number, style: 'budget' | 'goal' | 'plain' = 'budget'): void {
+    this.pm.showCounter(id, label, max, style)
+  }
+  hideCounter(id: string): void {
+    this.pm.hideCounter(id)
+  }
+  /** Start a HUD timer; `ranks` = seconds for S,A,B (slower = C). */
+  startTimer(id: string, o: { label?: string; ranks?: number[] | string } = {}): void {
+    this.pm.startTimer(id, o)
+  }
+  /** Stop it (toast with time + rank): `{ ms, rank }`, or null if not running. */
+  stopTimer(id: string): { ms: number; rank: string } | null {
+    return this.pm.stopTimer(id)
+  }
+  setVar(name: string, v: number | boolean | string): void {
+    this.pm.setVar(name, v)
+  }
+  /** The key token the player carries between statues ('' = none). */
+  get carry(): string {
+    return String(this.pm.S.carry ?? '')
+  }
+  setCarry(k: string): void {
+    this.pm.setCarry(k)
+  }
+  /** Letters spelled so far in a `letter` group. */
+  word(group: string): string {
+    return String(this.pm.resolve(`${group}.word`) ?? '')
+  }
+  clearWord(group: string): void {
+    const w = (this.pm.S.words ??= {})
+    delete w[group]
+    this.pm.refresh()
+  }
+  /** Graph-floor graph (forward values + reverse-mode gradients). */
+  graph(id = 'g'): CompGraph | undefined {
+    return this.pm.graph(id)
+  }
+  setInput(nodeId: string, v: number): void {
+    this.pm.setInput(nodeId, v)
+  }
+  /** Show / hide each node's gradient d(out)/d(node) on the floor. */
+  showGrad(graphId: string, on = true): void {
+    this.pm.setShowGrad(graphId, on)
+  }
+  solved(graphId: string): boolean {
+    return !!this.pm.S.solved?.[graphId]
+  }
+  /** Slide a block/boulder `n` tiles (scripted). */
+  moveBlock(id: string, dir: Dir, n = 1): Promise<void> {
+    const e = this.pm.ent(id)
+    return e ? this.pm.slideBlock(e, dir, n) : Promise.resolve()
+  }
+  /** Reset this map's puzzle (blocks, switches, keys, graphs, counters…). `all` also removes Merge bridges. */
+  reset(o: { fx?: boolean; all?: boolean } = {}): Promise<void> {
+    return this.pm.resetPuzzle(o.fx ?? true, o.all ?? false)
+  }
+  /** Subscribe to puzzle events on this map (`switch`, `door`, `letter`, `graph_solved`, `merge`, ...). Returns an unsubscribe. */
+  on(fn: (e: PuzzleEvent) => void): () => void {
+    const map = this.pm.mapId
+    return onPuzzleEvent((e) => {
+      if (e.map === map) fn(e)
+    })
+  }
 }

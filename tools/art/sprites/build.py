@@ -20,6 +20,7 @@ import battle  # noqa: E402
 import fx  # noqa: E402
 import ui  # noqa: E402
 import screens  # noqa: E402
+import polish  # noqa: E402
 import preview  # noqa: E402
 
 
@@ -31,6 +32,7 @@ def main():
     print('mons:', len(m))
     m2 = mons2.build()
     print('mons2:', len(m2))
+    print('polish: filled pinholes in', len(polish.build()), 'creature sprites')
     battle.build()
     print('battle: ok')
     fx.build()

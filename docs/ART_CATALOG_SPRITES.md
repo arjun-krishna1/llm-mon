@@ -47,8 +47,11 @@ without extension (matches `src/game/assets.ts`).
   `tools/art/sprites/people.py`):** each figure is about one tile wide, the
   size of an 8–9px head on an 11–12px body, seen from a 3/4 top-down angle.
   The top of the head is a large shaded hair mass. The face is only the lower
-  3–4px strip, with two 1×2 dark eyes set wide and low: no highlights, blush
-  or mouth. Shoulders, separate 1px arms with hands, a torso with clothing
+  3–4px strip, with two 1×2 dark eyes at x=6 and x=9 (a 2px gap; audit pass,
+  see `docs/ART_AUDIT.md` — at the old x=5/x=10 dark hair swallowed them and
+  some faces read as blank strips): no highlights, blush, nose or mouth on
+  the front view. Eyes are re-stamped after the hair, so no hair style may
+  cover them, and glasses are frames round the eyes, never lenses over them. Shoulders, separate 1px arms with hands, a torso with clothing
   detail, two legs with a gap, and shoes in their own colour are all drawn.
   There is a 1px dark outline and 3-tone shading lit from the top-left.
   Side views are profiles: one eye, a nose pixel, the near arm over the
@@ -85,7 +88,7 @@ without extension (matches `src/game/assets.ts`).
   dark leggings, white sneakers.
 - `player_run` (key `chars/player_run`, 48×96, same layout/rows/cols as
   `player`): running variant — head and shoulders lean 1px forward on side
-  views, stride 1.5× the walk, feet lifted 2px on front/back views,
+  views, stride 1.5× the walk (3px, not a split: fixed in the audit), feet lifted 2px on front/back views,
   arms pumping. Col 0 = passing pose, cols 1/2 = full strides; cycle
   0→1→0→2 at the run speed. Same baked 1px bob on cols 1/2.
 
@@ -102,6 +105,10 @@ Ids: `claude_fable`, `gpt_5_5`, `glm`, `hallucihound`, `gemma_4`,
 `claude_opus`, `command_a`, `deepseek_flash`, `deepseek_pro`, `glm_max`,
 `gpt_5_5_xhigh`, `kimi`.
 
+- `tools/art/sprites/polish.py` runs after `mons.py`/`mons2.py` in `build.py`
+  and fills 1–3px transparent pinholes enclosed by a body (they showed the
+  battle background through as bright specks); `dropout` is exempt (its holes
+  are the design).
 - ≤15 colours + dark outline each; checkerboard artefacts flood-removed; thin
   aura wisps removed by morphological opening (mistral, haiku, kimi, hallucihound); specks
   and orphan pixels dropped; eye colours re-painted after quantisation
@@ -235,8 +242,10 @@ Text colour on paper: `#383840` with shadow `#c8c4b0` (+1,+1).
 
 Types are the labs that make the models (plus `classic` and `glitch`). Chips are
 plain coloured pills with text only — no company logos or logo-like marks.
-Label = the short name if it fits in 28px, else the 3-letter code:
-ANT, OPENAI, GOOGLE, ZHIPU, DSK, MST, MSH, COHERE, CLASSIC, GLITCH.
+Label = the short name if it fits in 26px (1px of chip colour inside the
+border on both sides), else the 3-letter code:
+ANT, OPENAI, GOOGLE, ZHIPU, DSK, MST, MSH, COHERE, XAI, META, MSF, ALI, CLS,
+GLITCH. Chips also exist for `xai meta microsoft alibaba`.
 Ramps: anthropic = ROOF_ORANGE, openai = ROOF_TEAL, google = ROOF_BLUE,
 zhipu = ROOF_VIOLET, deepseek = UI_FRAME, mistral = CLOTH_YELLOW,
 moonshot = GRASS, cohere = WOOD, classic = ROCK, glitch = CLOTH_PINK/CLOTH_RED.

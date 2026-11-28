@@ -74,18 +74,35 @@ def draw_head(g, geo, d, skin_only=False):
     for r in range(1, n):
         setp(g, (10 if r == n - 1 else 11) + dx, hy + r, 'S')
     if d == 'down':
-        ey = hy + n - 3                     # eyes: low and wide
-        setp(g, 5, ey, 'e'); setp(g, 5, ey + 1, 'e')
-        setp(g, 10, ey, 'e'); setp(g, 10, ey + 1, 'e')
-        # brow shadow under the fringe + soft nose
-        setp(g, 7, ey + 1, 'n')
-        hline(g, 5, 10, hy + n - 1, 'S') if False else None
+        draw_eyes(g, geo)
     elif d == 'left':
         ey = hy + n - 3
         setp(g, 5 + dx, ey, 'e'); setp(g, 5 + dx, ey + 1, 'e')
         setp(g, 3 + dx, ey + 1, 's')        # nose
         setp(g, 9 + dx, ey, 'S'); setp(g, 9 + dx, ey + 1, 'S')   # ear
     return dx
+
+
+# Front-view eyes (audit pass): 1x2 dark eyes at x6 and x9, a 2px gap. They
+# used to sit at the very edge of the 8px face (x5/x10), where dark hair
+# swallowed them and the face read as a blank strip.
+EYE_X = (6, 9)
+
+
+def eye_y(geo):
+    return geo.hy + geo.hrows - 3
+
+
+def draw_eyes(g, geo):
+    ey = eye_y(geo)
+    for x in EYE_X:
+        setp(g, x, ey, 'e'); setp(g, x, ey + 1, 'e')
+        # keep a skin pixel between each eye and the hair framing the face
+        for sx in (x - 1, x + 1):
+            if g[ey][sx] in HAIRS and sx in (5, 10):
+                setp(g, sx, ey, 's')
+            if g[ey + 1][sx] in HAIRS and sx in (5, 10):
+                setp(g, sx, ey + 1, 's')
 
 
 def stamp_hair(g, rows, geo, dx=0):
@@ -292,7 +309,7 @@ HAIR['long'] = {  # woman: long, straight, centre part
 |..hhhjjhhh..
 |..hhhhhhhhh.
 |..hhh..hhhh.
-|..hh.....hh.
+|..h......hh.
 |..h......hh.
 |..hh....hhh.
 |..hh....hhh.
@@ -333,8 +350,9 @@ HAIR['elder'] = {  # bald crown, grey fringe at the back/sides, moustache
 |............
 |............
 |..h.......h.
-|..hh.....hh.
-|..h..jjjj.h.
+|..h.......h.
+|..h.......h.
+|....jjjj....
 '''),
     'up': _H('''
 |............
@@ -505,17 +523,19 @@ HAIR['pigtails'] = {  # girl: blond, two short pigtails
 '''),
 }
 HAIR['spiky'] = {  # trainer_m: blond spikes + red headband (accessory)
+    # audit: the spike row used to be a regular comb of teeth over the red
+    # band and read as a gold crown; now uneven tufts swept to one side
     'down': _H('''
-|.h.h.hh.h.h.
-|..hhhhhhhhh.
+|...hh..hh.h.
+|..hhhhhhhhhh
 |..hhjjhhhhh.
 |..aaaaaaaaa.
 |..hh.hh.hhh.
 |..h......h..
 '''),
     'up': _H('''
-|.h.h.hh.h.h.
-|..hhhhhhhhh.
+|.h..hh..hh..
+|hhhhhhhhhh..
 |..hhjjhhhhh.
 |..aaaaaaaaa.
 |..hhhhhhhhh.
@@ -524,7 +544,7 @@ HAIR['spiky'] = {  # trainer_m: blond spikes + red headband (accessory)
 |...h.hh.h...
 '''),
     'left': _H('''
-|...h.h.h.h.h
+|.....hh..hh.
 |...hhhhhhhhh
 |..hhjjhhhhhh
 |..aaaaaaaaaa
@@ -696,9 +716,9 @@ def draw_body(g, geo, d, f, outfit, run=False):
             setp(g, x0, y, body_l)
             setp(g, x1, y, body_d)
         # legs
+        # run = 1.5x the walk stride (the doc's contract); it used to double
+        # the stride as well (3x), a full split that reached the frame edges
         stride = {0: 0, 1: 1, 2: -1}[f]
-        if run and f:
-            stride *= 2
         if legs in ('pants', 'shorts', 'skirt'):
             hline(g, 6, 9, hip, 'p')
             setp(g, 9, hip, 'P')
@@ -797,6 +817,8 @@ class Person:
         dx = draw_head(g, self.geo, src)
         stamp_hair(g, HAIR[self.hair][src], self.geo, dx if self.geo.stoop and src == 'left' else 0)
         shade_hair(g)
+        if src == 'down':
+            draw_eyes(g, self.geo)          # hair must never cover the eyes
         for fn in self.details:
             fn(g, self.geo, src, f)
         if run and src == 'left':
@@ -862,12 +884,12 @@ def det_hoodie(g, geo, d, f):
 def det_glasses(g, geo, d, f):
     ey = geo.hy + geo.hrows - 3
     if d == 'down':
-        for x in (4, 6, 9, 11):
+        # frames round the eyes; the eyes stay dark inside the lenses
+        for x in (4, 5, 7, 8, 10, 11):
             setp(g, x, ey, 'x')
-        hline(g, 7, 8, ey, 'x')
         setp(g, 5, ey, 'y'); setp(g, 10, ey, 'y')
     elif d == 'left':
-        setp(g, 4, ey, 'x'); setp(g, 6, ey, 'x'); setp(g, 5, ey, 'y')
+        setp(g, 4, ey, 'x'); setp(g, 6, ey, 'x'); setp(g, 5, ey, 'e')
         hline(g, 7, 8, ey, 'x')
 
 

@@ -110,6 +110,90 @@ const key = (x: number, y: number) => `${x},${y}`
 const num = (v: unknown, d = 0) => (v === undefined || v === '' || !Number.isFinite(Number(v)) ? d : Number(v))
 const isDir = (v: unknown): v is Dir => v === 'up' || v === 'down' || v === 'left' || v === 'right'
 
+export function drawFloorCell(g: Phaser.GameObjects.Graphics, x: number, y: number, f: FloorInfo, staticFrame = false): void {
+  const px = x * TILE
+  const py = y * TILE
+  if (f.ice) {
+    g.fillStyle(0x9cd0f0)
+    g.fillRect(px, py, TILE, TILE)
+    g.fillStyle(0xc8e8fa)
+    g.fillRect(px, py, TILE, 1)
+    g.fillStyle(0xe4f8fc)
+    g.fillRect(px + ((x * 5 + y * 3) % 9) + 2, py + ((x * 3 + y * 7) % 9) + 3, 4, 1)
+    g.fillRect(px + ((x * 7 + y) % 8) + 3, py + ((x + y * 5) % 6) + 2, 1, 1)
+  } else if (f.gap) {
+    g.fillStyle(0x0c0a12)
+    g.fillRect(px, py, TILE, TILE)
+    g.fillStyle(0x28222e)
+    g.fillRect(px, py, TILE, 3)
+  } else if (f.snow) {
+    g.fillStyle(0xf4f6fa)
+    g.fillRect(px, py, TILE, TILE)
+    g.fillStyle(0xd4dae6)
+    g.fillRect(px + ((x * 5 + y) % 11) + 1, py + ((y * 3 + x) % 11) + 2, 2, 1)
+  } else if (f.puddle) {
+    g.fillStyle(0x4a94dc, 0.8)
+    g.fillRect(px + 3, py + 6, 10, 6)
+    g.fillRect(px + 2, py + 7, 12, 4)
+    g.fillStyle(0xb4e0f8, 0.9)
+    g.fillRect(px + 4, py + 7, 4, 1)
+  } else if (staticFrame && f.conveyor) {
+    g.fillStyle(0x363a4c)
+    g.fillRect(px, py, TILE, TILE)
+    drawArrow(g, px + 8, py + 8, f.conveyor, 0xf8d838)
+  } else if (staticFrame && f.rough_water) {
+    g.fillStyle(0x24508c)
+    g.fillRect(px, py, TILE, TILE)
+    g.fillStyle(0x4a94dc)
+    g.fillRect(px + ((x * 7) % 12), py + 4, 3, 1)
+    g.fillRect(px + ((x * 5 + 6) % 12), py + 10, 3, 1)
+  } else if (f.oneway || f.spinner) {
+    const d = (f.oneway ?? f.spinner)!
+    g.fillStyle(f.spinner ? 0x4c3a8c : 0x7c8296)
+    g.fillRect(px, py, TILE, TILE)
+    g.fillStyle(f.spinner ? 0x6c54bc : 0xa6acbc)
+    g.fillRect(px + 1, py + 1, 14, 14)
+    drawArrow(g, px + 8, py + 8, d, f.spinner ? 0xfce070 : 0x2c4a8c)
+  }
+}
+
+export function drawArrow(g: Phaser.GameObjects.Graphics, cx: number, cy: number, d: Dir, col: number, off = 0): void {
+  g.fillStyle(col)
+  const v = DIR_VEC[d]
+  for (let i = 0; i < 4; i++) {
+    const w = 7 - i * 2
+    if (v.y) g.fillRect(cx - Math.floor(w / 2), cy + v.y * (i - 1 + off), w, 1)
+    else g.fillRect(cx + v.x * (i - 1 + off), cy - Math.floor(w / 2), 1, w)
+  }
+  if (v.y) g.fillRect(cx - 1, cy - v.y * 4 + off * v.y, 2, 4)
+  else g.fillRect(cx - v.x * 4 + off * v.x, cy - 1, 4, 2)
+}
+
+/** Floor semantics of a `floor` map object. */
+export function floorInfoOf(o: MapObject): FloorInfo {
+  const info: FloorInfo = {}
+  const k = String(o.props.kind ?? '')
+  const d = String(o.props.dir ?? 'down') as Dir
+  if (k === 'ice') info.ice = true
+  else if (k === 'conveyor') info.conveyor = d
+  else if (k === 'oneway') info.oneway = d
+  else if (k === 'spinner') info.spinner = d
+  else if (k === 'gap') info.gap = true
+  else if (k === 'rough_water') info.rough_water = true
+  else if (k === 'snow') info.snow = true
+  else if (k === 'puddle') info.puddle = true
+  return info
+}
+
+/** Draw a map's floor objects (static frame) — used for connected neighbour maps. */
+export function drawStaticFloors(g: Phaser.GameObjects.Graphics, objects: MapObject[]): void {
+  for (const o of objects) {
+    if (o.type !== 'floor' || o.props.draw === false) continue
+    const info = floorInfoOf(o)
+    for (let y = o.ty; y < o.ty + o.th; y++) for (let x = o.tx; x < o.tx + o.tw; x++) drawFloorCell(g, x, y, info, true)
+  }
+}
+
 export class PuzzleManager {
   readonly ow: OverworldScene
   readonly mapId: string
@@ -134,8 +218,9 @@ export class PuzzleManager {
     this.scene = ow
     this.mapId = mapId
     if (fresh && String(ow.map?.props.puzzleReset ?? 'never') === 'enter') delete state.mapState[mapId]
-    this.floorG = ow.add.graphics().setDepth(DEPTH.shadow - 10)
-    this.animG = ow.add.graphics().setDepth(DEPTH.shadow - 9)
+    // floors paint over the map's first (ground) layer but under detail layers (rocks, hedges)
+    this.floorG = ow.add.graphics().setDepth(DEPTH.ground + 0.5)
+    this.animG = ow.add.graphics().setDepth(DEPTH.ground + 0.6)
     this.beamG = ow.add.graphics().setDepth(DEPTH.over - 5)
     this.build(objects)
   }
@@ -158,18 +243,7 @@ export class PuzzleManager {
       const p = o.props
       const id = String(p.id ?? (o.name || `${t}${o.id}`))
       if (t === 'floor') {
-        const info: FloorInfo = {}
-        const k = String(p.kind ?? '')
-        const d = String(p.dir ?? 'down') as Dir
-        if (k === 'ice') info.ice = true
-        else if (k === 'conveyor') info.conveyor = d
-        else if (k === 'oneway') info.oneway = d
-        else if (k === 'spinner') info.spinner = d
-        else if (k === 'gap') info.gap = true
-        else if (k === 'rough_water') info.rough_water = true
-        else if (k === 'snow') info.snow = true
-        else if (k === 'puddle') info.puddle = true
-        this.floors.push({ o, info })
+        this.floors.push({ o, info: floorInfoOf(o) })
         continue
       }
       if (!['switch', 'door', 'block', 'boulder', 'teleport', 'counter', 'timer', 'statue', 'key', 'beam', 'letter', 'gnode', 'wire', 'graph', 'reset', 'anchor'].includes(t)) continue
@@ -311,7 +385,7 @@ export class PuzzleManager {
     for (const f of this.floors) {
       if (f.o.props.draw === false) continue
       for (let y = f.o.ty; y < f.o.ty + f.o.th; y++) {
-        for (let x = f.o.tx; x < f.o.tx + f.o.tw; x++) this.drawFloorCell(g, x, y, f.info)
+        for (let x = f.o.tx; x < f.o.tx + f.o.tw; x++) drawFloorCell(g, x, y, f.info)
       }
     }
     for (const [k, v] of Object.entries(this.S.over ?? {})) {
@@ -394,55 +468,6 @@ export class PuzzleManager {
     }
   }
 
-  private drawFloorCell(g: Phaser.GameObjects.Graphics, x: number, y: number, f: FloorInfo): void {
-    const px = x * TILE
-    const py = y * TILE
-    if (f.ice) {
-      g.fillStyle(0x9cd0f0)
-      g.fillRect(px, py, TILE, TILE)
-      g.fillStyle(0xc8e8fa)
-      g.fillRect(px, py, TILE, 1)
-      g.fillStyle(0xe4f8fc)
-      g.fillRect(px + ((x * 5 + y * 3) % 9) + 2, py + ((x * 3 + y * 7) % 9) + 3, 4, 1)
-      g.fillRect(px + ((x * 7 + y) % 8) + 3, py + ((x + y * 5) % 6) + 2, 1, 1)
-    } else if (f.gap) {
-      g.fillStyle(0x0c0a12)
-      g.fillRect(px, py, TILE, TILE)
-      g.fillStyle(0x28222e)
-      g.fillRect(px, py, TILE, 3)
-    } else if (f.snow) {
-      g.fillStyle(0xf4f6fa)
-      g.fillRect(px, py, TILE, TILE)
-      g.fillStyle(0xd4dae6)
-      g.fillRect(px + ((x * 5 + y) % 11) + 1, py + ((y * 3 + x) % 11) + 2, 2, 1)
-    } else if (f.puddle) {
-      g.fillStyle(0x4a94dc, 0.8)
-      g.fillRect(px + 3, py + 6, 10, 6)
-      g.fillRect(px + 2, py + 7, 12, 4)
-      g.fillStyle(0xb4e0f8, 0.9)
-      g.fillRect(px + 4, py + 7, 4, 1)
-    } else if (f.oneway || f.spinner) {
-      const d = (f.oneway ?? f.spinner)!
-      g.fillStyle(f.spinner ? 0x4c3a8c : 0x7c8296)
-      g.fillRect(px, py, TILE, TILE)
-      g.fillStyle(f.spinner ? 0x6c54bc : 0xa6acbc)
-      g.fillRect(px + 1, py + 1, 14, 14)
-      this.arrow(g, px + 8, py + 8, d, f.spinner ? 0xfce070 : 0x2c4a8c)
-    }
-  }
-
-  private arrow(g: Phaser.GameObjects.Graphics, cx: number, cy: number, d: Dir, col: number, off = 0): void {
-    g.fillStyle(col)
-    const v = DIR_VEC[d]
-    for (let i = 0; i < 4; i++) {
-      const w = 7 - i * 2
-      if (v.y) g.fillRect(cx - Math.floor(w / 2), cy + v.y * (i - 1 + off), w, 1)
-      else g.fillRect(cx + v.x * (i - 1 + off), cy - Math.floor(w / 2), 1, w)
-    }
-    if (v.y) g.fillRect(cx - 1, cy - v.y * 4 + off * v.y, 2, 4)
-    else g.fillRect(cx - v.x * 4 + off * v.x, cy - 1, 4, 2)
-  }
-
   // ================================================================ per-frame
 
   tick(): void {
@@ -523,7 +548,7 @@ export class PuzzleManager {
               g.fillRect(px, py + 14, TILE, 2)
             }
             const off = (Math.floor(t) % 4) - 1
-            this.arrow(g, px + 8, py + 8, f.info.conveyor, 0xf8d838, off)
+            drawArrow(g, px + 8, py + 8, f.info.conveyor, 0xf8d838, off)
           } else {
             g.fillStyle(0x24508c)
             g.fillRect(px, py, TILE, TILE)
@@ -578,14 +603,12 @@ export class PuzzleManager {
             s++
             continue
           }
+          // 2px glowing core in a dark sheath; a bright pulse flows from input to output
           g.fillStyle(0x20222e)
-          g.fillRect(x - 1, y - 1, 3, 3)
-          g.fillStyle(col)
-          g.fillRect(x, y, 1, 1)
-          if (v !== 0 && (s - Math.floor(t * 2)) % 8 === 0) {
-            g.fillStyle(0xffffff)
-            g.fillRect(x - 1, y - 1, 3, 3)
-          }
+          g.fillRect(x - 1, y - 1, 4, 4)
+          const pulse = v !== 0 && ((s - Math.floor(t * 2)) % 14 + 14) % 14 < 2
+          g.fillStyle(pulse ? 0xfcfaf0 : col)
+          g.fillRect(x, y, 2, 2)
           s++
         }
       }

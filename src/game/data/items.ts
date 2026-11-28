@@ -31,6 +31,7 @@ const ITEM_LIST: ItemDef[] = [
   { id: 'great_orb', name: 'Great Orb', pocket: 'orbs', price: 600, description: 'A longer, better-engineered prompt. Catches more reliably.', effect: { kind: 'catch', multiplier: 1.5 }, usableInBattle: true, usableOnMon: false },
   { id: 'patch', name: 'Patch', pocket: 'medicine', price: 300, description: 'A quick hotfix. Restores 20 HP.', effect: { kind: 'heal', amount: 20 }, usableInBattle: true, usableOnMon: true },
   { id: 'big_patch', name: 'Big Patch', pocket: 'medicine', price: 700, description: 'A proper release. Restores 50 HP.', effect: { kind: 'heal', amount: 50 }, usableInBattle: true, usableOnMon: true },
+  { id: 'max_patch', name: 'Max Patch', pocket: 'medicine', price: 2500, description: 'A full hotfix release. Restores 200 HP.', effect: { kind: 'heal', amount: 200 }, usableInBattle: true, usableOnMon: true },
   { id: 'debugger', name: 'Debugger', pocket: 'medicine', price: 250, description: 'Steps through the bug. Cures any status condition.', effect: { kind: 'cure' }, usableInBattle: true, usableOnMon: true },
   { id: 'firewall', name: 'Firewall', pocket: 'field', price: 350, description: 'Blocks weak wild LLMMON for 100 steps.', effect: { kind: 'repel', steps: 100 }, usableInBattle: false, usableOnMon: false },
   // ── held items (give from the bag; consumables are used up in battle) ─

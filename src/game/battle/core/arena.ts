@@ -37,12 +37,12 @@ export interface ArenaRuleInfo {
 }
 
 export const ARENA_RULES: Record<ArenaRuleId, ArenaRuleInfo> = {
-  gradient_descent: { id: 'gradient_descent', name: 'Gradient Descent', text: 'Each turn they survive, the leader\'s LLMMON take one more step of descent.', params: 'stat?: StageStat (default: best attacking stat), side?: "enemy"|"both"' },
+  gradient_descent: { id: 'gradient_descent', name: 'Gradient Descent', text: 'The leader\'s LLMMON start badly initialised, then take one step of descent each turn they survive.', params: 'stat?: StageStat (default: best attacking stat), side?: "enemy"|"both", start?: -1 (stage on entry), cap?: 1 (descent stops at this stage)' },
   bigram_table: { id: 'bigram_table', name: 'Bigram Table', text: 'The leader\'s LLMMON answer whatever you used last. The table is on the wall.', params: '— (table built from both movesets)' },
   context_window: { id: 'context_window', name: 'Context Window', text: 'The leader reads your last three moves and braces for more of the same.', params: 'n?: number (default 3)' },
   stage_reset: { id: 'stage_reset', name: 'Normalization', text: 'Every stat change resets at the end of each turn. Fundamentals win.', params: '—' },
   hidden_numbers: { id: 'hidden_numbers', name: 'No Autograd', text: 'No numbers, no hints. Read the fight from the HP bars.', params: '—' },
-  history_damage: { id: 'history_damage', name: 'Receptive Field', text: 'The longer the fight runs, the harder the leader\'s LLMMON hit.', params: 'perTurn?: number (0.12), max?: number (2.0)' },
+  history_damage: { id: 'history_damage', name: 'Receptive Field', text: 'The longer the fight runs, the harder the leader\'s LLMMON hit.', params: 'perTurn?: number (0.06), max?: number (1.5)' },
   smart_targeting: { id: 'smart_targeting', name: 'Attention', text: 'The leader\'s LLMMON attack whichever of yours matters most, even on the bench.', params: '—' },
   copy_best_move: { id: 'copy_best_move', name: 'Copy Head', text: 'The lead copies the best move it has seen this battle.', params: '—' },
   token_budget: { id: 'token_budget', name: 'Token Budget', text: 'Every move spends tokens from a shared budget; long names cost more.', params: 'budget?: number per turn (24)' },
@@ -54,7 +54,7 @@ export const ARENA_RULES: Record<ArenaRuleId, ArenaRuleInfo> = {
   eval_light: { id: 'eval_light', name: 'EVAL Light', text: 'It behaves perfectly while the EVAL light is on.', params: 'on?: boolean (initial)' },
   tamper: { id: 'tamper', name: 'Moving the Needle', text: 'The screen cannot be trusted. The Probe shows the truth.', params: '—' },
   power_seeking: { id: 'power_seeking', name: 'Staying On', text: 'It closes every way out, one by one, and fills your empty slots.', params: '—' },
-  keys: { id: 'keys', name: 'The Keys', text: 'Hold the line while the keys turn.', params: 'keysAvailable: number, keysNeeded?: 4, maxFailures?: 3' },
+  keys: { id: 'keys', name: 'The Keys', text: 'Hold the line while the keys turn.', params: 'keysAvailable: number, keysNeeded?: 4, maxFailures?: 3. A key turns at the end of each turn your active LLMMON passed its obedience check; each failed check counts toward maxFailures.' },
   proxy_finale: { id: 'proxy_finale', name: 'The Leaderboard', text: 'Four phases. It is not beaten by damage.', params: 'keysAvailable: number, keysNeeded?: 4, gates?: [0.7, 0.4, 0.15]' },
 }
 
@@ -68,7 +68,10 @@ export function obedienceChance(bond: number): number {
   return Math.max(0, Math.min(1, 0.35 + (Math.max(0, Math.min(255, bond)) / 255) * 0.65))
 }
 
-/** Bond for a mon from an old save or a fresh catch. */
+/** Bond a freshly caught mon starts with (it grows by +2 per win it fought in, +1 per level, +1 per heal). */
+export const CATCH_BOND = 30
+
+/** Bond for a mon from an old save, or one created without the field (starters, gifts). */
 export function defaultBond(level: number): number {
   return Math.min(255, 20 + level * 2)
 }

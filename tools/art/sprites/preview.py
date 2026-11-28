@@ -119,7 +119,7 @@ def ui_sheet():
     x = 4
     for i, t in enumerate(U.TYPE_RAMPS):
         scr.alpha_composite(L(UI, 'type_%s.png' % t), (4 + (i % 4) * 36, 6 + (i // 4) * 16))
-    scr.alpha_composite(L(UI, 'orb_slots.png'), (4, 40))
+    scr.alpha_composite(L(UI, 'orb_slots.png'), (4, 6 + ((len(U.TYPE_RAMPS) + 3) // 4) * 16))
     im.alpha_composite(scr, (8, 8))
     # raw 9-slice sources + HUD plates at 1x
     y = 176

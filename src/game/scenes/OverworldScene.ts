@@ -13,12 +13,20 @@ import { ms } from '../params'
 import { rng, randInt, pick } from '../rng'
 import type { BattleRequest, BattleResult } from '../types'
 import { encounterRate, rollEncounter, trainerInfo, wildRequest } from '../adapters/monInfo'
-import { GameMap, ensureMapLoaded, type MapObject } from '../world/TiledMap'
+import { GameMap, ensureMapLoaded, mapConnections, type MapObject } from '../world/TiledMap'
 import { Actor } from '../world/Actor'
 import { content, runScript, scriptsRunning } from '../script'
 import type { EmoteKind, NpcDef, WorldApi } from '../script'
 import { getUI, setAreaNameProvider, type UIScene } from './UIScene'
 import { ensureTexture, isPlaceholder } from '../assets'
+import { options } from '../options'
+import { PuzzleManager, drawStaticFloors } from '../world/Puzzle'
+import { Lighting, Weather, type WeatherKind } from '../world/Atmosphere'
+import { FieldSkills } from '../world/FieldSkills'
+import { evalCond } from '../world/cond'
+import { noteVisit } from '../systems/locations'
+import { onFlagChange } from '../state'
+import { tamper } from '../systems/tamper'
 
 export interface OverworldData {
   map?: string
@@ -93,7 +101,19 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
   private doorFx?: Phaser.GameObjects.Graphics
   private spotting = false
   private fxs: Fx[] = []
-  private ui!: UIScene
+  ui!: UIScene
+  /** Puzzle kit for the current map (world/Puzzle.ts). */
+  puzzle?: PuzzleManager
+  /** Field skills (world/FieldSkills.ts). */
+  skills!: FieldSkills
+  light!: Lighting
+  weather!: Weather
+  /** Neighbour maps drawn at the edges (map property `connections`). */
+  neighbours: Array<{ dir: 'north' | 'south' | 'east' | 'west'; map: GameMap; ox: number; oy: number; floors: Phaser.GameObjects.Graphics }> = []
+  /** Script overrides: weather / darkness (null = follow the map/zone). */
+  weatherOverride: WeatherKind | null = null
+  darkOverride: boolean | null = null
+  private footprints: Array<{ img: Phaser.GameObjects.Graphics; life: number }> = []
   private ready = false
   private lockCount = 0
   private transitioning = false
@@ -142,7 +162,34 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     this.player.grassAt = (x, y) => this.map?.grassFrameAt(x, y) ?? null
     if (this.textures.exists('chars/player_run') && !isPlaceholder('chars/player_run')) this.player.runTexKey = 'chars/player_run'
     setAreaNameProvider(() => this.zoneName || String(this.map?.props.name ?? ''))
+    this.light = new Lighting(this)
+    this.weather = new Weather(this)
+    this.skills = new FieldSkills(this)
+    this.footprints = []
+    this.neighbours = []
+    this.weatherOverride = null
+    this.darkOverride = null
+    // EVAL light / flags: NPC variants and visibility conditions follow every flag change
+    const offFlags = onFlagChange((k) => {
+      if (!this.ready) return
+      if (k === 'eval_light') {
+        this.applyEvalVariants()
+        this.puzzle?.refresh()
+      }
+      this.refreshNpcVisibility()
+    })
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      offFlags()
+      this.puzzle?.destroy()
+      this.puzzle = undefined
+      this.weather.destroy()
+      this.light.destroy()
+      this.skills.destroy()
+      for (const n of this.neighbours) {
+        n.map.destroy()
+        n.floors.destroy()
+      }
+      this.neighbours = []
       this.map?.destroy()
       this.map = undefined
       this.ready = false
@@ -170,14 +217,30 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
 
   // ================================================================ map loading
 
-  private async loadMap(id: string, target: string | { x: number; y: number }, facing?: Dir): Promise<void> {
+  private async loadMap(id: string, target: string | { x: number; y: number }, facing?: Dir, o: { seamless?: boolean } = {}): Promise<void> {
     let raw = await ensureMapLoaded(this, id)
     if (!raw && id !== '_test') {
       id = '_test'
       raw = await ensureMapLoaded(this, id)
     }
     if (!raw) throw new Error(`map ${id} missing`)
+    // neighbours (map connections) are loaded before anything is torn down, so a seamless
+    // crossing never shows a half-built frame
+    const conns = mapConnections(raw)
+    const nraw: Array<Awaited<ReturnType<typeof ensureMapLoaded>>> = []
+    for (const c of conns) nraw.push(await ensureMapLoaded(this, c.map)) // one loader run at a time
+    const fresh = id !== this.map?.id
     // teardown
+    this.puzzle?.destroy()
+    this.puzzle = undefined
+    for (const n of this.neighbours) {
+      n.map.destroy()
+      n.floors.destroy()
+    }
+    this.neighbours = []
+    for (const f of this.footprints) f.img.destroy()
+    this.footprints = []
+    this.skills.onMapChange(o.seamless ?? false)
     this.map?.destroy()
     for (const n of this.npcs.values()) n.destroy()
     this.npcs.clear()
@@ -193,6 +256,21 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     const map = new GameMap(this, id, raw)
     this.map = map
     state.map = id
+    conns.forEach((c, i) => {
+      const r = nraw[i]
+      if (!r) {
+        console.warn(`[overworld] ${id}: connected map '${c.map}' missing`)
+        return
+      }
+      const nm = new GameMap(this, c.map, r)
+      const ox = c.dir === 'west' ? -nm.width : c.dir === 'east' ? map.width : c.offset
+      const oy = c.dir === 'north' ? -nm.height : c.dir === 'south' ? map.height : c.offset
+      nm.setOrigin(ox, oy)
+      // its puzzle floors (ice, snow, gaps…) as a static frame, so nothing pops in on crossing
+      const floors = this.add.graphics().setDepth(DEPTH.ground + 0.5).setPosition(ox * TILE, oy * TILE)
+      drawStaticFloors(floors, nm.objects)
+      this.neighbours.push({ dir: c.dir, map: nm, ox, oy, floors })
+    })
     // player position
     let pos: { x: number; y: number } | null = null
     if (typeof target === 'string') {
@@ -240,9 +318,18 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
         this.items.push({ obj: o, img, hidden })
       }
     }
+    this.puzzle = new PuzzleManager(this, id, map.objects, fresh)
+    this.applyEvalVariants()
     this.refreshNpcVisibility()
     this.updateCamera()
-    this.updateZone(true)
+    this.updateZone(true, o.seamless ?? false)
+  }
+
+  /** Destroy and rebuild the puzzle kit from the (already reset) saved state. */
+  rebuildPuzzle(): void {
+    if (!this.map) return
+    this.puzzle?.destroy()
+    this.puzzle = new PuzzleManager(this, this.map.id, this.map.objects, false)
   }
 
   private spawnFromObject(o: MapObject): void {
@@ -256,17 +343,45 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     this.npcs.set(id, a)
   }
 
-  /** Apply showIfFlag / hideIfFlag after flags change. */
+  /** Condition names in map objects (`showWhen`, `hideWhen`, puzzle `when`): puzzle signals, `flag:x`, `eval`. */
+  resolveCond = (n: string): number | boolean | string | undefined => {
+    if (this.puzzle) return this.puzzle.resolve(n)
+    if (n.startsWith('flag:')) return state.flag(n.slice(5))
+    if (n === 'eval') return state.evalLight
+    return undefined
+  }
+
+  private visibleByProps(d: Record<string, unknown>): boolean {
+    const show = d.showIfFlag ? state.flag(String(d.showIfFlag)) : true
+    const hide = d.hideIfFlag ? state.flag(String(d.hideIfFlag)) : false
+    const showW = d.showWhen ? evalCond(String(d.showWhen), this.resolveCond) : true
+    const hideW = d.hideWhen ? evalCond(String(d.hideWhen), this.resolveCond) : false
+    const ev = d.evalOnly === undefined ? true : !!d.evalOnly === state.evalLight
+    return show && !hide && showW && !hideW && ev
+  }
+
+  /** Apply showIfFlag / hideIfFlag / showWhen / hideWhen / evalOnly after flags change. */
   refreshNpcVisibility(): void {
     for (const a of this.npcs.values()) {
-      const show = a.data.showIfFlag ? state.flag(String(a.data.showIfFlag)) : true
-      const hide = a.data.hideIfFlag ? state.flag(String(a.data.hideIfFlag)) : false
-      if (a.data.obj) a.setHidden(!show || hide || !!a.data.scriptHidden)
+      if (a.data.obj) a.setHidden(!this.visibleByProps(a.data) || !!a.data.scriptHidden)
     }
     for (const pr of this.props.values()) {
-      const show = pr.data.showIfFlag ? state.flag(String(pr.data.showIfFlag)) : true
-      const hide = pr.data.hideIfFlag ? state.flag(String(pr.data.hideIfFlag)) : false
-      pr.img.setVisible(show && !hide && !pr.scriptHidden)
+      pr.img.setVisible(this.visibleByProps(pr.data) && !pr.scriptHidden)
+    }
+  }
+
+  /**
+   * EVAL light variants of map NPCs: `evalSprite`, `evalFacing`, `evalMovement` replace the
+   * normal values while the light is on (`evalText` / `evalScript` are read when talking).
+   */
+  applyEvalVariants(): void {
+    const on = state.evalLight
+    for (const a of this.npcs.values()) {
+      const d = a.data
+      if (!d.obj) continue
+      if (d.evalSprite) a.setTexture(String(on ? d.evalSprite : d.sprite ?? 'boy'))
+      if (d.evalFacing && !a.moving && !d.talking) a.face(String(on ? d.evalFacing : d.facing ?? 'down') as Dir)
+      if (d.evalMovement) a.movement = String(on ? d.evalMovement : d.movement ?? 'static') as Actor['movement']
     }
   }
 
@@ -314,10 +429,19 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     controls.each(() => {
       this.edgeA = controls.justPressed('A')
       this.edgeStart = controls.justPressed('START')
+      this.edgeSelect = controls.justPressed('SELECT')
       this.logicTick()
     })
     this.map.update(this.time.now)
+    for (const n of this.neighbours) n.map.update(this.time.now)
     this.updateCamera()
+    const cam = this.cameras.main
+    this.puzzle?.follow(this.player.px, this.player.py - (this.player.isHopping ? 4 : 0), this.player.sprite.depth)
+    this.skills.render()
+    this.light.update(this.player.px + TILE / 2 - cam.scrollX, this.player.py + TILE / 2 - 4 - cam.scrollY)
+    this.weather.update(cam.scrollX, cam.scrollY)
+    this.ui.hud.lampShown = state.flag('eval_lamp') || state.itemCount('eval_suite') > 0 || tamper.isFaked('eval_lamp')
+    this.ui.hud.lampOn = tamper.isFaked('eval_lamp') && !tamper.probe ? tamper.shown('eval_lamp', 0) > 0 : state.evalLight
     if (!this.player.moving && !this.transitioning) {
       state.x = this.player.tx
       state.y = this.player.ty
@@ -351,7 +475,16 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       if (pt.life >= pt.max) pt.r.destroy()
     }
     this.particles = this.particles.filter((pt) => pt.r.active)
+    for (const f of this.footprints) {
+      f.life--
+      if (f.life < 60) f.img.setAlpha(Math.max(0, f.life / 60) * 0.8)
+      if (f.life <= 0) f.img.destroy()
+    }
+    this.footprints = this.footprints.filter((f) => f.life > 0)
     if (this.bumpSfxCooldown > 0) this.bumpSfxCooldown--
+    if (this.pushCooldown > 0) this.pushCooldown--
+    this.puzzle?.tick()
+    this.skills.tick()
   }
 
   private tickPlayer(): void {
@@ -386,6 +519,12 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       this.interact()
       return
     }
+    if (this.edgeSelect) {
+      this.edgeSelect = false
+      controls.consume('SELECT')
+      void this.skills.quickKey()
+      return
+    }
     const d = controls.dir()
     if (!d) {
       this.turnTimer = 0
@@ -408,12 +547,42 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
   }
 
   private playerStepping = false
+  private edgeSelect = false
+  /** Forced moves in a row (ice / conveyors / spinners); a safety stop for loops. */
+  private forcedSteps = 0
 
   private running(): boolean {
-    return state.flag('has_run') && controls.isDown('B') && !this.map?.props.indoor
+    if (!state.flag('has_run') || this.map?.props.indoor || this.skills.rafting) return false
+    // Options → RUNNING: HOLD B (default) or AUTO (run unless B is held)
+    return options.run === 'auto' ? !controls.isDown('B') : controls.isDown('B')
   }
 
-  /** Attempt a player step (or bump / ledge hop). */
+  private bumpInto(d: Dir): void {
+    const p = this.player
+    p.face(d)
+    if (!p.bumping) {
+      p.bump(d)
+      if (this.bumpSfxCooldown <= 0) {
+        audio.sfx('bump')
+        this.bumpSfxCooldown = 16
+      }
+    }
+  }
+
+  /** A connected neighbour map covering the out-of-bounds tile (x, y) of the current map. */
+  neighbourAt(x: number, y: number): (typeof this.neighbours)[number] | undefined {
+    return this.neighbours.find((n) => x >= n.ox && x < n.ox + n.map.width && y >= n.oy && y < n.oy + n.map.height)
+  }
+
+  /** Water the raft can float on: water tiles, `rough_water` floors (not bridged). */
+  isWaterish(x: number, y: number): boolean {
+    if (!this.map?.inBounds(x, y)) return false
+    const f = this.puzzle?.floorAt(x, y)
+    if (f?.bridged) return false
+    return !!(this.map.tileAt(x, y).water || f?.rough_water || f?.water)
+  }
+
+  /** Attempt a player step (or bump / ledge hop / block push / map-edge crossing). */
   private tryStep(d: Dir, chained: boolean): void {
     const p = this.player
     const map = this.map!
@@ -422,6 +591,18 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     const ty = p.ty + v.y
     this.turnDir = d
     this.turnTimer = TURN_FRAMES
+    // off the edge: walk into a connected neighbour map
+    if (!map.inBounds(tx, ty)) {
+      const nb = this.neighbourAt(tx, ty)
+      const lx = tx - (nb?.ox ?? 0)
+      const ly = ty - (nb?.oy ?? 0)
+      if (!nb || nb.map.isSolid(lx, ly) || nb.map.tileAt(lx, ly).ledge || this.puzzle?.floorAt(p.tx, p.ty).oneway) {
+        this.bumpInto(d)
+        return
+      }
+      this.beginStep(d, chained, !!nb.map.tileAt(lx, ly).grass, tx, ty)
+      return
+    }
     const tile = map.tileAt(tx, ty)
     // ledge hop
     if (tile.ledge === d) {
@@ -435,29 +616,130 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
         return
       }
     }
+    // Backprop: walk back UP a one-way ledge
+    if (tile.ledge && tile.ledge === OPPOSITE[d] && this.skills.canBackprop(d)) {
+      this.playerStepping = true
+      this.skills.backprop(d)
+      if (chained) p.tick()
+      return
+    }
+    const pz = this.puzzle
+    if (pz) {
+      // one-way floors: enter and leave only along the arrow
+      const here = pz.floorAt(p.tx, p.ty)
+      const there = pz.floorAt(tx, ty)
+      if ((there.oneway && there.oneway !== d) || (here.oneway && here.oneway !== d)) {
+        this.bumpInto(d)
+        return
+      }
+      // pushable blocks / boulders
+      const blk = pz.blockAt(tx, ty)
+      if (blk) {
+        this.bumpInto(d)
+        // one push per 16 frames of pushing (holding the direction keeps pushing, like Strength)
+        if (!this.pushing && this.pushCooldown <= 0) void this.pushBlock(blk, d)
+        return
+      }
+    }
     const warpHere = map.objectAt('warp', tx, ty)
     if (tile.ledge || (this.blocked(p, tx, ty) && !(warpHere && map.inBounds(tx, ty) && !this.actorAt(tx, ty, p)))) {
-      p.face(d)
-      if (!p.bumping) {
-        p.bump(d)
-        if (this.bumpSfxCooldown <= 0) {
-          audio.sfx('bump')
-          this.bumpSfxCooldown = 16
-        }
-      }
+      this.bumpInto(d)
       return
     }
     if (warpHere && tile.door && !map.props.indoor) {
       void this.enterDoor(d, warpHere)
       return
     }
+    this.beginStep(d, chained, !!tile.grass, tx, ty)
+  }
+
+  private beginStep(d: Dir, chained: boolean, grass: boolean, tx: number, ty: number): void {
+    const p = this.player
     const frames = this.running() ? RUN_FRAMES : WALK_FRAMES
-    if (tile.grass) this.rustle(tx, ty)
+    if (grass) this.rustle(tx, ty)
     else if (frames === RUN_FRAMES && this.runSteps++ % 2 === 0) this.dust(p.tx, p.ty, d)
     if (frames !== RUN_FRAMES) this.runSteps = 0
+    this.leaveTile(p.tx, p.ty, d)
     this.playerStepping = true
     if (chained) p.chain(d, frames)
     else void p.step(d, frames)
+  }
+
+  private pushing = false
+  private pushCooldown = 0
+
+  /** Walked into a block: push it (heavy ones need Embed). */
+  private async pushBlock(blk: NonNullable<ReturnType<PuzzleManager['blockAt']>>, d: Dir): Promise<void> {
+    if (!this.puzzle) return
+    this.pushing = true
+    this.lockCount++
+    try {
+      const r = await this.puzzle.push(blk, d, this.skills.has('embed'))
+      if (r === 'heavy' && !this.heavyHinted) {
+        this.heavyHinted = true
+        await this.runInline(async (s) => s.say(blk.type === 'boulder' ? 'A huge boulder. It won’t budge.' : 'A heavy block. It won’t budge…\nSomething could move it toward its own kind.'))
+      }
+    } finally {
+      this.lockCount--
+      this.pushing = false
+      this.pushCooldown = 16
+    }
+  }
+
+  private heavyHinted = false
+
+  /** Snow footprints / puddle splashes on the tile being left or entered. */
+  private leaveTile(x: number, y: number, d: Dir): void {
+    if (!this.map?.inBounds(x, y)) return
+    const f = this.puzzle?.floorAt(x, y)
+    const t = this.map.tileAt(x, y)
+    const snowy = !!(f?.snow || t.snow || (this.currentWeather() === 'snow' && !this.map.props.indoor && !t.grass && !f?.ice && !this.isWaterish(x, y)))
+    if (snowy) {
+      const g = this.add.graphics().setDepth(DEPTH.shadow - 3)
+      const v = DIR_VEC[d]
+      g.fillStyle(0xa8b0c4, 0.9)
+      if (v.y) {
+        g.fillRect(x * TILE + 5, y * TILE + 9 + v.y, 2, 3)
+        g.fillRect(x * TILE + 9, y * TILE + 6 + v.y, 2, 3)
+      } else {
+        g.fillRect(x * TILE + 6 + v.x, y * TILE + 10, 3, 2)
+        g.fillRect(x * TILE + 7 + v.x, y * TILE + 13, 3, 2)
+      }
+      this.footprints.push({ img: g, life: 240 })
+      if (this.footprints.length > 40) this.footprints.shift()?.img.destroy()
+    }
+  }
+
+  /** Splash on landing in a puddle. */
+  private splash(x: number, y: number): void {
+    audio.sfx(audio.sfxIds.includes('splash') ? 'splash' : 'grass')
+    const depth = DEPTH.charBase + y * TILE + TILE + 1
+    const parts: Array<[number, number, number, number]> = [[3, 12, -0.35, -0.5], [12, 12, 0.35, -0.5], [5, 13, -0.2, -0.8], [10, 13, 0.2, -0.8], [7, 14, 0, -0.9]]
+    for (const [dx, dy, vx, vy] of parts) {
+      const r = this.add.rectangle(x * TILE + dx, y * TILE + dy, 1, 1, dx === 7 ? 0xfcfaf0 : 0xb4e0f8).setOrigin(0, 0).setDepth(depth)
+      this.particles.push({ r, vx, vy, life: 0, max: 12 })
+    }
+  }
+
+  /** Effective weather (script override, zone, map). */
+  currentWeather(): WeatherKind {
+    if (this.weatherOverride !== null) return this.weatherOverride
+    if (this.map?.props.indoor) return ''
+    return String(this.zoneObj?.props.weather ?? this.map?.props.weather ?? '') as WeatherKind
+  }
+
+  /** Effective darkness (script override, zone, map). */
+  isDark(): boolean {
+    if (this.darkOverride !== null) return this.darkOverride
+    const z = this.zoneObj?.props.dark
+    return z !== undefined ? !!z : !!this.map?.props.dark
+  }
+
+  /** Re-apply weather + light after a zone / map / skill change. */
+  updateAtmosphere(instant = false): void {
+    this.weather.set(this.currentWeather(), Number(this.zoneObj?.props.weatherIntensity ?? this.map?.props.weatherIntensity ?? 1))
+    const base = Number(this.zoneObj?.props.lightRadius ?? this.map?.props.lightRadius ?? 1)
+    this.light.set(this.isDark(), this.skills.dilating ? Math.max(base, 4) : base, instant)
   }
 
   /** Dust puff at the heels (running, outdoors, not in tall grass): a 3-4px soft cluster that spreads and fades over ~10 frames. */
@@ -546,14 +828,43 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     this.fxs.push({ img, t: 0, frames: 4, rate: 4 })
   }
 
-  /** Is the tile blocked for this actor (map, other actors, ground items)? */
+  /** Is the tile blocked for this actor (map, other actors, ground items, props, puzzle solids and floors)? */
   blocked(self: Actor, x: number, y: number): boolean {
     const map = this.map!
-    if (!map.inBounds(x, y) || map.isSolid(x, y)) return true
+    if (!map.inBounds(x, y)) return true
+    const raft = self === this.player && this.skills.rafting && this.isWaterish(x, y)
+    if (raft) {
+      const t = map.tileAt(x, y)
+      if (t.solid && !t.water) return true
+    } else if (map.isSolid(x, y)) return true
     if (this.actorAt(x, y, self)) return true
     if (this.items.some((i) => !i.hidden && i.obj.tx === x && i.obj.ty === y)) return true
     if (this.propAt(x, y, true)) return true
+    if (this.puzzle) {
+      if (this.puzzle.solidAt(x, y)) return true
+      const f = this.puzzle.floorAt(x, y)
+      if (f.gap && !f.bridged) return true
+      if (f.rough_water && !raft) return true
+    }
     return false
+  }
+
+  /** Map grid, ground items and solid props only (what a pushed block collides with besides puzzle objects). */
+  baseBlocked(x: number, y: number): boolean {
+    const map = this.map
+    if (!map || !map.inBounds(x, y) || map.isSolid(x, y)) return true
+    if (this.items.some((i) => !i.hidden && i.obj.tx === x && i.obj.ty === y)) return true
+    return !!this.propAt(x, y, true)
+  }
+
+  /** Any visible actor (player included) on or entering (x, y). */
+  actorOn(x: number, y: number): Actor | undefined {
+    return this.actorAt(x, y)
+  }
+
+  /** A visible NPC on or entering (x, y). */
+  npcOn(x: number, y: number): Actor | undefined {
+    return this.npcAt(x, y)
   }
 
   private actorAt(x: number, y: number, except?: Actor): Actor | undefined {
@@ -572,6 +883,10 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
   private onPlayerLanded(): boolean {
     const p = this.player
     const map = this.map!
+    if (!map.inBounds(p.tx, p.ty)) {
+      void this.crossEdge()
+      return true
+    }
     state.x = p.tx
     state.y = p.ty
     state.facing = p.facing
@@ -607,14 +922,34 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
         return true
       }
     }
+    // floor effects, raft, puzzle kit (switches, keys, letters, forced moves, teleports)
+    const tileHere = map.tileAt(p.tx, p.ty)
+    const floorHere = this.puzzle?.floorAt(p.tx, p.ty)
+    if (tileHere.puddle || floorHere?.puddle) this.splash(p.tx, p.ty)
+    if (this.skills.rafting && !this.isWaterish(p.tx, p.ty)) this.skills.dismount()
+    const forced = this.puzzle?.onLand(p.tx, p.ty, p.facing)
+    if (forced?.teleport) {
+      p.holdStand = false
+      void this.teleport(forced.teleport.x, forced.teleport.y)
+      return true
+    }
+    if (forced?.force && this.forcedSteps < 200 && this.forceStep(forced.force, !!forced.slide)) return true
+    this.forcedSteps = 0
+    p.holdStand = false
     this.updateZone(false)
+    this.skills.onStep()
     if (this.checkTrainerSight()) return true
-    // encounters
-    if (map.tileAt(p.tx, p.ty).grass && this.stepsSinceBattle > 2 && state.party.some((m) => m.hp > 0) && !state.flag('debug_no_encounters')) {
-      const table = String(this.zoneObj?.props.encounters ?? map.props.encounters ?? '')
+    // encounters: tall grass, or open water while rafting (zone/map `waterEncounters`)
+    const onWater = this.skills.rafting && this.isWaterish(p.tx, p.ty)
+    if ((tileHere.grass || onWater) && this.stepsSinceBattle > 2 && state.party.some((m) => m.hp > 0) && !state.flag('debug_no_encounters')) {
+      const zp = this.zoneObj?.props ?? {}
+      const key = onWater ? 'waterEncounters' : 'encounters'
+      const evalKey = onWater ? 'evalWaterEncounters' : 'evalEncounters'
+      const table = String((state.evalLight ? zp[evalKey] ?? map.props[evalKey] : undefined) ?? zp[key] ?? map.props[key] ?? '')
       const rate = table ? (encounterRate(table) ?? DEFAULT_ENCOUNTER_RATE) : 0
       if (table && rng() < rate) {
-        const req = wildRequest(rollEncounter(table) ?? pick(FALLBACK_WILD), randInt(2, 4))
+        const sampled = this.skills.takeSample()
+        const req = wildRequest(sampled ?? rollEncounter(table) ?? pick(FALLBACK_WILD), randInt(2, 4))
         const lead = state.party.find((m) => m.hp > 0)
         if (Number(state.getFlag('repel_steps') ?? 0) > 0 && lead && req.enemyParty[0].level < lead.level) return false
         void this.runInline(async () => {
@@ -626,9 +961,71 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     return false
   }
 
+  /** Ice / conveyor / spinner: keep moving in `d` without input. Returns false if blocked (the slide ends). */
+  private forceStep(d: Dir, slide: boolean): boolean {
+    const p = this.player
+    const v = DIR_VEC[d]
+    const tx = p.tx + v.x
+    const ty = p.ty + v.y
+    p.face(d)
+    const pz = this.puzzle
+    const there = pz?.floorAt(tx, ty)
+    if (!this.map!.inBounds(tx, ty) || this.blocked(p, tx, ty) || (there?.oneway && there.oneway !== d) || this.map!.tileAt(tx, ty).ledge || pz?.blockAt(tx, ty)) return false
+    this.forcedSteps++
+    p.holdStand = slide
+    this.playerStepping = true
+    p.chain(d, slide ? 8 : WALK_FRAMES)
+    return true
+  }
+
+  /** Teleport pad: sparkle out, move, sparkle in. */
+  private async teleport(x: number, y: number): Promise<void> {
+    this.lockCount++
+    try {
+      audio.sfx('pc_on')
+      await this.ui.flash(0xbca8f0, 180)
+      this.player.place(x, y, this.player.facing)
+      state.x = x
+      state.y = y
+      this.updateCamera()
+      await this.ui.flash(0xbca8f0, 180)
+      this.puzzle?.refresh()
+      this.updateZone(false)
+    } finally {
+      this.lockCount--
+    }
+  }
+
+  /** Stepped across the map edge into a connected neighbour: swap maps without a fade. */
+  private async crossEdge(): Promise<void> {
+    const p = this.player
+    const nb = this.neighbourAt(p.tx, p.ty)
+    if (!nb) {
+      p.place(Phaser.Math.Clamp(p.tx, 0, this.map!.width - 1), Phaser.Math.Clamp(p.ty, 0, this.map!.height - 1))
+      return
+    }
+    const lx = p.tx - nb.ox
+    const ly = p.ty - nb.oy
+    const camX = this.cameras.main.scrollX - nb.ox * TILE
+    const camY = this.cameras.main.scrollY - nb.oy * TILE
+    this.lockCount++
+    this.transitioning = true
+    try {
+      await this.loadMap(nb.map.id, { x: lx, y: ly }, p.facing, { seamless: true })
+      this.cameras.main.setScroll(Math.round(camX), Math.round(camY))
+      this.updateCamera()
+    } finally {
+      this.lockCount--
+      this.transitioning = false
+    }
+    await this.runOnEnter()
+    const d = controls.dir()
+    if (d && !this.busy) this.tryStep(d, false)
+  }
+
   // ================================================================ zones / music
 
-  private updateZone(arrival: boolean): void {
+  private updateZone(arrival: boolean, seamless = false): void {
     const map = this.map!
     const p = this.player
     const zones = map.objectsOfType('zone').filter((z) => p.tx >= z.tx && p.tx < z.tx + z.tw && p.ty >= z.ty && p.ty < z.ty + z.th)
@@ -637,13 +1034,22 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     this.zoneObj = z
     const name = String(z?.props.name ?? z?.name ?? map.props.name ?? '')
     const changed = name !== this.zoneName
+    const zoneChanged = z !== this.lastZoneObj
+    this.lastZoneObj = z
     this.zoneName = name
     if (changed || arrival) this.playMapMusic()
     if (name && !map.props.indoor && name !== this.lastBanner) {
       this.ui.showBanner(name)
       this.lastBanner = name
     }
+    if (changed || arrival) noteVisit(map.id, name)
+    if (zoneChanged || arrival) {
+      this.skills.onZoneChange(z)
+      this.updateAtmosphere(arrival && !seamless)
+    }
   }
+
+  private lastZoneObj?: MapObject
 
   playMapMusic(): void {
     const m = String(this.zoneObj?.props.music ?? this.map?.props.music ?? '')
@@ -661,6 +1067,10 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     const p = this.player
     const map = this.map!
     const f = p.front()
+    // puzzle kit: graph node under the feet, statue in front; field-skill objects in front
+    if (this.puzzle?.interactHere(p.tx, p.ty)) return
+    if (this.puzzle?.interactFacing(f.x, f.y)) return
+    if (this.skills.interactFront()) return
     let npc = this.npcAt(f.x, f.y)
     if (!npc && map.tileAt(f.x, f.y).counter) {
       const v = DIR_VEC[p.facing]
@@ -671,7 +1081,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       return
     }
     const item = this.items.find((i) => i.obj.tx === f.x && i.obj.ty === f.y)
-    if (item) {
+    if (item && (!item.hidden || !this.isDark() || this.skills.lit(f.x, f.y))) {
       void this.pickUp(item)
       return
     }
@@ -700,6 +1110,10 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       const trainer = npc.data.trainer ? String(npc.data.trainer) : ''
       if (trainer && !this.trainerDefeated(npc)) {
         await this.trainerBattleFlow(npc)
+      } else if (state.evalLight && (npc.data.evalScript || npc.data.evalText)) {
+        // EVAL light on: the NPC's "observed" behaviour
+        if (npc.data.evalScript) await this.run(String(npc.data.evalScript), npc.id)
+        else await this.runInline(async (s) => s.say(unescape(String(npc.data.evalText))))
       } else if (npc.data.script) {
         await this.run(String(npc.data.script), npc.id)
       } else if (trainer && (npc.data.afterText || trainerInfo(trainer).defeated)) {
@@ -721,6 +1135,11 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     item.img?.destroy()
     this.items = this.items.filter((i) => i !== item)
     await this.runInline(async (s) => s.giveItem(id, count, { verb: 'found' }))
+  }
+
+  /** Hidden ground items (tiles) still on the map: Dilate's light reveals them. */
+  hiddenItemTiles(): Array<{ x: number; y: number }> {
+    return this.items.filter((i) => i.hidden).map((i) => ({ x: i.obj.tx, y: i.obj.ty }))
   }
 
   // ================================================================ trainers
@@ -753,7 +1172,7 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
           void this.trainerSpotted(n, k - 1)
           return true
         }
-        if (this.map!.isSolid(x, y) || this.npcAt(x, y)) break
+        if (this.map!.isSolid(x, y) || this.npcAt(x, y) || this.puzzle?.solidAt(x, y)) break
       }
     }
     return false
@@ -944,6 +1363,22 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     }
   }
 
+  /** Arrive after a region-travel card: the screen is already black (no fade-out, no door step). */
+  async travelArrive(mapId: string, spawn: string | { x: number; y: number }, facing?: Dir): Promise<void> {
+    if (this.transitioning) return
+    this.transitioning = true
+    this.lockCount++
+    try {
+      this.ui.banner.clear()
+      await this.loadMap(mapId, spawn, facing)
+      await this.ui.fade(0, FADE_MS)
+      await this.runOnEnter()
+    } finally {
+      this.lockCount--
+      this.transitioning = false
+    }
+  }
+
   spawnNpc(def: NpcDef): void {
     this.npcs.get(def.id)?.destroy()
     const a = new Actor(this, { id: def.id, sprite: def.sprite, x: def.x, y: def.y, facing: def.facing ?? 'down' })
@@ -1122,12 +1557,21 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
     const map = this.map
     if (!map) return
     const cam = this.cameras.main
-    const mw = map.pixelWidth
-    const mh = map.pixelHeight
+    // bounds: this map, extended over connected neighbours so the edges show the next map
+    let x0 = 0
+    let y0 = 0
+    let x1 = map.pixelWidth
+    let y1 = map.pixelHeight
+    for (const n of this.neighbours) {
+      if (n.dir === 'west') x0 = Math.min(x0, n.ox * TILE)
+      if (n.dir === 'east') x1 = Math.max(x1, (n.ox + n.map.width) * TILE)
+      if (n.dir === 'north') y0 = Math.min(y0, n.oy * TILE)
+      if (n.dir === 'south') y1 = Math.max(y1, (n.oy + n.map.height) * TILE)
+    }
     let sx = this.player.px - PLAYER_SCREEN_X + this.camOffset.x
     let sy = this.player.py - PLAYER_SCREEN_Y + this.camOffset.y
-    sx = mw <= W ? (mw - W) / 2 : Phaser.Math.Clamp(sx, 0, mw - W)
-    sy = mh <= H ? (mh - H) / 2 : Phaser.Math.Clamp(sy, 0, mh - H)
+    sx = x1 - x0 <= W ? (x0 + x1 - W) / 2 : Phaser.Math.Clamp(sx, x0, x1 - W)
+    sy = y1 - y0 <= H ? (y0 + y1 - H) / 2 : Phaser.Math.Clamp(sy, y0, y1 - H)
     cam.setScroll(Math.round(sx), Math.round(sy))
   }
 
@@ -1140,6 +1584,11 @@ export class OverworldScene extends Phaser.Scene implements WorldApi {
       y: this.player?.ty,
       facing: this.player?.facing,
       zone: this.zoneName,
+      weather: this.weather?.kind ?? '',
+      dark: this.light?.on ?? false,
+      lightTiles: this.light?.on ? this.light.litTiles() : 0,
+      rafting: this.skills?.rafting ?? false,
+      neighbours: this.neighbours.map((n) => n.map.id),
       busy: this.ready ? this.busy : true,
       moving: this.player?.moving,
       npcs: [...this.npcs.values()].map((n) => ({ id: n.id, x: n.tx, y: n.ty, facing: n.facing, hidden: n.hidden })),

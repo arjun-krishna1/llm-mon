@@ -25,6 +25,7 @@ import { SummaryScreen } from '../ui/screens/SummaryScreen'
 import { NameEntryScreen, type NameEntryOptions } from '../ui/screens/NameEntryScreen'
 import { OptionsScreen } from '../ui/screens/OptionsScreen'
 import { visibleStartMenuEntries } from '../ui/startMenu'
+import { applyOptions } from '../options'
 
 export class UIScene extends Phaser.Scene {
   stack = new WidgetStack()
@@ -49,6 +50,48 @@ export class UIScene extends Phaser.Scene {
     // interface tampering (systems/tamper.ts): re-filter live text in every scene when it changes
     const off = tamper.onChange(() => refreshTamperedText(this.game.scene.getScenes(true)))
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, off)
+    this.installPauseOnBlur()
+  }
+
+  private paused = false
+
+  /**
+   * Pause on tab blur / hide (in-game only): the PAUSED overlay is drawn, audio is muted, then
+   * the game loop sleeps until a click or key. Off for automated runs (?fast=1, webdriver).
+   */
+  private installPauseOnBlur(): void {
+    if (params.fast || navigator.webdriver) return
+    const inGame = () => ['Overworld', 'Battle'].some((k) => this.game.scene.isActive(k))
+    const pause = () => {
+      if (this.paused || !inGame()) return
+      this.paused = true
+      this.showPause(true)
+      audio.setVolume(0, 0)
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (this.paused) this.game.loop.sleep()
+      }))
+    }
+    const resume = () => {
+      if (!this.paused) return
+      this.paused = false
+      this.game.loop.wake()
+      this.showPause(false)
+      applyOptions()
+      controls.releaseAll()
+    }
+    const onVis = () => {
+      if (document.hidden) pause()
+    }
+    window.addEventListener('blur', pause)
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('keydown', resume, true)
+    window.addEventListener('pointerdown', resume, true)
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      window.removeEventListener('blur', pause)
+      document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('keydown', resume, true)
+      window.removeEventListener('pointerdown', resume, true)
+    })
   }
 
   update(): void {

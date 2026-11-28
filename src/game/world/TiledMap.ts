@@ -158,6 +158,34 @@ export async function ensureMapLoaded(scene: Phaser.Scene, id: string): Promise<
 
 interface AnimDef { frames: number[]; durations: number[]; total: number }
 
+export interface MapConnection { dir: 'north' | 'south' | 'east' | 'west'; map: string; offset: number }
+
+/**
+ * Map property `connections`: JSON `{"north":{"map":"route_2","offset":0},"east":"town_b"}`
+ * (offset = tiles the neighbour is shifted along the shared edge), or the flat properties
+ * `north` / `northOffset`, `south` / `southOffset`, ... (handy in Tiled's property editor).
+ */
+export function mapConnections(raw: RawMap): MapConnection[] {
+  const props = propsOf(raw.properties)
+  const out: MapConnection[] = []
+  let json: Record<string, { map?: string; offset?: number } | string> = {}
+  if (typeof props.connections === 'string' && props.connections.trim()) {
+    try {
+      json = JSON.parse(props.connections)
+    } catch {
+      console.warn('[map] bad connections JSON')
+    }
+  }
+  for (const dir of ['north', 'south', 'east', 'west'] as const) {
+    const j = json[dir]
+    const map = typeof j === 'string' ? j : j?.map ?? (props[dir] as string | undefined)
+    if (!map) continue
+    const offset = Number((typeof j === 'object' ? j?.offset : undefined) ?? props[`${dir}Offset`] ?? 0)
+    out.push({ dir, map: String(map), offset: Number.isFinite(offset) ? offset : 0 })
+  }
+  return out
+}
+
 /** A built map: Phaser layers + logical grid info. */
 export class GameMap {
   readonly id: string
@@ -340,25 +368,9 @@ export class GameMap {
     for (const l of this.layers) l.setPosition(ox * TILE, oy * TILE)
   }
 
-  /** Map connection property: `connections` JSON ({"north":{"map":"x","offset":0},...}) or `north`/`northOffset` etc. */
-  connections(): Array<{ dir: 'north' | 'south' | 'east' | 'west'; map: string; offset: number }> {
-    const out: Array<{ dir: 'north' | 'south' | 'east' | 'west'; map: string; offset: number }> = []
-    let json: Record<string, { map?: string; offset?: number } | string> = {}
-    if (typeof this.props.connections === 'string' && this.props.connections.trim()) {
-      try {
-        json = JSON.parse(this.props.connections)
-      } catch {
-        console.warn(`[map] ${this.id}: bad connections JSON`)
-      }
-    }
-    for (const dir of ['north', 'south', 'east', 'west'] as const) {
-      const j = json[dir]
-      const map = typeof j === 'string' ? j : j?.map ?? (this.props[dir] as string | undefined)
-      if (!map) continue
-      const offset = Number((typeof j === 'object' ? j?.offset : undefined) ?? this.props[`${dir}Offset`] ?? 0)
-      out.push({ dir, map: String(map), offset })
-    }
-    return out
+  /** Map connections (see `mapConnections`). */
+  connections(): MapConnection[] {
+    return mapConnections(this.raw)
   }
 
   objectsOfType(type: string): MapObject[] {

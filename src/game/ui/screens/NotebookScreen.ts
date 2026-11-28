@@ -8,7 +8,7 @@ import { controls } from '../../controls'
 import { audio } from '../../audio'
 import { state } from '../../state'
 import { notebookPages, pageFound, type NotebookPage, type NotebookTab } from '../../systems/notebook'
-import { wrap } from '../text'
+import { measure, wrap } from '../text'
 import { triangle } from './screenKit'
 import { Screen } from './Screen'
 import type { WidgetStack } from '../WidgetStack'
@@ -30,6 +30,7 @@ const LH = 14
 const TEXT_X = 50
 const TEXT_W = 172
 
+const warned = new Set<string>()
 let rememberTab = 0
 const rememberRow: Record<string, number> = {}
 
@@ -79,6 +80,15 @@ export class NotebookScreen extends Screen<void> {
     const objs = px.objects()
     this.root.remove(objs)
     this.content.add(objs)
+  }
+
+  /** Mini-font safe text that fits the ruled width ('&' → '+', no commas; cut with '..'). */
+  private fitMini(t: string): string {
+    let s = t.replace(/&/g, '+').replace(/,/g, '').replace(/[“”"]/g, "'").replace(/§/g, 'S').replace(/[–—]/g, '-').toUpperCase()
+    const max = X0 + PW - 8 - TEXT_X
+    if (measure(this.scene, FONT.mini, s) <= max) return s
+    while (s.length > 4 && measure(this.scene, FONT.mini, `${s}..`) > max) s = s.slice(0, -1)
+    return `${s.trimEnd()}..`
   }
 
   private drawNotebook(): void {
@@ -189,18 +199,16 @@ export class NotebookScreen extends Screen<void> {
     this.t(TEXT_X, 22, p.title, { color: tb.dark })
     this.t(X0 + PW - 30, 26, `P.${p.order}`, { font: 'mini', color: 0x989890 })
     // sentences, each starting on a fresh ruled line
-    let line = 0
     const maxLines = 6
-    for (const s of p.lines) {
-      for (const l of wrap(this.scene, FONT.dialog, s, TEXT_W)) {
-        if (line >= maxLines) break
-        this.t(TEXT_X, LINE0 + line * LH - 2, l)
-        line++
-      }
+    const all = p.lines.flatMap((s) => wrap(this.scene, FONT.dialog, s, TEXT_W))
+    all.slice(0, maxLines).forEach((l, i) => this.t(TEXT_X, LINE0 + i * LH - 2, l))
+    if (all.length > maxLines && !warned.has(p.id)) {
+      warned.add(p.id)
+      console.warn(`[notebook] page '${p.id}' does not fit (${maxLines} lines max); shorten its sentences`)
     }
-    const cy = LINE0 + maxLines * LH + 1
-    if (p.credit) this.t(TEXT_X, cy, `CREDIT: ${p.credit}`.slice(0, 44), { font: 'mini', color: tb.dark })
-    if (p.source) this.t(TEXT_X, cy + 8, `SOURCE: ${p.source}`.slice(0, 44), { font: 'mini', color: 0x989890 })
+    // credit + source sit between the last two ruled lines (mini font: caps, no commas)
+    if (p.credit) this.t(TEXT_X, LINE0 + maxLines * LH, this.fitMini(`CREDIT: ${p.credit}`), { font: 'mini', color: tb.dark })
+    if (p.source) this.t(TEXT_X, LINE0 + (maxLines + 1) * LH, this.fitMini(`SOURCE: ${p.source}`), { font: 'mini', color: 0x989890 })
     // flip hints
     const found = this.pages.map((q, i) => (pageFound(q.id) ? i : -1)).filter((i) => i >= 0)
     const k = found.indexOf(this.row)

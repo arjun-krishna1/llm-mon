@@ -237,7 +237,9 @@ TYPE_CODE = {'anthropic': 'ANT', 'openai': 'OAI', 'google': 'GGL', 'zhipu': 'ZHP
              'mistral': 'MST', 'moonshot': 'MSH', 'cohere': 'COH', 'xai': 'XAI', 'meta': 'MTA',
              'microsoft': 'MSF', 'alibaba': 'ALI', 'classic': 'CLS', 'glitch': 'GLT'}
 # Short name when it fits inside the 32px chip (2px inset each side), else the 3-letter code.
-TYPE_LABEL = {t: (n if width3(n) <= 28 else TYPE_CODE[t]) for t, n in TYPE_NAME.items()}
+# <= 26: the label keeps 1px of chip colour inside the 2px border on both
+# sides (ALIBABA and CLASSIC at 27px ran into the border; audit fix).
+TYPE_LABEL = {t: (n if width3(n) <= 26 else TYPE_CODE[t]) for t, n in TYPE_NAME.items()}
 
 
 def type_chip(tid):

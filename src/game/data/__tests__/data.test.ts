@@ -10,6 +10,8 @@ import {
   TRAINERS,
   TYPE_IDS,
   LAB_TYPE_IDS,
+  TUTORS,
+  canLearnTutorMove,
   getMove,
   getSpecies,
 } from '../index.ts'
@@ -174,3 +176,87 @@ describe('items, encounters, trainers', () => {
     }
   })
 })
+
+// Stage 2-3 content (Gym 1-2, Caltrain Line, Menlo Park, Team Overfit, rival battle 2).
+const SLICE_IDS = new Set([...ART_CONTRACT_IDS, 'claude_fable', 'gpt_5_5', 'glm'])
+const TABLE_AREA: Record<string, string> = { route_101: 'route_101', route_101_north: 'route_101_north', caltrain_line: 'caltrain_line', menlo_park_outskirts: 'menlo_park' }
+
+describe('stage 2-3 data', () => {
+  it('encounter tables use first-batch species whose areas list the table, at sensible levels', () => {
+    for (const t of Object.values(ENCOUNTER_TABLES)) {
+      expect(TABLE_AREA[t.id], t.id).toBeDefined()
+      expect(t.slots.reduce((a, s) => a + s.rate, 0), t.id).toBe(100)
+      for (const s of t.slots) {
+        const sp = SPECIES[s.speciesId]
+        expect(sp.firstBatch || SLICE_IDS.has(s.speciesId), `${t.id}: ${s.speciesId} has art`).toBe(true)
+        expect(sp.areas, `${s.speciesId} areas`).toContain(TABLE_AREA[t.id])
+        expect(s.minLevel).toBeLessThanOrEqual(s.maxLevel)
+      }
+    }
+    const lv = (id: string) => ENCOUNTER_TABLES[id].slots.map((s) => s.maxLevel)
+    expect(Math.max(...lv('caltrain_line'))).toBeLessThanOrEqual(15)
+    expect(Math.max(...lv('menlo_park_outskirts'))).toBeLessThanOrEqual(18)
+  })
+
+  it('Gym 1 and Gym 2 match the STORY_BIBLE: leader teams, three gym trainers, badges, level bands', () => {
+    const team = (id: string) => TRAINERS[id].party.map((p) => p.speciesId)
+    expect(team('gym1_leader')).toEqual(['perceptron', 'sgd', 'mlp'])
+    expect(team('gym2_leader')).toEqual(['n_gram', 'markov_chain', 'entropy'])
+    expect(TRAINERS.gym1_leader.badge).toBe('gradient')
+    expect(TRAINERS.gym2_leader.badge).toBe('likelihood')
+    for (const [gym, lo, hi] of [['gym1', 10, 14], ['gym2', 15, 20]] as const) {
+      for (const s of ['a', 'b', 'c', 'leader']) {
+        const t = TRAINERS[`${gym}_${s}`]
+        expect(t, `${gym}_${s}`).toBeDefined()
+        for (const p of t.party) {
+          expect(p.level).toBeGreaterThanOrEqual(lo)
+          expect(p.level).toBeLessThanOrEqual(hi)
+        }
+        expect(t.arena?.length, `${gym}_${s} uses the gym mechanic`).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('8 Caltrain trainers, 6 Team Overfit grunts and an admin; first-batch species only', () => {
+    const ids = [...Array.from({ length: 8 }, (_, i) => `caltrain_${i + 1}`), ...Array.from({ length: 6 }, (_, i) => `overfit_grunt_${i + 1}`), 'overfit_admin', 'gym1_a', 'gym1_b', 'gym1_c', 'gym1_leader', 'gym2_a', 'gym2_b', 'gym2_c', 'gym2_leader']
+    for (const id of ids) {
+      const t = TRAINERS[id]
+      expect(t, id).toBeDefined()
+      for (const p of t.party) expect(SPECIES[p.speciesId].firstBatch || SLICE_IDS.has(p.speciesId), `${id}: ${p.speciesId}`).toBe(true)
+    }
+    for (let i = 1; i <= 6; i++) expect(TRAINERS[`overfit_grunt_${i}`].arena?.[0].id).toBe('overfit')
+    expect(TRAINERS.overfit_admin.arena?.[0].id).toBe('overfit')
+  })
+
+  it('rival Yilong: ids keyed by the player\'s starter, ace Grok plus the counter-starter, old Dana ids kept', () => {
+    const counter: Record<string, string> = { claude_fable: 'gpt_5_5', gpt_5_5: 'glm', glm: 'claude_fable' }
+    for (const mine of STARTER_IDS) {
+      for (const id of [`rival_yilong_${mine}`, `rival_yilong_${mine}_rematch`, `rival_yilong2_${mine}`]) {
+        const t = TRAINERS[id]
+        expect(t, id).toBeDefined()
+        expect(t.name).toBe('Yilong')
+        expect(t.party.some((p) => p.speciesId === 'grok'), `${id} has Grok`).toBe(true)
+        expect(t.party.some((p) => getSpecies(p.speciesId).types[0] === getSpecies(counter[mine]).types[0]), `${id} has the counter lab`).toBe(true)
+      }
+      expect(TRAINERS[`rival_dana_${counter[mine]}`].party).toEqual(TRAINERS[`rival_yilong_${mine}`].party)
+    }
+  })
+})
+
+describe('move tutors', () => {
+  it('teach real moves for a price, with type and role limits', () => {
+    expect(Object.keys(TUTORS).length).toBeGreaterThanOrEqual(4)
+    for (const t of Object.values(TUTORS)) for (const m of t.moves) {
+      expect(MOVES[m.move], `${t.id}: ${m.move}`).toBeDefined()
+      expect(m.price).toBeGreaterThan(0)
+    }
+    const lab = TUTORS.tutor_labs.moves.find((m) => m.move === 'extended_thinking')!
+    expect(canLearnTutorMove(lab, 'claude_fable')).toBe(true)
+    expect(canLearnTutorMove(lab, 'glm')).toBe(false)
+    const drop = TUTORS.tutor_mountain_view.moves.find((m) => m.move === 'drop_units')!
+    expect(canLearnTutorMove(drop, 'dropout')).toBe(true)
+    expect(canLearnTutorMove(drop, 'claude_fable')).toBe(false)
+    expect(canLearnTutorMove(TUTORS.tutor_soma.moves[0], 'proxy_student')).toBe(false)
+  })
+})
+

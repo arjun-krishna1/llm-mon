@@ -10,6 +10,7 @@ export { ScriptApi, parsePath } from './api'
 export type { NpcDef, EmoteKind, WorldApi, IntroStage, PropOpts } from './api'
 
 import './testScripts'
+import './kitScripts'
 
 // Load content (side-effect registrations) without a hard import, so the engine
 // builds before/while the CONTENT workstream writes src/game/content/**.

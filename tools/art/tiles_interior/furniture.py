@@ -286,6 +286,39 @@ def whiteboard():
     return c
 
 
+def cardboard_boxes(src):
+    """Audit fix: the generated moving boxes came out saturated gold with
+    rounded tops and read as treasure bags. Code-drawn instead: three taped
+    cardboard boxes (two below, one on top), 3/4 view, warm outline, top-left
+    light, the same footprint and ground shadow as the other floor props."""
+    c = Cv(src.w, src.h)
+    # one step darker than the floor planks so the stack separates from them
+    hi, mid, sd = P.WOOD[2], P.WOOD[1], P.WOOD[0]
+    tape = P.WOOD[3]
+
+    def box(x, y, w, h, top=3):
+        # outline
+        c.rect(x, y, w, h, O)
+        c.rect(x + 1, y + 1, w - 2, top, hi)                 # lid (top face)
+        c.rect(x + 1, y + 1 + top, w - 2, h - 2 - top, mid)  # front face
+        for yy in range(y + 1 + top, y + h - 1):             # shaded right side
+            c.px(x + w - 2, yy, sd)
+        for xx in range(x + 1, x + w - 1):                   # lid edge
+            c.px(xx, y + top, sd)
+        cx = x + w // 2
+        for yy in range(y + 1, y + h - 1):                   # tape strip
+            c.px(cx, yy, tape if yy <= y + top else hi)
+        c.px(x + 1, y + h - 2, sd)
+
+    # floor shadow
+    for xx in range(2, 15):
+        c.px(xx, 15, SH)
+    box(1, 8, 8, 8)
+    box(8, 8, 8, 8)
+    box(4, 1, 9, 8)
+    return c
+
+
 # ------------------------------------------------------------ registration
 
 HOME_PROPS = ['chair_s', 'chair_n', 'stool', 'cushion', 'bin', 'console',
@@ -412,8 +445,10 @@ def build_furniture(sh):
         elif nm == 'register':
             continue
         else:
-            st(nm, g('int_props_shop', 1, 1, w=w, h=h, box=spb[nm]), ['B'],
-               place='floor')
+            c = g('int_props_shop', 1, 1, w=w, h=h, box=spb[nm])
+            if nm == 'boxes' and c is not None:
+                c = cardboard_boxes(c)
+            st(nm, c, ['B'], place='floor')
 
     # ---- counters (code) -------------------------------------------------
     kinds = {

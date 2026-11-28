@@ -104,7 +104,7 @@ row H-1    rim_bl  rim_b … rim_door_gap … rim_b    rim_br    ← front rim; 
 | bench | 2×1 | BB | waiting bench |
 | mart_shelf | 2×2 | BB / BB | wall shelf of goods |
 | mart_shelf_free | 2×2 | OO / BB | aisle shelf, top in over |
-| crate_apples, boxes | 1×1 | B | shop props |
+| crate_apples, boxes | 1×1 | B | shop props; `boxes` (moving boxes) is code-drawn cardboard (`furniture.cardboard_boxes`), the generated one read as gold sacks |
 | bed_wide, bed_wide_pink, bed_wide_green | 2×2 | BB / BB | full-size bed (blue = player, pink = neighbour); prefer over `bed` |
 | sofa | 2×1 | BB | green two-seat sofa facing down |
 | wall_emblem_center | 2×1 | bb | wall row 0: teal plate with the chip/plus emblem (matches the exterior sign) |

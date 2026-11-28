@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { LAB_BEATS, LAB_TYPE_IDS, TYPES, TYPE_IDS, effectiveness, effectivenessText, matchupReason, typeMultiplier } from '../../../data/typechart.ts'
 
 describe('type chart', () => {
-  it('has the 8 labs plus classic and glitch, with names and 3-letter codes', () => {
+  it('has the 12 labs plus classic and glitch, with names and 3-letter codes', () => {
     expect([...TYPE_IDS]).toEqual(['anthropic', 'openai', 'google', 'zhipu', 'deepseek', 'mistral', 'moonshot', 'cohere', 'xai', 'meta', 'microsoft', 'alibaba', 'classic', 'glitch'])
     const codes = new Set<string>()
     for (const t of TYPE_IDS) {
@@ -74,5 +74,27 @@ describe('type chart', () => {
     expect(effectivenessText(2)).toMatch(/super effective/)
     expect(effectivenessText(0.5)).toMatch(/not very effective/)
     expect(effectivenessText(1)).toBeNull()
+  })
+
+  it('xAI, Meta, Microsoft and Alibaba were inserted by splitting two arrows each (A > X > B)', () => {
+    const beats = (a: string, d: string) => LAB_BEATS.some((m) => m.attacker === a && m.defender === d)
+    const splits: [string, string, string][] = [
+      ['google', 'xai', 'deepseek'], ['moonshot', 'xai', 'cohere'],
+      ['google', 'meta', 'moonshot'], ['deepseek', 'meta', 'cohere'],
+      ['zhipu', 'microsoft', 'moonshot'], ['cohere', 'microsoft', 'mistral'],
+      ['deepseek', 'alibaba', 'openai'], ['cohere', 'alibaba', 'google'],
+    ]
+    for (const [a, x, b] of splits) {
+      expect(beats(a, x), `${a} > ${x}`).toBe(true)
+      expect(beats(x, b), `${x} > ${b}`).toBe(true)
+      expect(beats(a, b), `${a} > ${b} was replaced`).toBe(false)
+    }
+    // Arrows the slice (starters, Route 101, rival) relies on are untouched.
+    for (const [a, d] of [['anthropic', 'zhipu'], ['zhipu', 'openai'], ['openai', 'anthropic'], ['anthropic', 'google'], ['openai', 'mistral'], ['mistral', 'zhipu']]) expect(beats(a, d)).toBe(true)
+  })
+
+  it('every type has a chip image', async () => {
+    const fs = await import('node:fs')
+    for (const t of TYPE_IDS) expect(fs.existsSync(new URL(`../../../../../public/assets/game/ui/type_${t}.png`, import.meta.url)), t).toBe(true)
   })
 })

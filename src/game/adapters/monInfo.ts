@@ -27,7 +27,15 @@ function table(name: string): Record<string, AnyRec> {
 }
 const SPECIES = () => table('SPECIES')
 const MOVES = () => table('MOVES')
-const ITEMS = () => table('ITEMS')
+/**
+ * ENGINE key items the world screens need (Town Map, Notebook). Used only while BATTLE-CORE's
+ * item table has no entry with that id, so data can take them over at any time.
+ */
+const ENGINE_ITEMS: Record<string, AnyRec> = {
+  town_map: { id: 'town_map', name: 'Town Map', pocket: 'key', price: 0, description: 'A map of the three regions. Shows where you are.' },
+  notebook: { id: 'notebook', name: 'Notebook', pocket: 'key', price: 0, description: 'Lecture and safety notes, one page per lesson.' },
+}
+const ITEMS = () => ({ ...ENGINE_ITEMS, ...table('ITEMS') })
 const ENCOUNTERS = () => table('ENCOUNTER_TABLES')
 const TRAINERS = () => table('TRAINERS')
 const TYPES = () => table('TYPES')

@@ -29,6 +29,12 @@ export function installDebug(game: Phaser.Game): void {
         busy: o.busy ?? true,
         moving: o.moving ?? false,
         npcs: o.npcs ?? [],
+        weather: o.weather ?? '',
+        dark: o.dark ?? false,
+        lightTiles: o.lightTiles ?? 0,
+        rafting: o.rafting ?? false,
+        neighbours: o.neighbours ?? [],
+        evalLight: state.evalLight,
       }
     },
     async warp(map: string, spawnOrX: string | number, y?: number) {

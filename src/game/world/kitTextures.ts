@@ -16,14 +16,15 @@ const KIND_RAMPS: number[][] = [
   [0x8c2c34, 0xc04444, 0xf4a088], // d: red
   [0x4c3a8c, 0x6c54bc, 0xbca8f0], // e: violet
   [0xb08018, 0xe8b830, 0xfce070], // f: gold
+  [0x4a5262, 0x7c8296, 0xb4bccc], // stone / grey (named only)
 ]
-const NAMED: Record<string, number> = { a: 0, wood: 0, b: 1, blue: 1, c: 2, green: 2, d: 3, red: 3, e: 4, violet: 4, f: 5, gold: 5 }
+const NAMED: Record<string, number> = { a: 0, wood: 0, b: 1, blue: 1, c: 2, green: 2, d: 3, red: 3, e: 4, violet: 4, f: 5, gold: 5, stone: 6, grey: 6, rock: 6 }
 
 export function kindRamp(kind: string): number[] {
   if (kind in NAMED) return KIND_RAMPS[NAMED[kind]]
   let h = 0
   for (const c of kind) h = (h * 31 + c.charCodeAt(0)) >>> 0
-  return KIND_RAMPS[h % KIND_RAMPS.length]
+  return KIND_RAMPS[h % 6]
 }
 
 function make(scene: Phaser.Scene, key: string, w: number, h: number, draw: (c: Ctx) => void): string {

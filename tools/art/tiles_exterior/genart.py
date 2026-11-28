@@ -89,8 +89,34 @@ def sprite(name, width=None, height=None, colors=48, sat=1.3, key_holes=False):
         for x in range(out.width):
             c = data[y * out.width + x]
             cv.px[y][x] = c if c[3] else P.CLEAR
+    _defringe(cv)
     _cache[key] = cv
     return cv.copy()
+
+
+# Audit fix: the magenta key leaves a dark-pink rim that the palette snap turns
+# into CLOTH_RED / HP-red pixels on the silhouette (visible as a red speckled
+# edge on the fountain, roofs and the tower). Re-ink those edge pixels with the
+# warm outline. Only pixels touching transparency are changed.
+_FRINGE = {(0xb0, 0x28, 0x30), (0x8c, 0x20, 0x30)}
+_INK = (0x4c, 0x2c, 0x20, 255)
+
+
+def _defringe(cv):
+    edge = []
+    for y in range(cv.h):
+        for x in range(cv.w):
+            c = cv.px[y][x]
+            if c[3] != 255 or tuple(c[:3]) not in _FRINGE:
+                continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                X, Y = x + dx, y + dy
+                if not (0 <= X < cv.w and 0 <= Y < cv.h) or cv.px[Y][X][3] == 0:
+                    edge.append((x, y))
+                    break
+    for x, y in edge:
+        cv.px[y][x] = _INK
+    return cv
 
 
 def _lum(c):

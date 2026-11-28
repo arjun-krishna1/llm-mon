@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest'
 import { Battle, createMon, createRng, trainerBattleRequest, type BattleInput, type Rng } from '../../battle/core/index.ts'
 import { effectiveness } from '../typechart.ts'
+import { TRAINERS } from '../trainers.ts'
 import type { MonInstance } from '../../types.ts'
 
 // [player's starter, Dana's counter-starter]
@@ -46,9 +47,14 @@ function run(mine: string, trainerId: string, rng: Rng, n = 600) {
 
 describe('rival Yilong', () => {
   for (const [mine, hers] of MATCHUPS) {
-    it(`${mine} Lv8 + catch vs rival_yilong_${hers}`, () => {
-      const r = run(mine, `rival_yilong_${hers}`, createRng(2024))
-      const re = run(mine, `rival_yilong_${hers}_rematch`, createRng(2025))
+    it(`${mine} Lv8 + catch vs rival_yilong_${mine} (his ${hers})`, () => {
+      expect(TRAINERS[`rival_yilong_${mine}`].party.some((p) => p.speciesId === hers)).toBe(true)
+      expect(TRAINERS[`rival_yilong_${mine}`].party.some((p) => p.speciesId === 'grok')).toBe(true)
+      // Old ids keep pointing at the same team.
+      expect(TRAINERS[`rival_dana_${hers}`].party).toEqual(TRAINERS[`rival_yilong_${mine}`].party)
+      expect(TRAINERS[`rival_dana_${hers}_rematch`].party).toEqual(TRAINERS[`rival_yilong_${mine}_rematch`].party)
+      const r = run(mine, `rival_yilong_${mine}`, createRng(2024))
+      const re = run(mine, `rival_yilong_${mine}_rematch`, createRng(2025))
       console.log(`${mine} vs ${hers}: win ${(r.win * 100).toFixed(0)}% (rematch ${(re.win * 100).toFixed(0)}%), super effective: you ${(r.seMine * 100).toFixed(0)}% / Yilong ${(r.seHers * 100).toFixed(0)}%`)
       expect(r.win).toBeGreaterThanOrEqual(0.62)
       expect(r.win).toBeLessThanOrEqual(0.85)
