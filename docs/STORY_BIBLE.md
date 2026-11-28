@@ -349,6 +349,11 @@ asks one question before the fight: "Are you sure you're the human here?"
 
 ## 7. Antagonists: Benchmark Corp and Team Overfit (all fictional)
 
+> **Superseded in part.** The villain arc, the climax and the final
+> legendary fight are now planned in `docs/SAFETY_ARC.md`: Benchmark Corp
+> misaligns a model by accident, and the finale is against that model. Read
+> that document first; what follows is the earlier outline.
+
 **Director Norm** runs Benchmark Corp from Menlo Park. Team Overfit believes
 the leaderboard is the only truth. They steal held-out test sets and train on
 them: creatures with perfect scores that fall apart when anything is
