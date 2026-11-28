@@ -158,13 +158,15 @@ describe('items, encounters, trainers', () => {
   })
 
   it('trainers reference valid species and sprites', () => {
-    for (const id of ['route_101_a', 'route_101_b', 'rival_dana_gpt_5_5', 'rival_dana_glm', 'rival_dana_claude_fable']) {
+    for (const id of ['route_101_a', 'route_101_b', 'rival_dana_gpt_5_5', 'rival_dana_glm', 'rival_dana_claude_fable', 'rival_yilong_glm']) {
       const t = TRAINERS[id]
       expect(t).toBeDefined()
-      expect(['trainer_m_front', 'trainer_f_front', 'rival_front']).toContain(t.sprite)
       expect(t.preBattle.length).toBeGreaterThan(0)
       expect(t.postBattle.length).toBeGreaterThan(0)
       expect(t.prize).toBeGreaterThan(0)
+    }
+    for (const t of Object.values(TRAINERS)) {
+      expect(t.sprite.length, t.id).toBeGreaterThan(0)
       for (const p of t.party) {
         expect(SPECIES[p.speciesId]).toBeDefined()
         for (const mv of p.moves ?? []) expect(MOVES[mv]).toBeDefined()

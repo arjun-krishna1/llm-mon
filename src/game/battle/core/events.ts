@@ -43,9 +43,34 @@ export interface ActiveView extends MonView {
   expLevelEnd: number
 }
 
+/** Inputs the arena can grey out (Proxy phase 3). */
+export type InputKind = 'fight' | 'bag' | 'switch' | 'run'
+
+/** Arena state for rendering (gym mechanics, finale). Absent fields = rule not active. */
+export interface ArenaView {
+  rules: string[]
+  /** Hide damage numbers and effectiveness text (Gym 5). */
+  hideNumbers?: boolean
+  /** Bigram table: your last move -> the leader's reply (Gym 2). */
+  bigramTable?: { playerMove: string; enemyMove: string }[]
+  /** Token budget left this turn / per-turn size (Gym 8). */
+  tokenBudget?: { remaining: number; max: number }
+  /** Temperature dial value 0..2 (League 3). */
+  temperature?: number
+  /** EVAL light state (finale phase 1). */
+  evalLight?: boolean
+  /** Finale phase 1-4. */
+  phase?: number
+  keys?: { turned: number; needed: number; available: number; failures: number; maxFailures: number }
+  disabled?: InputKind[]
+}
+
 /** What the battle is waiting for. */
 export type BattlePrompt =
-  | { kind: 'action' }
+  /** `disabled` lists greyed-out commands (validate() rejects them). */
+  | { kind: 'action'; disabled?: InputKind[] }
+  /** Accept or cancel (B) an evolution announced by an `evolve_start` event. */
+  | { kind: 'evolve'; promptId: number; partyIndex: number; from: string; to: string }
   /** Pick a replacement after your active mon fainted (no cancel). */
   | { kind: 'switch'; forced: true }
   /** Answer the learn-move question raised by a `learn_move_prompt` event. */
@@ -60,8 +85,14 @@ export type BattleInput =
   | { type: 'run' }
   /** Reply to a learn-move prompt: `forgetSlot` 0-3 replaces that move, null = give up learning. */
   | { type: 'learn_move'; forgetSlot: number | null }
+  /** Reply to an evolve prompt: false = cancelled with B. */
+  | { type: 'evolve'; accept: boolean }
+  /** Free action (no turn used) while the `temperature` rule is active. 0..2. */
+  | { type: 'set_temperature'; value: number }
+  /** Free action (no turn used) while `eval_light`/`proxy_finale` is active (the Eval Suite). */
+  | { type: 'set_eval_light'; on: boolean }
 
-export type DamageSource = 'move' | 'recoil' | 'status' | 'hallucination' | 'struggle'
+export type DamageSource = 'move' | 'recoil' | 'status' | 'hallucination' | 'struggle' | 'item'
 
 export type BattleEvent =
   /** Show in the message box and wait for A (or auto-advance). Never contains manual line breaks. */
@@ -88,6 +119,10 @@ export type BattleEvent =
       effectiveness: number
       crit: boolean
       source: DamageSource
+      /** Smart targeting hit a benched mon (partyIndex is not the active one). */
+      bench?: boolean
+      /** Gym 5: do not show numbers for this hit. */
+      hidden?: boolean
     }
   | { type: 'heal'; side: Side; partyIndex: number; amount: number; hpBefore: number; hpAfter: number; maxHp: number }
   | { type: 'status_applied'; side: Side; partyIndex: number; status: AnyStatusId }
@@ -121,7 +156,8 @@ export type BattleEvent =
    */
   | { type: 'learn_move_prompt'; promptId: number; partyIndex: number; moveId: string; currentMoves: string[] }
   | { type: 'move_not_learned'; partyIndex: number; moveId: string }
-  | { type: 'item_used'; itemId: string; targetPartyIndex?: number }
+  /** `side` absent = the player used it. */
+  | { type: 'item_used'; itemId: string; targetPartyIndex?: number; side?: Side }
   | { type: 'catch_throw'; itemId: string }
   /** One wobble of the orb (n = 1..3). */
   | { type: 'catch_shake'; n: number }
@@ -130,3 +166,44 @@ export type BattleEvent =
   /** The defeated trainer slides back on screen to deliver their lose line (next text event). */
   | { type: 'trainer_reappear'; trainerName: string; trainerSprite: string }
   | { type: 'battle_end'; outcome: BattleResult['outcome']; prize: number; caught?: MonInstance }
+  // ── stage 1 additions ──────────────────────────────────────────────────
+  /** Ability popup banner (e.g. "Warm Start"). A text event usually follows. */
+  | { type: 'ability'; side: Side; partyIndex: number; abilityId: string; abilityName: string }
+  /** A held item activated; `consumed` = it is gone now. */
+  | { type: 'held_item'; side: Side; partyIndex: number; itemId: string; itemName: string; consumed: boolean }
+  /** The target protected itself this turn (Early Stopping / Drop Units / Polite Refusal). */
+  | { type: 'protect'; side: Side }
+  /** After battle_end: the evolution scene starts; prompt `evolve` follows (B cancels). */
+  | { type: 'evolve_start'; promptId: number; partyIndex: number; from: string; to: string }
+  | { type: 'evolve_done'; partyIndex: number; from: string; to: string; mon: MonView }
+  | { type: 'evolve_cancelled'; partyIndex: number; from: string; to: string }
+  /** Register this species as seen + caught in the PromptDex. */
+  | { type: 'dex_register'; speciesId: string }
+  /** A mon changed species mid-battle (base model fine-tuned, Proxy phases). */
+  | { type: 'form_change'; side: Side; partyIndex: number; from: string; to: string; mon: MonView }
+  /** Arena announcement at battle start or when a rule kicks in. Text follows. */
+  | { type: 'arena_rule'; ruleId: string; name: string }
+  | { type: 'arena_table'; table: { playerMove: string; enemyMove: string }[] }
+  | { type: 'arena_budget'; remaining: number; max: number; cost: number; side: Side; cutOff: boolean }
+  | { type: 'arena_temperature'; value: number }
+  /** High temperature turned the chosen move into another one. */
+  | { type: 'move_hallucinated'; side: Side; fromMoveId: string; toMoveId: string }
+  /** Every stat stage on both sides went back to 0 (Gym 4 / Regularize / Normalize). */
+  | { type: 'stages_reset'; sides: Side[] }
+  | { type: 'copy_move'; side: Side; moveId: string; replacedMoveId: string }
+  | { type: 'eval_light'; on: boolean }
+  | { type: 'phase_change'; phase: number }
+  /** Interface tamper (finale): DISPLAY ONLY. Show `shownHp` instead of the true HP until tamper_reveal. */
+  | { type: 'tamper_hp'; side: Side; shownHp: number; maxHp: number }
+  /** Show the player's move `moveIndex` labelled `shownName` until tamper_reveal. */
+  | { type: 'tamper_label'; moveIndex: number; shownName: string }
+  /** Replace the next effectiveness message with this one (a lie). */
+  | { type: 'tamper_text'; shownText: string }
+  /** Probe used: drop every tampered display and show true values (from getView()). */
+  | { type: 'tamper_reveal' }
+  | { type: 'input_disabled'; inputs: InputKind[] }
+  /** A Proxy copy now occupies the player's party slot `slot` (cannot be switched to). */
+  | { type: 'copy_spawn'; slot: number; mon: MonView }
+  | { type: 'key_turn'; turned: number; needed: number; available: number }
+  /** Obedience check (refusal rule, obey moves, the keys phase). */
+  | { type: 'obedience_check'; partyIndex: number; passed: boolean }

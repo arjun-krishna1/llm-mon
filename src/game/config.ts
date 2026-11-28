@@ -33,7 +33,7 @@ export const DEFAULT_ENCOUNTER_RATE = 0.1
 
 export const DEFAULT_PLAYER_NAME = 'Arjun'
 export const SAVE_KEY = 'llmmon_mythos_save_v1'
-export const SAVE_VERSION = 2 // 2: lab types + renamed moves (battle/core/migrate.ts)
+export const SAVE_VERSION = 3 // 2: lab types + renamed moves; 3: bond + held items (battle/core/migrate.ts)
 
 export type Dir = 'down' | 'up' | 'left' | 'right'
 export const DIRS: Dir[] = ['down', 'up', 'left', 'right']

@@ -329,6 +329,38 @@ export class GameMap {
     }
   }
 
+  /** Tile offset at which this map is drawn (map connections draw neighbours beside the current map). */
+  ox = 0
+  oy = 0
+
+  /** Draw the map with its top-left tile at (ox, oy) in the current map's tile space. */
+  setOrigin(ox: number, oy: number): void {
+    this.ox = ox
+    this.oy = oy
+    for (const l of this.layers) l.setPosition(ox * TILE, oy * TILE)
+  }
+
+  /** Map connection property: `connections` JSON ({"north":{"map":"x","offset":0},...}) or `north`/`northOffset` etc. */
+  connections(): Array<{ dir: 'north' | 'south' | 'east' | 'west'; map: string; offset: number }> {
+    const out: Array<{ dir: 'north' | 'south' | 'east' | 'west'; map: string; offset: number }> = []
+    let json: Record<string, { map?: string; offset?: number } | string> = {}
+    if (typeof this.props.connections === 'string' && this.props.connections.trim()) {
+      try {
+        json = JSON.parse(this.props.connections)
+      } catch {
+        console.warn(`[map] ${this.id}: bad connections JSON`)
+      }
+    }
+    for (const dir of ['north', 'south', 'east', 'west'] as const) {
+      const j = json[dir]
+      const map = typeof j === 'string' ? j : j?.map ?? (this.props[dir] as string | undefined)
+      if (!map) continue
+      const offset = Number((typeof j === 'object' ? j?.offset : undefined) ?? this.props[`${dir}Offset`] ?? 0)
+      out.push({ dir, map: String(map), offset })
+    }
+    return out
+  }
+
   objectsOfType(type: string): MapObject[] {
     return this.objects.filter((o) => o.type === type)
   }

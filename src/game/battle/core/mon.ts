@@ -1,7 +1,8 @@
 // MonInstance helpers: creation, stats, healing, EXP, move learning, field item use.
 
 import type { MonInstance, MoveSlot, Stats } from '../../types.ts'
-import { getItem, getMove, getSpecies } from '../../data/index.ts'
+import { SPECIES, getItem, getMove, getSpecies } from '../../data/index.ts'
+import { defaultBond } from './arena.ts'
 import { STATUSES, isMajorStatus } from '../../data/statuses.ts'
 import type { SpeciesDef } from '../../data/species.ts'
 import { randInt, type Rng } from './rng.ts'
@@ -94,9 +95,75 @@ export function healMon(mon: MonInstance): void {
   for (const slot of mon.moves) slot.pp = getMove(slot.id).pp
 }
 
-/** Model Center heal / white-out heal. Mutates in place. */
+/** Model Center heal / white-out heal. Mutates in place. Each heal adds 1 bond. */
 export function healParty(party: MonInstance[]): void {
-  for (const mon of party) healMon(mon)
+  for (const mon of party) {
+    healMon(mon)
+    addBond(mon, 1)
+  }
+}
+
+// ── bond ─────────────────────────────────────────────────────────────────
+
+/** Current bond (0-255); old mons without the field get a level-based default. */
+export function getBond(mon: MonInstance): number {
+  return mon.bond ?? defaultBond(mon.level)
+}
+
+export function addBond(mon: MonInstance, amount: number): number {
+  mon.bond = Math.max(0, Math.min(255, getBond(mon) + amount))
+  return mon.bond
+}
+
+// ── evolution ────────────────────────────────────────────────────────────
+
+export interface EvolutionContext {
+  /** Badge ids the player owns, e.g. ['gradient', 'likelihood']. */
+  badges?: string[]
+  /** An evolution item being used on the mon. */
+  item?: string
+}
+
+/**
+ * The species this mon would evolve into now, or null. Level conditions are checked
+ * when no item is given; item evolutions only with `ctx.item`. Frozen Weights blocks all.
+ */
+export function evolutionTarget(mon: MonInstance, ctx: EvolutionContext = {}): string | null {
+  if (mon.heldItem === 'frozen_weights' || mon.hp <= 0 && !ctx.item) return null
+  const sp = SPECIES[mon.speciesId]
+  if (!sp) return null
+  for (const e of sp.evolvesTo) {
+    if (!SPECIES[e.to]) continue
+    if (e.item ? e.item !== ctx.item : !!ctx.item) continue
+    if (e.level !== undefined && mon.level < e.level) continue
+    if (e.badge && !(ctx.badges ?? []).includes(e.badge)) continue
+    return e.to
+  }
+  return null
+}
+
+/**
+ * Change species in place. HP keeps the damage taken (max HP grows). Returns the moves
+ * the new species offers right now (its moves at this exact level plus its level-1
+ * moves the mon does not know): teach them with learnMove or the battle's prompt flow.
+ */
+export function evolveMon(mon: MonInstance, toId: string): { from: string; to: string; newMoves: string[] } {
+  const from = mon.speciesId
+  const before = calcStats(mon).hp
+  mon.speciesId = toId
+  const after = calcStats(mon).hp
+  if (mon.hp > 0) mon.hp = Math.min(after, mon.hp + (after - before))
+  const sp = getSpecies(toId)
+  const newMoves = sp.learnset.filter((e) => (e.level === mon.level || e.level === 1) && !knowsMove(mon, e.move)).map((e) => e.move)
+  return { from, to: toId, newMoves: [...new Set(newMoves)] }
+}
+
+/** Give a held item to a mon. Returns the item it was holding before (put that back in the bag). */
+export function giveHeldItem(mon: MonInstance, itemId: string | undefined): string | undefined {
+  const prev = mon.heldItem
+  if (itemId) mon.heldItem = itemId
+  else delete mon.heldItem
+  return prev
 }
 
 export interface LevelUpStep {
@@ -154,6 +221,8 @@ export interface ItemUseResult {
   hpBefore?: number
   hpAfter?: number
   curedStatus?: string
+  /** Evolution item used: the mon has already evolved (play the evolution scene). */
+  evolved?: { from: string; to: string; newMoves: string[] }
 }
 
 /**
@@ -178,6 +247,12 @@ export function applyItemOutsideBattle(itemId: string, mon: MonInstance): ItemUs
       const cured = mon.status
       mon.status = 'none'
       return { ok: true, message: STATUSES[cured].cureText.replace('{name}', name), curedStatus: cured }
+    }
+    case 'evolution': {
+      const to = evolutionTarget(mon, { item: itemId })
+      if (!to) return noEffect
+      const evolved = evolveMon(mon, to)
+      return { ok: true, message: `${name} evolved into ${getSpecies(to).name}!`, evolved }
     }
     default:
       return noEffect

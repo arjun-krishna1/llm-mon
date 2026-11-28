@@ -109,6 +109,17 @@ Ids: `claude_fable`, `gpt_5_5`, `glm`, `hallucihound`, `gemma_4`,
 - Starters were re-generated on magenta from their card art (no card cut-out
   halo). True back views were generated for every species except
   `hallucihound` (enemy-only; its back is a mirrored, enlarged front).
+- **Set 2 (ART-C, the full roster):** `tools/art/sprites/mons2.py`, run by
+  `build.py` after `mons.py`. Sources `tools/art/gen/raw/mon_<id>_front.png` /
+  `_back.png`; prompts (with the previous evolution stage as the design
+  reference) live in `mons2.PROMPTS`. Same file contract. Reduction is
+  `mons2.reduce_mode` (dominant colour per block with a contrast bonus for
+  eyes/gems, k-means palette ≤15 colours, despeckle, re-inked outline), not
+  the box average used for set 1. Proxy (`proxy_mascot`, `proxy_student`,
+  `proxy_needle`, `proxy_ascendant`) is never the player's, so
+  `proxy_ascendant` has a mirrored-front back. Gallery and status of every
+  roster entry: `docs/ART_CREATURES.md`; review sheets
+  `preview/creatures_gallery_3x.png` and `preview/battle_c_<line>_4x.png`.
 - Suggested placement on 240×160: enemy front top-left at (144,4) over
   `platform_enemy` at (112,50); player back top-left at (32,48) over
   `platform_player` at (-8,96).

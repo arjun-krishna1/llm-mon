@@ -1,9 +1,16 @@
 // BATTLE-CORE public API. Import from 'src/game/battle/core' (this file) only.
 
-export { Battle, monView, moveView, type BattleOptions, type BattleView } from './battle.ts'
-export type { ActiveView, BattleEvent, BattleInput, BattlePrompt, DamageSource, MonView, MoveView, Side } from './events.ts'
+export { Battle, monView, moveView, type BattleContext, type BattleOptions, type BattleView } from './battle.ts'
+export { ARENA_RULES, defaultBond, obedienceChance, tokenCost, type ArenaRule, type ArenaRuleId, type ArenaRuleInfo } from './arena.ts'
+export type { ActiveView, ArenaView, BattleEvent, BattleInput, BattlePrompt, DamageSource, InputKind, MonView, MoveView, Side } from './events.ts'
 export {
+  addBond,
   addExp,
+  evolutionTarget,
+  evolveMon,
+  getBond,
+  giveHeldItem,
+  type EvolutionContext,
   applyItemOutsideBattle,
   calcStats,
   createMon,
@@ -34,6 +41,10 @@ export {
   getMove,
   getSpecies,
   getTrainer,
+  ABILITIES,
+  TUTORS,
+  canLearnTutorMove,
+  ROSTER,
   effectiveness,
   typeMultiplier,
   TYPE_IDS,

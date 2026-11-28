@@ -44,12 +44,12 @@ function run(mine: string, trainerId: string, rng: Rng, n = 600) {
   return { win: wins / n, seMine: seMine / n, seHers: seHers / n }
 }
 
-describe('rival Dana', () => {
+describe('rival Yilong', () => {
   for (const [mine, hers] of MATCHUPS) {
-    it(`${mine} Lv8 + catch vs rival_dana_${hers}`, () => {
-      const r = run(mine, `rival_dana_${hers}`, createRng(2024))
-      const re = run(mine, `rival_dana_${hers}_rematch`, createRng(2025))
-      console.log(`${mine} vs ${hers}: win ${(r.win * 100).toFixed(0)}% (rematch ${(re.win * 100).toFixed(0)}%), super effective: you ${(r.seMine * 100).toFixed(0)}% / Dana ${(r.seHers * 100).toFixed(0)}%`)
+    it(`${mine} Lv8 + catch vs rival_yilong_${hers}`, () => {
+      const r = run(mine, `rival_yilong_${hers}`, createRng(2024))
+      const re = run(mine, `rival_yilong_${hers}_rematch`, createRng(2025))
+      console.log(`${mine} vs ${hers}: win ${(r.win * 100).toFixed(0)}% (rematch ${(re.win * 100).toFixed(0)}%), super effective: you ${(r.seMine * 100).toFixed(0)}% / Yilong ${(r.seHers * 100).toFixed(0)}%`)
       expect(r.win).toBeGreaterThanOrEqual(0.62)
       expect(r.win).toBeLessThanOrEqual(0.85)
       expect(re.win).toBeGreaterThanOrEqual(r.win)

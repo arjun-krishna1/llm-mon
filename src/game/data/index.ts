@@ -14,6 +14,7 @@ export * from './items.ts'
 export * from './encounters.ts'
 export * from './trainers.ts'
 export * from './abilities.ts'
+export * from './tutors.ts'
 export { ROSTER, type RosterEntry } from './roster.ts'
 export { LEARNSETS } from './learnsets.ts'
 

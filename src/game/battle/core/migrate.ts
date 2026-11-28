@@ -4,16 +4,19 @@
 // v1 -> v2: the 8 flavour types became lab types and typed moves were renamed
 // (data/moves.ts LEGACY_MOVE_IDS). Types themselves are never stored in a save
 // (they come from the species), so only move ids need mapping.
+// v2 -> v3 (stage 1): mons gain `bond` (default from level) and `heldItem`
+// (unknown ids are dropped). Species ids did not change.
 
 import type { MonInstance, SaveData } from '../../types.ts'
-import { MOVES, SPECIES } from '../../data/index.ts'
+import { ITEMS, MOVES, SPECIES } from '../../data/index.ts'
+import { defaultBond } from './arena.ts'
 import { LEGACY_MOVE_IDS, STRUGGLE_ID } from '../../data/moves.ts'
 import { isMajorStatus } from '../../data/statuses.ts'
 import { calcStats, defaultMovesAt, moveSlot } from './mon.ts'
 import { MAX_LEVEL, STAT_KEYS, expForLevel } from './stats.ts'
 
 /** Save version whose battle data matches the current tables. */
-export const BATTLE_DATA_VERSION = 2
+export const BATTLE_DATA_VERSION = 3
 
 export interface MigrationReport {
   fromVersion: number
@@ -69,6 +72,14 @@ export function migrateMon(mon: MonInstance, fromVersion: number, label = 'mon')
       for (const k of STAT_KEYS) {
         const v = Number(mon.ivs[k])
         mon.ivs[k] = Number.isFinite(v) ? Math.max(0, Math.min(15, Math.floor(v))) : 8
+      }
+      if (typeof mon.bond !== 'number' || !Number.isFinite(mon.bond)) {
+        mon.bond = defaultBond(mon.level)
+        notes.push(`${label}: bond set to ${mon.bond}`)
+      } else mon.bond = Math.max(0, Math.min(255, Math.floor(mon.bond)))
+      if (mon.heldItem !== undefined && !(typeof mon.heldItem === 'string' && ITEMS[mon.heldItem]?.effect.kind === 'held')) {
+        notes.push(`${label}: dropped held item ${String(mon.heldItem)}`)
+        delete mon.heldItem
       }
       const max = calcStats(mon).hp
       if (!Number.isFinite(mon.hp)) mon.hp = max

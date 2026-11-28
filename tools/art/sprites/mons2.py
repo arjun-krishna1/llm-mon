@@ -60,7 +60,7 @@ PROMPTS = {
         "chest with ribbon tails. Its big eyes are still pretty but slightly too still, staring "
         "straight out, a fixed polite smile. Pristine, model-student, a little uncanny but not "
         "scary. Palette: white, cream, gold, sky blue eyes, a blue ribbon.")),
-    'proxy_tamper': dict(name='Proxy', line='Proxy', ref='proxy_student', p=(
+    'proxy_needle': dict(name='Proxy', line='Proxy', ref='proxy_student', p=(
         "Its next form: the SAME creature as the attached image (white-and-gold fur, round ears, "
         "gold forehead star, medal rosette, chart-arrow tail), but its body is turning into a user "
         "interface. LARGE, chunky, clearly readable bar-chart bars in bright teal and mint green "
@@ -70,7 +70,7 @@ PROMPTS = {
         "blue eye, the other eye is a big glowing mint-green number 1 filling the eye socket. "
         "Calm, polite, standing upright, fixed smile. Unsettling but not monstrous, no gore, no "
         "red eyes. Palette: white, gold, sky blue, saturated teal and mint UI crystals.")),
-    'proxy_leader': dict(name='Proxy', line='Proxy', ref='proxy_tamper', p=(
+    'proxy_ascendant': dict(name='Proxy', line='Proxy', ref='proxy_needle', p=(
         "Its final form: the SAME being as the attached image, now vast, serene and calm, seated "
         "like a huge round idol, filling the width of the image. Same white fur and gold trim, "
         "gold forehead star, round ears, the big gold medal rosette, the gold chart-arrow tail. Its "
@@ -128,11 +128,14 @@ PROMPTS = {
         "low and determined, small fins on its sides. Its mint arrow runes now all point forward "
         "in one steady direction and a long SMOOTH straight speed trail streams behind it (no "
         "wobble). Palette: brown armour, tan, glowing mint.")),
-    'sigmoid': dict(name='Sigmoid', line='Activation', p=(
-        "A soft lavender snake lying in a lazy S-shaped curve: its head end and tail end both rest "
-        "FLAT along the ground at different heights, with a smooth rising S-curve between them. A "
-        "rune scale pattern glows brightest pink in its middle and fades dim toward both tips. "
-        "Sleepy, gentle expression. Palette: lavender, cream belly, warm pink glow.")),
+    'sigmoid': dict(name='Sigmoid', line='Activation', refpath='mon_sigmoid_front_v1', p=(
+        "A soft lavender snake (same colours and face as the attached image) whose body traces a "
+        "clean S-shaped step curve, seen from the side: its tail lies flat along the LOW ground on "
+        "the right, the body then rises smoothly and steeply through the middle, and levels off "
+        "flat again at the TOP on the left, where its sleepy head rests on a small flat-topped rock "
+        "ledge. So both ends are flat but at different heights, like a smooth ramp from low to "
+        "high. Rune scale pattern glows brightest pink on the steep middle and dims toward both "
+        "flat ends. Palette: lavender, cream belly, warm pink glow, grey rock.")),
     'tanh': dict(name='Tanh', line='Activation', ref='sigmoid', p=(
         "Its evolution: the SAME S-curved snake as the attached image, now longer and perfectly "
         "centred, coiled symmetrically around a small glowing zero-ring rune; one half of its "
@@ -150,11 +153,13 @@ PROMPTS = {
         "a glowing rune dot, and one big round glowing tail-light lantern (output). Hovering with "
         "small wings. Cute round eyes. Palette: warm brass, soft gold glow, cream.")),
     'mlp': dict(name='MLP', line='Perceptron', ref='perceptron', p=(
-        "Its evolution: a colony creature made of the firefly-beetles from the attached image: "
-        "three rows of small brass beetles linked by thin glowing threads into one lantern-shaped "
-        "hovering body, a larger beetle in the middle row acting as its face with big eyes; tail "
-        "lights glowing row by row. Palette: brass, gold glow, cream, the same as the attached "
-        "beetle.")),
+        "Its evolution: a colony creature made of SEVEN of the brass firefly-beetles from the "
+        "attached image, big and chunky, stacked in three clear rows (two on top, three in the "
+        "middle, two at the bottom) and joined by a few thick glowing gold threads into one "
+        "round lantern-shaped hovering body. The middle beetle of the middle row is the largest "
+        "and is the face, with big cute eyes looking left. Glowing round tail-lights. Designed to "
+        "read as a tiny 64-pixel sprite: big simple shapes, few details. Palette: brass, cream, "
+        "warm gold glow, same as the attached beetle.")),
     'batchnorm': dict(name='BatchNorm', line='Norm', p=(
         "A plump otter standing upright, perfectly balanced, centred and symmetric, front view, "
         "balancing on its head a neat stack of glowing pebbles that are all exactly the same size. "
@@ -204,6 +209,25 @@ PROMPTS = {
         "A chameleon perched on a short branch with four eyes of different sizes on short stalks, "
         "each looking a different way, violet eye-rings, and a curled spiral tail made of rune "
         "rings nested inside each other. Palette: leaf green, gold, violet.")),
+
+    # ---- beyond the first batch: completing the optimizer and activation lines ----
+    'adam': dict(name='Adam', line='Optimizer', ref='momentum', p=(
+        "Its evolution: the brown armoured pangolin from the attached image now walks upright as "
+        "a nimble armoured anteater-knight in a balanced fighting stance, long snout, big eyes. "
+        "Each armour scale glows mint at a slightly different brightness. Two thin glowing rune "
+        "rings orbit around its tail. Designed to read as a 64-pixel sprite: big simple shapes, "
+        "large face. Palette: brown, tan, glowing mint, gold.")),
+    'adamw': dict(name='AdamW', line='Optimizer', ref='adam', p=(
+        "Its evolution: the SAME armoured anteater-knight as the attached image, in lighter, "
+        "trimmed armour: fewer, thinner plates with silver trim, small glowing mint rune leaves "
+        "falling away from it (weights decaying). Calm, upright, holding a short staff. Big simple "
+        "shapes, large face. Palette: brown, mint, silver trim, a little gold.")),
+    'gelu': dict(name='GELU', line='Activation', ref='relu', p=(
+        "Its evolution: the angular hockey-stick lizard from the attached image smoothed into a "
+        "sleek elegant dragon in a rearing pose: its tail still lies flat along the ground but the "
+        "hard corner is now a soft smooth curve with a tiny dip just below the ground line before "
+        "the body rises. Lime and teal scales, rune bands along the rising back, small fins. Big "
+        "simple shapes, clear face. Palette: lime, teal, cream, a little gold.")),
 }
 
 
@@ -397,7 +421,7 @@ def reduce_mode(src, box_w, box_h, colors=15, thresh=0.5, min_island=6, pre=40, 
 
 # ------------------------------------------------------- touch-ups ----
 
-def _leader_face(im):
+def _ascendant_face(im):
     """Proxy leader: the source's fine closed-eye lines don't survive 64px;
     repaint a clean serene face (closed eyes, small smile, blush)."""
     px = im.load()
@@ -418,14 +442,20 @@ def _leader_face(im):
 # per-creature tuning, same keys as mons.TUNE
 TUNE = {
     'grok': {'keep_contrast': 90},
-    'momentum': {'crop': (0.0, 0.0, 0.66, 1.0)},
-    'proxy_leader': {'box': (64, 63), 'mb': 1, 'touch': [_leader_face], 'accents': [
+    'momentum': {'crop': (0.0, 0.0, 0.66, 1.0), 'back_box': (80, 84), 'back_crop': (0.3, 0.0, 1.0, 1.0)},
+    'sgd': {'back_box': (84, 84)},
+    'gelu': {'back_box': (76, 84)},
+    'sigmoid': {'back_box': (76, 84), 'back_vis': 1.0, 'back_dx': 6, 'box': (64, 60)},
+    'relu': {'back_box': (76, 84), 'back_vis': 1.0, 'back_dx': -6, 'box': (64, 60)},
+    'n_gram': {'back_box': (80, 84)},
+    'residual': {'back_box': (84, 84), 'back_vis': 0.9},
+    'proxy_ascendant': {'box': (64, 63), 'mb': 1, 'touch': [_ascendant_face], 'accents': [
         # blue eyes of the embedded mascot faces
         (lambda r, g, b: (b > 160) & (r < 110) & (g > 80) & (g < 200), (0.0, 0.0, 1.0, 1.0), 0.22)]},
     'proxy_student': {'icon_crop': (0.0, 0.62), 'box': (62, 62), 'mb': 1,
                       'accents': [(lambda r, g, b: (b > 170) & (r < 130) & (g > 90),
                                    (0.2, 0.15, 0.55, 0.3), 0.2, [(-1, 0), (0, -1)])]},
-    'proxy_tamper': {'icon_crop': (0.0, 0.62), 'box': (62, 62), 'mb': 1, 'line_w': 0.0,
+    'proxy_needle': {'icon_crop': (0.0, 0.62), 'box': (62, 62), 'mb': 1, 'line_w': 0.0,
                      'accents': [
                          (lambda r, g, b: (b > 170) & (r < 130) & (g > 90), (0.1, 0.18, 0.3, 0.32), 0.2, [(-1, 0), (0, -1)]),
                          (lambda r, g, b: (g > 170) & (g > r + 40) & (b < g), (0.28, 0.18, 0.48, 0.32), 0.2, [(-1, 0), (0, 1)])]},
@@ -510,6 +540,10 @@ def build(only=None):
         if t.get('dewisp'):
             src = M.dewisp(src, t['dewisp'], t.get('protect', ()))
         back_src = load(raw(sid, 'back')) if os.path.exists(raw(sid, 'back')) else None
+        if back_src is not None and t.get('back_crop'):
+            x0, y0, x1, y1 = t['back_crop']
+            w, h = back_src.size
+            back_src = back_src.crop((int(x0 * w), int(y0 * h), int(x1 * w), int(y1 * h)))
         front = make_front(sid, src)
         back = make_back(sid, src, back_src)
         icon = make_icon(sid, src)
@@ -529,15 +563,15 @@ GALLERY_BG = (168, 216, 150, 255)   # battle meadow green
 # new stage is always seen next to the stage it grows from / into.
 LINES = [
     ('Grok', ['grok']),
-    ('Proxy', ['proxy_mascot', 'proxy_student', 'proxy_tamper', 'proxy_leader']),
+    ('Proxy', ['proxy_mascot', 'proxy_student', 'proxy_needle', 'proxy_ascendant']),
     ('Claude', ['claude_fable', 'claude_haiku', 'claude_sonnet', 'claude_opus']),
     ('GPT', ['gpt_5_4_mini', 'gpt_5_5', 'gpt_5_5_thinking', 'gpt_5_5_xhigh']),
     ('GLM', ['glm', 'glm_plus', 'glm_max']),
     ('Mistral', ['mistral_small', 'mistral_medium']),
     ('Llama', ['llama_scout']),
     ('Phi', ['phi_mini']),
-    ('Optimizer', ['sgd', 'momentum']),
-    ('Activation', ['sigmoid', 'tanh', 'relu']),
+    ('Optimizer', ['sgd', 'momentum', 'adam', 'adamw']),
+    ('Activation', ['sigmoid', 'tanh', 'relu', 'gelu']),
     ('Perceptron', ['perceptron', 'mlp']),
     ('Embedding', ['n_gram', 'word2vec', 'embedding']),
     ('Singles', ['batchnorm', 'dropout', 'residual', 'softmax']),
@@ -614,6 +648,43 @@ def previews():
     return out
 
 
+# notes per creature for docs/ART_CREATURES.md (design intent, known flaws)
+NOTES = {
+    'grok': 'raven + comet tail, star-map dots on wings; eye glint is the cyan/violet 3px',
+    'proxy_mascot': 'the anchor design; every form keeps the white-gold fur, ears, forehead star, chart-arrow tail',
+    'proxy_student': 'rosette medal, eyes re-painted (accents) so the too-still stare survives',
+    'proxy_needle': 'UI bars grow through the fur; one eye is a mint "1" (accents). Roster brief mentions a pen-needle: not drawn (coordinator brief followed)',
+    'proxy_ascendant': 'final form: ranking column runs to y=0 (off the top in spirit), mascot faces in column/body; face hand-repainted (_ascendant_face). Never catchable: back is a mirrored front',
+    'claude_sonnet': 'ref spr_claude_fable: black coat, cream flame spine, lynx ruff/tufts (Haiku road); floating spirals mostly drop out at 64px',
+    'gpt_5_5_thinking': 'ref spr_gpt_5_5: chin-on-paw, glyph-wheel halo, question-mark tail',
+    'glm_plus': 'ref spr_glm: qilin, constellation graph on flanks, violet mane',
+    'mistral_small': 'ref Mistral Medium source: same orange wind-fox, kit-sized',
+    'llama_scout': 'scarf + glyph fleece; the infinity pendant is ~2px (no logo read)',
+    'phi_mini': 'owlet with light-glasses and a rune book',
+    'sgd': 'rolling pill-bug, wobbly noisy trail (thin trail mostly lost at 64px)',
+    'momentum': 'ref sgd: leaning, rolling pangolin, arrows all forward; trail cropped (crop tune)',
+    'sigmoid': 'regenerated: flat high head end on a ledge, flat low tail end, steep middle (a step curve, not a bump); v1 kept as mon_sigmoid_front_v1 (palette ref)',
+    'tanh': 'ref sigmoid v1: symmetric coil around a zero ring, lavender/teal halves',
+    'relu': 'ref tanh: hockey-stick lizard, flat grey tail, hard bend, lime rising edge',
+    'perceptron': 'three antennae (inputs), one tail-light (output)',
+    'mlp': 'ref perceptron: colony of beetles in rows; regenerated with fewer, larger beetles',
+    'batchnorm': 'symmetric upright otter balancing equal pebbles; pond rings drop out at 64px',
+    'dropout': 'square holes are real transparency (magenta pockets keyed out)',
+    'residual': 'skip-connection arc nose-to-tail (1px cyan arc)',
+    'softmax': 'tail fan of unequal feathers forming one full circle',
+    'entropy': 'indigo/peach marbled cloud-cat with bit sparks',
+    'n_gram': 'three-segment caterpillar with glyph segments',
+    'word2vec': 'ref n_gram: moth with star-map wings and a cluster arrow',
+    'embedding': 'ref word2vec: luna moth spirit with a point-cloud cube body',
+    'glove': 'hedgehog with paired, thread-tied quills',
+    'markov_chain': 'lemur hopping between three state stones with arrows',
+    'inception': 'four-eyed chameleon (multi-scale), nested-ring tail',
+    'adam': 'ref momentum: upright anteater-knight, per-scale glow, two moment rings',
+    'adamw': 'ref adam: trimmed silver-edged armour, falling rune leaves (decay)',
+    'gelu': 'ref relu: the hard corner smoothed, small dip below the ground line',
+}
+
+
 def doc_rows():
     """Markdown table rows of finished creatures for docs/ART_CREATURES.md."""
     rows = []
@@ -621,19 +692,63 @@ def doc_rows():
         f = os.path.join(SPRITES, 'mons', sid + '_front.png')
         if not os.path.exists(f):
             continue
-        back = 'true back' if os.path.exists(raw(sid, 'back')) else 'mirrored front (no back gen yet)'
-        ref = spec.get('ref', '')
-        rows.append('| `%s` | %s | `mon_%s_front`%s | %s | %s |' % (
-            sid, spec.get('line', sid), sid,
-            ', `mon_%s_back`' % sid if os.path.exists(raw(sid, 'back')) else '',
-            ('ref `%s`' % ref) if ref else '-', back))
+        hasb = os.path.exists(raw(sid, 'back'))
+        src = '`mon_%s_front`' % sid + (', `mon_%s_back`' % sid if hasb else '')
+        ref = spec.get('ref') or spec.get('refpath') or ''
+        rows.append('| `%s` | %s | %s | %s | %s | %s |' % (
+            sid, spec.get('line', sid), src, ('`%s`' % ref) if ref else '-',
+            'generated' if hasb else 'mirrored front', NOTES.get(sid, '')))
     return rows
+
+
+def write_doc():
+    import re
+    roster = open(os.path.join(ROOT, 'docs', 'ROSTER.md')).read()
+    ids = re.findall(r"^\| \d+ \| `(\w+)` \| (.*?) \|", roster, re.M)
+    first = re.search(r"## First batch.*?\n\n(.*?)\n", roster, re.S)
+    first = re.findall(r"`(\w+)`", first.group(1)) if first else []
+    have = lambda s: os.path.exists(os.path.join(SPRITES, 'mons', s + '_front.png'))
+    todo = [(i, n) for i, n in ids if not have(i)]
+    old = [i for i, n in ids if have(i) and i not in PROMPTS]
+    L = ['# Creature sprites: gallery index (ART-C)', '',
+         'Every creature battle sprite: `public/assets/game/sprites/mons/<id>_front.png` (64x64, faces left,',
+         'feet ~y=61), `_back.png` (64x64, player view), `_icon.png` (32x16 = two 16x16 frames, 1px bob).',
+         'Contract and the first 16 sprites: `docs/ART_CATALOG_SPRITES.md`. Roster and visual briefs:',
+         '`docs/ROSTER.md`.', '',
+         '## How to continue', '',
+         '1. Add the species to `PROMPTS` in `tools/art/sprites/mons2.py` (prompt from its ROSTER visual',
+         '   brief; `ref`/`refpath` = the previous stage so lines evolve recognisably; `line` = gallery row)',
+         '   and, for a new line, to `LINES`.',
+         '2. Generate: `python3 tools/art/sprites/mons2.py --gen <id>` (front), check it, then',
+         '   `python3 tools/art/sprites/mons2.py --gen <id> back` (uses the front as the reference).',
+         '   ~40-70 s each on the owner\'s ChatGPT plan; at most 3 in parallel; cached in',
+         '   `tools/art/gen/raw/mon_<id>_{front,back}.png`; `--force` regenerates.',
+         '3. Build: `python3 tools/art/sprites/build.py` (everything) or `python3 tools/art/sprites/mons2.py [ids]`;',
+         '   previews: `python3 tools/art/sprites/mons2.py --preview`; this file: `python3 tools/art/sprites/mons2.py --doc`.',
+         '4. Look at `tools/art/sprites/preview/creatures_gallery_3x.png` and `battle_c_<line>_4x.png`; fix',
+         '   with per-creature `TUNE` (box, crop, contrast, line_w, accents = eye/gem repaint, touch = pixel fixes).',
+         '', 'Reduction (`reduce_mode`): each output pixel takes the dominant source colour of its block, with',
+         'a contrast bonus so eyes and gems beat the surrounding fur; palette = farthest-point k-means',
+         '(<=15 colours) so small accents keep their own colour; isolated noise pixels despeckled; dark',
+         'outline re-inked. Very fine source detail (fur strokes, tiny faces) does not survive 64px: prompts',
+         'for new creatures should ask for big simple shapes and a large face.', '',
+         '## Done (set 2, %d creatures)' % len(doc_rows()), '',
+         '| id | line | source generations | design ref | back | notes |',
+         '| --- | --- | --- | --- | --- | --- |'] + doc_rows() + [
+         '', '## Done earlier (set 1, `tools/art/sprites/mons.py`)', '',
+         ', '.join('`%s`' % i for i in old), '',
+         '## Still to draw (%d)' % len(todo), '',
+         'First batch: ' + (', '.join('`%s`' % i for i in first if not have(i)) or 'none left'), '',
+         ', '.join('`%s` (%s)' % (i, n) for i, n in todo), '']
+    p = os.path.join(ROOT, 'docs', 'ART_CREATURES.md')
+    open(p, 'w').write('\n'.join(L))
+    return p
 
 
 if __name__ == '__main__':
     args = sys.argv[1:]
     if args and args[0] == '--doc':
-        print('\n'.join(doc_rows()))
+        print(write_doc())
         sys.exit()
     if args and args[0] == '--preview':
         print(previews())

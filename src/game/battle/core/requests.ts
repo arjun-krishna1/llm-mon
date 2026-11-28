@@ -42,12 +42,16 @@ export function trainerBattleRequest(trainerId: string, rng: Rng, opts: Partial<
   return {
     kind: 'trainer',
     enemyParty,
-    trainer: { id: t.id, name: `${t.trainerClass} ${t.name}`, sprite: t.sprite, loseText: t.loseText, prize: t.prize },
+    trainer: { id: t.id, name: t.trainerClass ? `${t.trainerClass} ${t.name}` : t.name, sprite: t.sprite, loseText: t.loseText, prize: t.prize },
     canRun: false,
     canCatch: false,
-    background: 'grass',
-    music: 'battle_trainer',
+    background: t.background ?? 'grass',
+    music: t.music ?? 'battle_trainer',
     ...(t.aiRandomness !== undefined ? { aiRandomness: t.aiRandomness } : {}),
+    ...(t.aiTier ? { aiTier: t.aiTier } : {}),
+    ...(t.items ? { trainerItems: { ...t.items } } : {}),
+    ...(t.arena ? { arena: t.arena.map((r) => ({ id: r.id, params: r.params ? { ...r.params } : undefined })) } : {}),
+    ...(t.introText ? { introText: t.introText } : {}),
     ...opts,
   }
 }

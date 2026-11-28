@@ -22,6 +22,8 @@ export interface AiContext {
   selfHpFraction: number
   /** Chance to pick a random usable move (trainers only). Default 0.1. */
   randomness?: number
+  /** Smart/leader/champion tiers: no set-up when the target is nearly down; finish it instead. */
+  setupAware?: boolean
 }
 
 /** Returns the chosen move index, or -1 for Struggle (no usable moves). */
@@ -52,6 +54,11 @@ function scoreOption(opt: AiMoveOption, ctx: AiContext): number {
   }
   if (!opt.effectUseful) return -50
   if (move.healFraction) return ctx.selfHpFraction < 0.5 ? 90 : -20
+  if (ctx.setupAware) {
+    const best = Math.max(0, ...ctx.options.map((o) => o.expectedDamage))
+    if (best >= ctx.targetHp) return -10 // a KO is on the table: take it
+    if (ctx.selfHpFraction < 0.4) return 0 // too late to set up
+  }
   // Set-up / debuff moves are worth it early, less so once the target is low.
   return ctx.selfHpFraction > 0.5 ? 25 : 10
 }

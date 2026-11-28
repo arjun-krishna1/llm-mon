@@ -129,8 +129,30 @@ export class Actor {
     return new Promise((r) => (this.resolveStep = r))
   }
 
+  /** Move `n` tiles in a straight line at `frames` per tile with an optional arc of `height` px (grapple zip). */
+  zip(dir: Dir, n: number, frames: number, height = 0): Promise<void> {
+    this.settlePending()
+    this.facing = dir
+    const v = DIR_VEC[dir]
+    this.fromX = this.tx
+    this.fromY = this.ty
+    this.tx += v.x * n
+    this.ty += v.y * n
+    this.moving = true
+    this.dist = TILE * n
+    this.moved = 0
+    this.hopFrames = frames * n
+    this.speed = TILE / frames
+    this.hopT = height > 0 ? 0 : -1
+    this.zipHeight = height
+    return new Promise((r) => (this.resolveStep = r))
+  }
+
+  private zipHeight = 0
+
   /** Two-tile ledge hop with an arc. */
   hop(dir: Dir): Promise<void> {
+    this.zipHeight = 0
     this.settlePending()
     this.facing = dir
     const v = DIR_VEC[dir]
@@ -220,7 +242,7 @@ export class Actor {
     if (this.hopT >= 0) {
       this.hopT++
       const k = this.hopT / this.hopFrames
-      this.lift = Math.round(Math.sin(Math.PI * Math.min(1, k)) * LEDGE_HEIGHT)
+      this.lift = Math.round(Math.sin(Math.PI * Math.min(1, k)) * (this.zipHeight || LEDGE_HEIGHT))
     }
     if (this.moved < this.dist) return false
     this.moving = false
@@ -242,7 +264,13 @@ export class Actor {
   }
 
   /** Walk-cycle column: stand → A → stand → B. Running holds the stride longer (¾ of the tile). */
+  /** Hold the standing frame while moving (ice slides, conveyors, grapple zips). */
+  holdStand = false
+  /** Extra lift in px (surfing bob, grapple arc), added to the hop lift. */
+  extraLift = 0
+
   private column(): number {
+    if (this.holdStand) return 0
     if (this.moving) {
       const half = this.dist === TILE * 2 ? TILE : TILE / 2
       if (this.hopT >= 0) return this.hopT < this.hopFrames / 2 ? 1 + this.foot : 0
@@ -263,7 +291,7 @@ export class Actor {
     const y = this.py + TILE
     // running: 1px stride bob while the leg is out
     const bob = this.running && !this.runTexKey && this.moved < (TILE * 3) / 4 ? 1 : 0
-    this.sprite.setPosition(x, y - this.lift - bob)
+    this.sprite.setPosition(x, y - this.lift - bob - this.extraLift)
     this.sprite.setDepth(DEPTH.charBase + y + (this.id === 'player' ? 0.5 : 0))
     this.shadow.setPosition(x, y - 3)
     this.shadow.setVisible(!this.hidden && (this.lift > 0 || this.shadowAlways))
