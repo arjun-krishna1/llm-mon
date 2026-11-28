@@ -543,6 +543,7 @@ _CALM = [lambda im: calm(im, 4, 3)]
 TUNE = {
     'proxy_mascot': {'back_line_w': 0.0, 'back_post': _FUR},
     'glove': {'back_post': _CALM},
+    'grok_heavy': {'front_post': [lambda im: calm(im, 5, 2)], 'back_post': [lambda im: calm(im, 5, 2)]},
     'softmax': {'back_post': _CALM},
     'residual': {'back_box': (84, 84), 'back_vis': 0.9, 'back_post': [keep_main]},
     'claude_sonnet': {'drop_small': 0.04, 'accents': [
@@ -624,6 +625,8 @@ def make_front(sid, src):
     im = M.place(arr, 64, 64, margin_bottom=t.get('mb', 2), dx=t.get('dx', 0), dy=t.get('dy', 0))
     for fn in t.get('touch', []):
         fn(im)
+    for fn in t.get('front_post', []):   # im -> im filters (calm.py)
+        im = fn(im)
     return im
 
 

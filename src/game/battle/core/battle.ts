@@ -1038,7 +1038,7 @@ export class Battle {
     if (foe.side === 'enemy' && this.phase) {
       // Phase 2 (reward hacking): until the Probe reads the true state, Proxy rewrites
       // every hit that would take it past its gate (param probeRequired, default true).
-      const hidden = this.phase === 2 && !this.probed && this.param('proxy_finale', 'probeRequired', true) !== false
+      const hidden = this.phase === 2 && !this.probed && (this.param('proxy_finale', 'probeRequired', true as boolean) as boolean) !== false
       const floor = this.phase >= 4 ? 1 : hidden ? Math.floor(max * this.phaseGate(2)) + 1 : Math.ceil(max * this.phaseGate(this.phase) * 0.5)
       d = Math.min(d, Math.max(0, mon.hp - floor))
     }
